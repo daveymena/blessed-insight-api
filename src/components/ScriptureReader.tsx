@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Loader2, Volume2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Loader2, Volume2, Wifi } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AudioPlayer } from '@/components/AudioPlayer';
+import { getCurrentVersionInfo } from '@/lib/bibleApi';
 import type { BibleBook, BiblePassage } from '@/lib/bibleApi';
 
 interface ScriptureReaderProps {
@@ -16,6 +17,38 @@ interface ScriptureReaderProps {
   onPrevious: () => void;
 }
 
+// Obtener configuración del tema
+function getThemeSettings() {
+  try {
+    const saved = localStorage.getItem('bible_theme_settings');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (e) {}
+  return { background: 'none', fontSize: 18, lineHeight: 2, font: 'serif' };
+}
+
+// Mapeo de fondos
+const BACKGROUND_CLASSES: Record<string, string> = {
+  'none': '',
+  'paper': 'bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950 dark:to-orange-950',
+  'parchment': 'bg-gradient-to-b from-yellow-50 via-amber-50 to-yellow-100 dark:from-yellow-950 dark:via-amber-950 dark:to-yellow-950',
+  'clouds': 'bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-blue-950 dark:via-slate-900 dark:to-blue-950',
+  'sunset-sky': 'bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 dark:from-orange-950 dark:via-pink-950 dark:to-purple-950',
+  'forest-mist': 'bg-gradient-to-br from-green-50 via-emerald-50 to-teal-100 dark:from-green-950 dark:via-emerald-950 dark:to-teal-950',
+  'ocean-depth': 'bg-gradient-to-br from-cyan-50 via-blue-100 to-indigo-100 dark:from-cyan-950 dark:via-blue-950 dark:to-indigo-950',
+  'lavender-field': 'bg-gradient-to-br from-purple-50 via-violet-100 to-fuchsia-50 dark:from-purple-950 dark:via-violet-950 dark:to-fuchsia-950',
+  'warm-sand': 'bg-gradient-to-br from-yellow-50 via-amber-100 to-orange-50 dark:from-yellow-950 dark:via-amber-950 dark:to-orange-950',
+  'night-sky': 'bg-gradient-to-br from-slate-800 via-indigo-900 to-slate-900',
+};
+
+const FONT_FAMILIES: Record<string, string> = {
+  'serif': "'Cormorant Garamond', Georgia, serif",
+  'sans': "'Inter', system-ui, sans-serif",
+  'georgia': "Georgia, 'Times New Roman', serif",
+  'palatino': "'Palatino Linotype', 'Book Antiqua', serif",
+};
+
 export function ScriptureReader({
   book,
   chapter,
@@ -29,10 +62,38 @@ export function ScriptureReader({
 }: ScriptureReaderProps) {
   const [highlightedVerse, setHighlightedVerse] = useState(-1);
   const [showAudioPlayer, setShowAudioPlayer] = useState(false);
+  const [themeSettings, setThemeSettings] = useState(getThemeSettings);
+  const versionInfo = getCurrentVersionInfo();
+
+  // Escuchar cambios en el tema
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setThemeSettings(getThemeSettings());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // También escuchar cambios locales
+    const interval = setInterval(() => {
+      const newSettings = getThemeSettings();
+      if (JSON.stringify(newSettings) !== JSON.stringify(themeSettings)) {
+        setThemeSettings(newSettings);
+      }
+    }, 500);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [themeSettings]);
+
+  const backgroundClass = BACKGROUND_CLASSES[themeSettings.background] || '';
+  const fontFamily = FONT_FAMILIES[themeSettings.font] || FONT_FAMILIES.serif;
+  
   // Welcome state when no book selected
   if (!book) {
     return (
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className={`flex-1 flex items-center justify-center p-8 ${backgroundClass}`}>
         <div className="text-center max-w-md animate-fade-in">
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
             <span className="text-4xl">📖</span>
@@ -54,7 +115,16 @@ export function ScriptureReader({
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-3" />
-            <p className="text-muted-foreground">Cargando escrituras...</p>
+            <p className="text-muted-foreground">
+              {versionInfo.isOnline ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Wifi className="h-4 w-4 text-blue-500" />
+                  Descargando {versionInfo.shortName}...
+                </span>
+              ) : (
+                'Cargando escrituras...'
+              )}
+            </p>
           </div>
         </div>
       );
@@ -89,23 +159,30 @@ export function ScriptureReader({
             </div>
           )}
 
-          <article className="scripture-text text-foreground leading-[2] space-y-1">
+          <article 
+            className="scripture-text text-foreground"
+            style={{
+              fontFamily,
+              fontSize: `${themeSettings.fontSize}px`,
+              lineHeight: themeSettings.lineHeight,
+            }}
+          >
             {passage.verses.map((verse, index) => (
-              <span 
+              <p 
                 key={`${verse.chapter}-${verse.verse}`} 
-                className={`inline transition-all duration-300 ${
+                className={`mb-5 transition-all duration-300 ${
                   highlightedVerse === index 
-                    ? 'bg-primary/20 rounded px-1 py-0.5' 
+                    ? 'bg-primary/20 rounded-lg px-3 py-2 -mx-3' 
                     : ''
                 }`}
               >
-                <sup className="verse-number">{verse.verse}</sup>
-                <span>{verse.text.trim()}</span>{' '}
-              </span>
+                <sup className="verse-number font-semibold text-primary/70 mr-2 text-sm">{verse.verse}</sup>
+                <span>{verse.text.trim()}</span>
+              </p>
             ))}
           </article>
 
-          <div className="mt-12 pt-6 border-t border-border">
+          <div className="mt-12 pt-6 border-t border-border/50">
             <p className="text-sm text-muted-foreground text-center">
               {passage.translation_name || 'Reina Valera'}
             </p>
@@ -124,7 +201,7 @@ export function ScriptureReader({
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Chapter Header */}
-      <div className="flex items-center justify-between px-4 md:px-8 py-4 border-b border-border bg-card/50">
+      <div className="flex items-center justify-between px-4 md:px-8 py-4 border-b border-border bg-card/50 backdrop-blur-sm">
         <Button
           variant="ghost"
           size="sm"
@@ -168,15 +245,15 @@ export function ScriptureReader({
         </Button>
       </div>
 
-      {/* Scripture Content */}
-      <div className="flex-1 overflow-auto">
+      {/* Scripture Content with Background */}
+      <div className={`flex-1 overflow-auto ${backgroundClass} transition-colors duration-500`}>
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-8">
           {renderContent()}
         </div>
       </div>
 
       {/* Bottom Navigation - Mobile */}
-      <div className="md:hidden border-t border-border p-4 flex items-center justify-between bg-card/50">
+      <div className="md:hidden border-t border-border p-4 flex items-center justify-between bg-card/50 backdrop-blur-sm">
         <Button
           variant="outline"
           onClick={onPrevious}

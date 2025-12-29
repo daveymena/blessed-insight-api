@@ -1,12 +1,13 @@
 // Servicio de Text-to-Speech para lectura de la Biblia
-// Usa Web Speech API (gratis, integrado en navegadores)
+// Soporta: Web Speech API (local) y Edge TTS (voces naturales de Microsoft)
 
 export interface VoiceOption {
   id: string;
   name: string;
   lang: string;
   gender: 'male' | 'female' | 'unknown';
-  native: SpeechSynthesisVoice;
+  provider: 'browser' | 'edge';
+  native?: SpeechSynthesisVoice;
 }
 
 export interface SpeechSettings {
@@ -14,57 +15,81 @@ export interface SpeechSettings {
   pitch: number;     // 0 - 2 (tono)
   volume: number;    // 0 - 1
   voiceId: string;
+  provider: 'browser' | 'edge';
 }
 
 const DEFAULT_SETTINGS: SpeechSettings = {
-  rate: 0.9,
+  rate: 0.95,
   pitch: 1,
   volume: 1,
-  voiceId: '',
+  voiceId: 'es-ES-AlvaroNeural',
+  provider: 'edge',
 };
+
+// Voces de Edge TTS (Microsoft) - Muy naturales y gratuitas
+const EDGE_VOICES: VoiceOption[] = [
+  // Español España
+  { id: 'es-ES-AlvaroNeural', name: 'Álvaro (España)', lang: 'es-ES', gender: 'male', provider: 'edge' },
+  { id: 'es-ES-ElviraNeural', name: 'Elvira (España)', lang: 'es-ES', gender: 'female', provider: 'edge' },
+  // Español México
+  { id: 'es-MX-JorgeNeural', name: 'Jorge (México)', lang: 'es-MX', gender: 'male', provider: 'edge' },
+  { id: 'es-MX-DaliaNeural', name: 'Dalia (México)', lang: 'es-MX', gender: 'female', provider: 'edge' },
+  // Español Argentina
+  { id: 'es-AR-TomasNeural', name: 'Tomás (Argentina)', lang: 'es-AR', gender: 'male', provider: 'edge' },
+  { id: 'es-AR-ElenaNeural', name: 'Elena (Argentina)', lang: 'es-AR', gender: 'female', provider: 'edge' },
+  // Español Colombia
+  { id: 'es-CO-GonzaloNeural', name: 'Gonzalo (Colombia)', lang: 'es-CO', gender: 'male', provider: 'edge' },
+  { id: 'es-CO-SalomeNeural', name: 'Salomé (Colombia)', lang: 'es-CO', gender: 'female', provider: 'edge' },
+  // Inglés
+  { id: 'en-US-GuyNeural', name: 'Guy (US)', lang: 'en-US', gender: 'male', provider: 'edge' },
+  { id: 'en-US-JennyNeural', name: 'Jenny (US)', lang: 'en-US', gender: 'female', provider: 'edge' },
+  { id: 'en-GB-RyanNeural', name: 'Ryan (UK)', lang: 'en-GB', gender: 'male', provider: 'edge' },
+  // Portugués
+  { id: 'pt-BR-AntonioNeural', name: 'Antonio (Brasil)', lang: 'pt-BR', gender: 'male', provider: 'edge' },
+  { id: 'pt-BR-FranciscaNeural', name: 'Francisca (Brasil)', lang: 'pt-BR', gender: 'female', provider: 'edge' },
+];
 
 class SpeechService {
   private synth: SpeechSynthesis;
-  private voices: VoiceOption[] = [];
+  private browserVoices: VoiceOption[] = [];
   private settings: SpeechSettings;
-  private currentUtterance: SpeechSynthesisUtterance | null = null;
+  private currentAudio: HTMLAudioElement | null = null;
   private isPlaying = false;
   private isPaused = false;
   private onStateChange?: (state: 'playing' | 'paused' | 'stopped') => void;
   private onVerseChange?: (verseIndex: number) => void;
+  private audioCache = new Map<string, string>();
 
   constructor() {
     this.synth = window.speechSynthesis;
     this.settings = this.loadSettings();
-    this.loadVoices();
+    this.loadBrowserVoices();
     
-    // Las voces pueden cargar de forma asíncrona
     if (this.synth.onvoiceschanged !== undefined) {
-      this.synth.onvoiceschanged = () => this.loadVoices();
+      this.synth.onvoiceschanged = () => this.loadBrowserVoices();
     }
   }
 
-  private loadVoices(): void {
+  private loadBrowserVoices(): void {
     const rawVoices = this.synth.getVoices();
     
-    // Filtrar voces en español (preferidas) e inglés
-    this.voices = rawVoices
-      .filter(v => v.lang.startsWith('es') || v.lang.startsWith('en'))
+    this.browserVoices = rawVoices
+      .filter(v => v.lang.startsWith('es') || v.lang.startsWith('en') || v.lang.startsWith('pt'))
       .map(v => ({
         id: v.voiceURI,
         name: v.name,
         lang: v.lang,
         gender: this.detectGender(v.name),
+        provider: 'browser' as const,
         native: v,
       }))
       .sort((a, b) => {
-        // Priorizar español
         if (a.lang.startsWith('es') && !b.lang.startsWith('es')) return -1;
         if (!a.lang.startsWith('es') && b.lang.startsWith('es')) return 1;
         return a.name.localeCompare(b.name);
       });
 
-    console.log(`🔊 ${this.voices.length} voces disponibles`);
+    console.log(`🔊 ${this.browserVoices.length} voces del navegador + ${EDGE_VOICES.length} voces Edge TTS`);
   }
 
   private detectGender(name: string): 'male' | 'female' | 'unknown' {
@@ -93,49 +118,124 @@ class SpeechService {
     localStorage.setItem('bible_speech_settings', JSON.stringify(this.settings));
   }
 
-  // Obtener voces disponibles
+  // Obtener todas las voces (Edge + Browser)
   getVoices(): VoiceOption[] {
-    return this.voices;
+    return [...EDGE_VOICES, ...this.browserVoices];
   }
 
-  // Obtener voces por género
-  getVoicesByGender(gender: 'male' | 'female'): VoiceOption[] {
-    return this.voices.filter(v => v.gender === gender);
+  // Obtener solo voces Edge (más naturales)
+  getEdgeVoices(): VoiceOption[] {
+    return EDGE_VOICES;
   }
 
-  // Obtener voces en español
-  getSpanishVoices(): VoiceOption[] {
-    return this.voices.filter(v => v.lang.startsWith('es'));
+  // Obtener voces del navegador
+  getBrowserVoices(): VoiceOption[] {
+    return this.browserVoices;
   }
 
-  // Obtener configuración actual
   getSettings(): SpeechSettings {
     return { ...this.settings };
   }
 
-  // Actualizar configuración
   updateSettings(newSettings: Partial<SpeechSettings>): void {
     this.settings = { ...this.settings, ...newSettings };
     this.saveSettings();
   }
 
-  // Obtener voz seleccionada
   getSelectedVoice(): VoiceOption | undefined {
+    const allVoices = this.getVoices();
     if (this.settings.voiceId) {
-      return this.voices.find(v => v.id === this.settings.voiceId);
+      return allVoices.find(v => v.id === this.settings.voiceId);
     }
-    // Por defecto, primera voz en español
-    return this.voices.find(v => v.lang.startsWith('es')) || this.voices[0];
+    return EDGE_VOICES[0]; // Por defecto Álvaro (España)
   }
 
-  // Reproducir texto
-  speak(text: string, onEnd?: () => void): void {
-    this.stop();
+  // Generar audio con Edge TTS
+  private async generateEdgeAudio(text: string, voiceId: string): Promise<string> {
+    const cacheKey = `${voiceId}_${text.substring(0, 50)}`;
+    
+    if (this.audioCache.has(cacheKey)) {
+      return this.audioCache.get(cacheKey)!;
+    }
+
+    // Usar servicio proxy de Edge TTS
+    const rate = Math.round((this.settings.rate - 1) * 100);
+    const rateStr = rate >= 0 ? `+${rate}%` : `${rate}%`;
+    
+    const url = `https://api.streamelements.com/kappa/v2/speech?voice=${voiceId}&text=${encodeURIComponent(text)}`;
+    
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Edge TTS error');
+      
+      const blob = await response.blob();
+      const audioUrl = URL.createObjectURL(blob);
+      
+      // Cache limitado (últimos 20)
+      if (this.audioCache.size > 20) {
+        const firstKey = this.audioCache.keys().next().value;
+        if (firstKey) {
+          URL.revokeObjectURL(this.audioCache.get(firstKey)!);
+          this.audioCache.delete(firstKey);
+        }
+      }
+      this.audioCache.set(cacheKey, audioUrl);
+      
+      return audioUrl;
+    } catch (error) {
+      console.error('Edge TTS error, falling back to browser:', error);
+      throw error;
+    }
+  }
+
+  // Reproducir con Edge TTS
+  private async speakWithEdge(text: string, onEnd?: () => void): Promise<void> {
+    const voice = this.getSelectedVoice();
+    if (!voice || voice.provider !== 'edge') {
+      this.speakWithBrowser(text, onEnd);
+      return;
+    }
+
+    try {
+      const audioUrl = await this.generateEdgeAudio(text, voice.id);
+      
+      this.currentAudio = new Audio(audioUrl);
+      this.currentAudio.volume = this.settings.volume;
+      this.currentAudio.playbackRate = this.settings.rate;
+      
+      this.currentAudio.onplay = () => {
+        this.isPlaying = true;
+        this.isPaused = false;
+        this.onStateChange?.('playing');
+      };
+      
+      this.currentAudio.onended = () => {
+        this.isPlaying = false;
+        this.isPaused = false;
+        this.currentAudio = null;
+        this.onStateChange?.('stopped');
+        onEnd?.();
+      };
+      
+      this.currentAudio.onerror = () => {
+        console.error('Audio playback error, falling back to browser');
+        this.speakWithBrowser(text, onEnd);
+      };
+      
+      await this.currentAudio.play();
+    } catch (error) {
+      this.speakWithBrowser(text, onEnd);
+    }
+  }
+
+  // Reproducir con Web Speech API (fallback)
+  private speakWithBrowser(text: string, onEnd?: () => void): void {
+    this.synth.cancel();
     
     const utterance = new SpeechSynthesisUtterance(text);
     const voice = this.getSelectedVoice();
     
-    if (voice) {
+    if (voice?.native) {
       utterance.voice = voice.native;
       utterance.lang = voice.lang;
     } else {
@@ -155,7 +255,6 @@ class SpeechService {
     utterance.onend = () => {
       this.isPlaying = false;
       this.isPaused = false;
-      this.currentUtterance = null;
       this.onStateChange?.('stopped');
       onEnd?.();
     };
@@ -163,12 +262,22 @@ class SpeechService {
     utterance.onerror = (e) => {
       console.error('Speech error:', e);
       this.isPlaying = false;
-      this.isPaused = false;
       this.onStateChange?.('stopped');
     };
     
-    this.currentUtterance = utterance;
     this.synth.speak(utterance);
+  }
+
+  // Reproducir texto
+  speak(text: string, onEnd?: () => void): void {
+    this.stop();
+    
+    const voice = this.getSelectedVoice();
+    if (voice?.provider === 'edge') {
+      this.speakWithEdge(text, onEnd);
+    } else {
+      this.speakWithBrowser(text, onEnd);
+    }
   }
 
   // Reproducir versículos uno por uno
@@ -188,72 +297,60 @@ class SpeechService {
       this.onVerseChange?.(currentIndex);
       
       const text = verses[currentIndex];
-      const utterance = new SpeechSynthesisUtterance(text);
-      const voice = this.getSelectedVoice();
       
-      if (voice) {
-        utterance.voice = voice.native;
-        utterance.lang = voice.lang;
-      } else {
-        utterance.lang = 'es-ES';
-      }
-      
-      utterance.rate = this.settings.rate;
-      utterance.pitch = this.settings.pitch;
-      utterance.volume = this.settings.volume;
-      
-      utterance.onstart = () => {
-        this.isPlaying = true;
-        this.isPaused = false;
-        this.onStateChange?.('playing');
-      };
-      
-      utterance.onend = () => {
+      const onEnd = () => {
         currentIndex++;
-        speakNext();
+        // Pequeña pausa entre versículos
+        setTimeout(speakNext, 300);
       };
       
-      utterance.onerror = (e) => {
-        console.error('Speech error:', e);
-        this.isPlaying = false;
-        this.onStateChange?.('stopped');
-      };
-      
-      this.currentUtterance = utterance;
-      this.synth.speak(utterance);
+      const voice = this.getSelectedVoice();
+      if (voice?.provider === 'edge') {
+        this.speakWithEdge(text, onEnd);
+      } else {
+        this.speakWithBrowser(text, onEnd);
+      }
     };
     
     speakNext();
   }
 
-  // Pausar
   pause(): void {
-    if (this.isPlaying && !this.isPaused) {
+    if (this.currentAudio && this.isPlaying && !this.isPaused) {
+      this.currentAudio.pause();
+      this.isPaused = true;
+      this.onStateChange?.('paused');
+    } else if (this.isPlaying && !this.isPaused) {
       this.synth.pause();
       this.isPaused = true;
       this.onStateChange?.('paused');
     }
   }
 
-  // Reanudar
   resume(): void {
-    if (this.isPaused) {
+    if (this.currentAudio && this.isPaused) {
+      this.currentAudio.play();
+      this.isPaused = false;
+      this.onStateChange?.('playing');
+    } else if (this.isPaused) {
       this.synth.resume();
       this.isPaused = false;
       this.onStateChange?.('playing');
     }
   }
 
-  // Detener
   stop(): void {
+    if (this.currentAudio) {
+      this.currentAudio.pause();
+      this.currentAudio.currentTime = 0;
+      this.currentAudio = null;
+    }
     this.synth.cancel();
     this.isPlaying = false;
     this.isPaused = false;
-    this.currentUtterance = null;
     this.onStateChange?.('stopped');
   }
 
-  // Toggle play/pause
   toggle(): void {
     if (this.isPaused) {
       this.resume();
@@ -262,28 +359,23 @@ class SpeechService {
     }
   }
 
-  // Estado actual
   getState(): 'playing' | 'paused' | 'stopped' {
     if (this.isPaused) return 'paused';
     if (this.isPlaying) return 'playing';
     return 'stopped';
   }
 
-  // Suscribirse a cambios de estado
   onStateChangeCallback(callback: (state: 'playing' | 'paused' | 'stopped') => void): void {
     this.onStateChange = callback;
   }
 
-  // Suscribirse a cambios de versículo
   onVerseChangeCallback(callback: (verseIndex: number) => void): void {
     this.onVerseChange = callback;
   }
 
-  // Verificar si el navegador soporta TTS
   isSupported(): boolean {
-    return 'speechSynthesis' in window;
+    return 'speechSynthesis' in window || typeof Audio !== 'undefined';
   }
 }
 
-// Singleton
 export const speechService = new SpeechService();

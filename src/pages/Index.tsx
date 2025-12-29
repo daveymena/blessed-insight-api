@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BibleHeader } from '@/components/BibleHeader';
 import { BibleSidebar } from '@/components/BibleSidebar';
 import { ScriptureReader } from '@/components/ScriptureReader';
@@ -6,6 +6,7 @@ import { AIStudyPanel } from '@/components/AIStudyPanel';
 import { SearchModal } from '@/components/SearchModal';
 import { FavoritesPanel } from '@/components/FavoritesPanel';
 import { StudyCenter } from '@/components/StudyCenter';
+import { ThemeCustomizer } from '@/components/ThemeCustomizer';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { useBibleReader } from '@/hooks/useBibleReader';
 import type { BibleBook } from '@/lib/bibleApi';
@@ -16,6 +17,24 @@ const Index = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const [studyCenterOpen, setStudyCenterOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
+
+  // Inicializar tema al cargar
+  useEffect(() => {
+    // Cargar configuración del tema guardada
+    try {
+      const saved = localStorage.getItem('bible_theme_settings');
+      if (saved) {
+        const settings = JSON.parse(saved);
+        // Aplicar modo oscuro si está guardado
+        if (settings.darkMode) {
+          document.documentElement.classList.add('dark');
+        }
+      }
+    } catch (e) {
+      console.error('Error loading theme:', e);
+    }
+  }, []);
 
   const {
     selectedBook,
@@ -56,6 +75,7 @@ const Index = () => {
         onSearchClick={() => setSearchOpen(true)}
         onFavoritesClick={() => setFavoritesOpen(true)}
         onStudyClick={() => setStudyCenterOpen(true)}
+        onThemeClick={() => setThemeOpen(true)}
         onVersionChange={handleVersionChange}
         showSpanishEquivalent={showSpanishEquivalent}
         onSpanishToggle={setShowSpanishEquivalent}
@@ -126,6 +146,12 @@ const Index = () => {
         passage={passage}
         isOpen={studyCenterOpen}
         onClose={() => setStudyCenterOpen(false)}
+      />
+
+      {/* Theme Customizer */}
+      <ThemeCustomizer
+        isOpen={themeOpen}
+        onClose={() => setThemeOpen(false)}
       />
     </div>
   );

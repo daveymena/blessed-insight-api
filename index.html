@@ -4,34 +4,103 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     
-    <!-- Favicon -->
+    <!-- Favicon y Icons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.json" />
+    <link rel="mask-icon" href="/favicon.svg" color="#8B4513" />
+    <meta name="msapplication-TileColor" content="#8B4513" />
     
     <!-- PWA -->
-    <meta name="theme-color" content="#8B4513" />
+    <meta name="theme-color" content="#8B4513" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#5D3A1A" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Blessed Insight" />
+    <meta name="mobile-web-app-capable" content="yes" />
     
-    <title>Blessed Insight - Biblia de Estudio con IA</title>
-    <meta name="description" content="Biblia de estudio profesional con inteligencia artificial. Lee, escucha y estudia la Palabra de Dios en múltiples versiones: RVR, NVI, NTV y más. Incluye exégesis, devocionales y planes de lectura." />
-    <meta name="keywords" content="Biblia, estudio bíblico, IA, inteligencia artificial, Reina Valera, NVI, NTV, devocional, exégesis, audio biblia, español" />
+    <!-- SEO Principal -->
+    <title>Blessed Insight - Biblia de Estudio con IA | Reina Valera, NVI, NTV</title>
+    <meta name="description" content="Biblia de estudio profesional con inteligencia artificial. Lee, escucha y estudia la Palabra de Dios en múltiples versiones: Reina Valera, NVI, NTV, LBLA y más. Incluye exégesis bíblica, devocionales diarios, planes de lectura familiar y herramientas de estudio avanzadas." />
+    <meta name="keywords" content="Biblia, Biblia en español, estudio bíblico, IA, inteligencia artificial, Reina Valera, RVR, NVI, NTV, LBLA, devocional, exégesis, audio biblia, español, versículo del día, planes de lectura, estudio de la Biblia, Palabra de Dios, Antiguo Testamento, Nuevo Testamento" />
     <meta name="author" content="Blessed Insight" />
     <meta name="application-name" content="Blessed Insight" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <link rel="canonical" href="https://blessedinsight.app" />
 
-    <!-- Open Graph -->
+    <!-- Open Graph / Facebook -->
     <meta property="og:title" content="Blessed Insight - Biblia de Estudio con IA" />
-    <meta property="og:description" content="Biblia de estudio profesional con inteligencia artificial. Múltiples versiones, audio, exégesis y devocionales." />
+    <meta property="og:description" content="Biblia de estudio profesional con inteligencia artificial. Múltiples versiones en español: RVR, NVI, NTV. Audio, exégesis, devocionales y planes de lectura." />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://blessedinsight.app" />
     <meta property="og:site_name" content="Blessed Insight" />
     <meta property="og:locale" content="es_ES" />
+    <meta property="og:locale:alternate" content="es_MX" />
+    <meta property="og:locale:alternate" content="es_AR" />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Blessed Insight - Biblia de Estudio con IA" />
 
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Blessed Insight - Biblia de Estudio con IA" />
-    <meta name="twitter:description" content="Biblia de estudio profesional con inteligencia artificial." />
+    <meta name="twitter:description" content="Biblia de estudio profesional con IA. Múltiples versiones, audio, exégesis y devocionales." />
+    <meta name="twitter:image" content="/og-image.png" />
+    <meta name="twitter:image:alt" content="Blessed Insight - Biblia de Estudio" />
+
+    <!-- Datos Estructurados JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Blessed Insight",
+      "alternateName": "Biblia de Estudio con IA",
+      "description": "Aplicación de estudio bíblico profesional con inteligencia artificial. Múltiples versiones de la Biblia en español, audio, exégesis y devocionales.",
+      "url": "https://blessedinsight.app",
+      "applicationCategory": "ReligiousApplication",
+      "operatingSystem": "Web, iOS, Android",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Múltiples versiones de la Biblia (RVR, NVI, NTV, LBLA)",
+        "Estudio bíblico con IA",
+        "Audio Biblia",
+        "Exégesis y comentarios",
+        "Devocionales diarios",
+        "Planes de lectura",
+        "Búsqueda avanzada",
+        "Favoritos y notas"
+      ],
+      "inLanguage": ["es", "en", "pt"],
+      "author": {
+        "@type": "Organization",
+        "name": "Blessed Insight"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Book",
+      "name": "Santa Biblia",
+      "alternateName": ["Biblia", "La Biblia", "Sagradas Escrituras"],
+      "bookFormat": "EBook",
+      "inLanguage": "es",
+      "numberOfPages": 1189,
+      "genre": ["Religion", "Spirituality", "Christianity"],
+      "about": {
+        "@type": "Thing",
+        "name": "Cristianismo"
+      }
+    }
+    </script>
   </head>
 
   <body>

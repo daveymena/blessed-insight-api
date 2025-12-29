@@ -99,6 +99,85 @@
     --sidebar-border: 25 20% 20%;
     --sidebar-ring: 35 50% 55%;
   }
+
+  /* TEMA SEPIA (Lectura) */
+  .theme-sepia {
+    --background: 35 30% 90%;
+    --foreground: 25 25% 15%;
+    --card: 35 25% 88%;
+    --card-foreground: 25 25% 15%;
+    --popover: 35 30% 90%;
+    --popover-foreground: 25 25% 15%;
+    --primary: 25 40% 30%;
+    --primary-foreground: 35 30% 90%;
+    --secondary: 35 20% 82%;
+    --secondary-foreground: 25 25% 20%;
+    --muted: 35 15% 80%;
+    --muted-foreground: 25 15% 40%;
+    --accent: 30 40% 40%;
+    --accent-foreground: 35 30% 90%;
+    --border: 35 20% 75%;
+    --input: 35 20% 75%;
+    --ring: 25 40% 30%;
+    --scripture-bg: 35 30% 88%;
+  }
+
+  /* TEMA NAVY (Profesional Oscuro) */
+  .theme-navy {
+    --background: 220 30% 12%;
+    --foreground: 220 20% 90%;
+    --card: 220 25% 15%;
+    --card-foreground: 220 20% 90%;
+    --popover: 220 30% 12%;
+    --popover-foreground: 220 20% 90%;
+    --primary: 45 70% 50%;
+    /* Dorado para contraste */
+    --primary-foreground: 220 30% 10%;
+    --secondary: 220 20% 20%;
+    --secondary-foreground: 220 20% 80%;
+    --muted: 220 20% 20%;
+    --muted-foreground: 220 15% 60%;
+    --accent: 220 30% 25%;
+    --accent-foreground: 45 70% 50%;
+    --border: 220 20% 25%;
+    --input: 220 20% 25%;
+    --ring: 45 70% 50%;
+    --scripture-bg: 220 28% 14%;
+  }
+
+  /* TEMA SLATE (Moderno) */
+  .theme-slate {
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 222 47% 11%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47% 11%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 222 47% 11%;
+    --scripture-bg: 210 20% 96%;
+  }
+}
+
+@layer utilities {
+  .bg-pattern-dots {
+    background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.5;
+  }
+
+  .bg-pattern-paper {
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+  }
 }
 
 @layer base {
@@ -110,7 +189,12 @@
     @apply bg-background text-foreground font-sans antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-serif;
   }
 }
@@ -128,8 +212,19 @@
     @apply font-serif text-lg leading-relaxed tracking-wide;
   }
 
+  /* Estilos para versículos con más espacio */
+  .scripture-text p {
+    @apply mb-5 text-lg leading-8;
+    text-indent: 0;
+  }
+
+  .scripture-text p:first-letter {
+    @apply text-primary/80;
+  }
+
   .verse-number {
-    @apply text-sm font-sans font-semibold text-verse-number mr-1.5 align-super;
+    @apply text-sm font-sans font-semibold text-verse-number mr-2 align-super;
+    font-size: 0.7em;
   }
 
   .text-balance {
@@ -153,6 +248,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -163,6 +259,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -174,6 +271,7 @@
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -185,6 +283,7 @@
     opacity: 0;
     transform: translateX(100%);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -228,10 +327,9 @@
 /* Mobile bottom navigation styles */
 @layer components {
   .mobile-nav-item {
-    @apply flex flex-col items-center justify-center gap-0.5 p-2 rounded-lg 
-           hover:bg-muted/50 active:bg-muted transition-colors min-w-[56px];
+    @apply flex flex-col items-center justify-center gap-0.5 p-2 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors min-w-[56px];
   }
-  
+
   .mobile-nav-item-active {
     @apply bg-primary/10 text-primary;
   }
@@ -246,7 +344,9 @@
 
 /* Improve touch targets on mobile */
 @media (max-width: 767px) {
-  button, a {
+
+  button,
+  a {
     min-height: 44px;
     min-width: 44px;
   }

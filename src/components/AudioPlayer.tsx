@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Play, Pause, Square, Volume2, Settings2, User, UserCircle } from 'lucide-react';
+import { Play, Pause, Square, Volume2, Settings2, User, UserCircle, Sparkles, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import {
@@ -26,20 +26,21 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
   const [voices, setVoices] = useState<VoiceOption[]>([]);
   const [settings, setSettings] = useState(speechService.getSettings());
   const [currentVerse, setCurrentVerse] = useState(-1);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Cargar voces (pueden tardar en cargar)
     const loadVoices = () => {
       const availableVoices = speechService.getVoices();
       setVoices(availableVoices);
     };
 
     loadVoices();
-    // Reintentar después de un momento si no hay voces
     const timer = setTimeout(loadVoices, 500);
 
-    // Suscribirse a cambios de estado
-    speechService.onStateChangeCallback(setState);
+    speechService.onStateChangeCallback((newState) => {
+      setState(newState);
+      if (newState === 'playing') setIsLoading(false);
+    });
     speechService.onVerseChangeCallback((index) => {
       setCurrentVerse(index);
       onVerseHighlight?.(index);
@@ -55,6 +56,7 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
     if (state === 'paused') {
       speechService.resume();
     } else {
+      setIsLoading(true);
       speechService.speakVerses(
         verses,
         (index) => {
@@ -77,10 +79,15 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
     speechService.stop();
     setCurrentVerse(-1);
     onVerseHighlight?.(-1);
+    setIsLoading(false);
   };
 
   const handleVoiceChange = (voiceId: string) => {
-    speechService.updateSettings({ voiceId });
+    const voice = voices.find(v => v.id === voiceId);
+    speechService.updateSettings({ 
+      voiceId,
+      provider: voice?.provider || 'edge'
+    });
     setSettings(speechService.getSettings());
   };
 
@@ -94,17 +101,23 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
     setSettings(speechService.getSettings());
   };
 
-  // Agrupar voces por género
-  const maleVoices = voices.filter(v => v.gender === 'male');
-  const femaleVoices = voices.filter(v => v.gender === 'female');
-  const otherVoices = voices.filter(v => v.gender === 'unknown');
+  // Separar voces Edge (naturales) y del navegador
+  const edgeVoices = voices.filter(v => v.provider === 'edge');
+  const browserVoices = voices.filter(v => v.provider === 'browser');
+  
+  // Agrupar voces Edge por idioma
+  const edgeSpanish = edgeVoices.filter(v => v.lang.startsWith('es'));
+  const edgeEnglish = edgeVoices.filter(v => v.lang.startsWith('en'));
+  const edgePortuguese = edgeVoices.filter(v => v.lang.startsWith('pt'));
 
   if (!speechService.isSupported()) {
     return null;
   }
 
+  const selectedVoice = voices.find(v => v.id === settings.voiceId);
+
   return (
-    <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+    <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
       {/* Controles principales */}
       <div className="flex items-center gap-1">
         {state === 'playing' ? (
@@ -112,7 +125,7 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
             variant="ghost"
             size="icon"
             onClick={handlePause}
-            className="h-9 w-9"
+            className="h-10 w-10"
             title="Pausar"
           >
             <Pause className="h-5 w-5" />
@@ -122,10 +135,15 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
             variant="default"
             size="icon"
             onClick={handlePlay}
-            className="h-9 w-9 bg-primary"
+            className="h-10 w-10 bg-primary"
             title="Reproducir"
+            disabled={isLoading}
           >
-            <Play className="h-5 w-5" />
+            {isLoading ? (
+              <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Play className="h-5 w-5" />
+            )}
           </Button>
         )}
         
@@ -134,7 +152,7 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
             variant="ghost"
             size="icon"
             onClick={handleStop}
-            className="h-9 w-9"
+            className="h-10 w-10"
             title="Detener"
           >
             <Square className="h-4 w-4" />
@@ -142,73 +160,113 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
         )}
       </div>
 
-      {/* Indicador de versículo actual */}
-      {currentVerse >= 0 && (
-        <span className="text-xs text-muted-foreground px-2">
-          v.{currentVerse + 1} / {verses.length}
-        </span>
-      )}
+      {/* Info de voz y versículo */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          {selectedVoice?.provider === 'edge' && (
+            <span className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+              <Sparkles className="h-3 w-3" />
+              Voz Natural
+            </span>
+          )}
+          {currentVerse >= 0 && (
+            <span className="text-sm text-muted-foreground">
+              Versículo {currentVerse + 1} de {verses.length}
+            </span>
+          )}
+        </div>
+        {selectedVoice && (
+          <p className="text-xs text-muted-foreground truncate">
+            {selectedVoice.name}
+          </p>
+        )}
+      </div>
 
       {/* Configuración */}
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-9 w-9 ml-auto" title="Configuración de audio">
+          <Button variant="ghost" size="icon" className="h-10 w-10" title="Configuración de audio">
             <Settings2 className="h-4 w-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-72" align="end">
+        <PopoverContent className="w-80" align="end">
           <div className="space-y-4">
-            <h4 className="font-medium text-sm">Configuración de Audio</h4>
+            <div className="flex items-center gap-2">
+              <Volume2 className="h-4 w-4 text-primary" />
+              <h4 className="font-medium">Configuración de Audio</h4>
+            </div>
             
             {/* Selector de voz */}
             <div className="space-y-2">
-              <label className="text-xs text-muted-foreground">Voz</label>
+              <label className="text-xs text-muted-foreground font-medium">Voz del Narrador</label>
               <Select value={settings.voiceId} onValueChange={handleVoiceChange}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Seleccionar voz" />
                 </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {femaleVoices.length > 0 && (
+                <SelectContent className="max-h-72">
+                  {/* Voces Edge - Naturales */}
+                  <div className="px-2 py-1.5 text-xs font-medium text-primary flex items-center gap-1 bg-primary/5">
+                    <Sparkles className="h-3 w-3" /> Voces Naturales (Recomendadas)
+                  </div>
+                  
+                  {edgeSpanish.length > 0 && (
                     <>
-                      <div className="px-2 py-1 text-xs text-muted-foreground flex items-center gap-1">
-                        <UserCircle className="h-3 w-3" /> Femeninas
+                      <div className="px-2 py-1 text-xs text-muted-foreground">
+                        🇪🇸 Español
                       </div>
-                      {femaleVoices.map(voice => (
+                      {edgeSpanish.map(voice => (
                         <SelectItem key={voice.id} value={voice.id}>
                           <span className="flex items-center gap-2">
+                            {voice.gender === 'female' ? <UserCircle className="h-3 w-3" /> : <User className="h-3 w-3" />}
                             <span>{voice.name}</span>
-                            <span className="text-xs text-muted-foreground">({voice.lang})</span>
                           </span>
                         </SelectItem>
                       ))}
                     </>
                   )}
                   
-                  {maleVoices.length > 0 && (
+                  {edgeEnglish.length > 0 && (
                     <>
-                      <div className="px-2 py-1 text-xs text-muted-foreground flex items-center gap-1 mt-2">
-                        <User className="h-3 w-3" /> Masculinas
+                      <div className="px-2 py-1 text-xs text-muted-foreground mt-1">
+                        🇺🇸 English
                       </div>
-                      {maleVoices.map(voice => (
+                      {edgeEnglish.map(voice => (
                         <SelectItem key={voice.id} value={voice.id}>
                           <span className="flex items-center gap-2">
+                            {voice.gender === 'female' ? <UserCircle className="h-3 w-3" /> : <User className="h-3 w-3" />}
                             <span>{voice.name}</span>
-                            <span className="text-xs text-muted-foreground">({voice.lang})</span>
                           </span>
                         </SelectItem>
                       ))}
                     </>
                   )}
                   
-                  {otherVoices.length > 0 && (
+                  {edgePortuguese.length > 0 && (
                     <>
-                      <div className="px-2 py-1 text-xs text-muted-foreground mt-2">
-                        Otras
+                      <div className="px-2 py-1 text-xs text-muted-foreground mt-1">
+                        🇧🇷 Português
                       </div>
-                      {otherVoices.map(voice => (
+                      {edgePortuguese.map(voice => (
                         <SelectItem key={voice.id} value={voice.id}>
                           <span className="flex items-center gap-2">
+                            {voice.gender === 'female' ? <UserCircle className="h-3 w-3" /> : <User className="h-3 w-3" />}
                             <span>{voice.name}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                  
+                  {/* Voces del navegador */}
+                  {browserVoices.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground flex items-center gap-1 bg-muted/50 mt-2">
+                        <Monitor className="h-3 w-3" /> Voces del Sistema
+                      </div>
+                      {browserVoices.slice(0, 10).map(voice => (
+                        <SelectItem key={voice.id} value={voice.id}>
+                          <span className="flex items-center gap-2">
+                            <span className="truncate">{voice.name}</span>
                             <span className="text-xs text-muted-foreground">({voice.lang})</span>
                           </span>
                         </SelectItem>
@@ -222,17 +280,21 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
             {/* Velocidad */}
             <div className="space-y-2">
               <div className="flex justify-between">
-                <label className="text-xs text-muted-foreground">Velocidad</label>
-                <span className="text-xs">{settings.rate.toFixed(1)}x</span>
+                <label className="text-xs text-muted-foreground">Velocidad de lectura</label>
+                <span className="text-xs font-medium">{settings.rate.toFixed(1)}x</span>
               </div>
               <Slider
                 value={[settings.rate]}
                 onValueChange={handleRateChange}
                 min={0.5}
-                max={2}
-                step={0.1}
+                max={1.5}
+                step={0.05}
                 className="w-full"
               />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Lento</span>
+                <span>Rápido</span>
+              </div>
             </div>
 
             {/* Volumen */}
@@ -241,7 +303,7 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
                 <label className="text-xs text-muted-foreground flex items-center gap-1">
                   <Volume2 className="h-3 w-3" /> Volumen
                 </label>
-                <span className="text-xs">{Math.round(settings.volume * 100)}%</span>
+                <span className="text-xs font-medium">{Math.round(settings.volume * 100)}%</span>
               </div>
               <Slider
                 value={[settings.volume]}
@@ -252,6 +314,10 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
                 className="w-full"
               />
             </div>
+
+            <p className="text-xs text-muted-foreground pt-2 border-t">
+              💡 Las voces naturales usan IA de Microsoft para una lectura más humana y agradable.
+            </p>
           </div>
         </PopoverContent>
       </Popover>

@@ -1,8 +1,13 @@
+# Blessed Insight - Biblia de Estudio con IA
+# https://blessedinsight.app
+
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Twitterbot
 Allow: /
@@ -10,5 +15,23 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
 User-agent: *
 Allow: /
+Crawl-delay: 2
+
+# Sitemap
+Sitemap: https://blessedinsight.app/sitemap.xml
+
+# Disallow sensitive paths
+Disallow: /api/
+Disallow: /*.json$
+Disallow: /assets/
