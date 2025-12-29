@@ -153,7 +153,7 @@ export function ScriptureReader({
           {showAudioPlayer && (
             <div className="mb-6">
               <AudioPlayer
-                verses={passage.verses.map(v => `Versículo ${v.verse}. ${v.text}`)}
+                verses={passage.verses.map(v => v.text)}
                 onVerseHighlight={setHighlightedVerse}
               />
             </div>
@@ -168,16 +168,16 @@ export function ScriptureReader({
             }}
           >
             {passage.verses.map((verse, index) => (
-              <p
+              <div
                 key={`${verse.chapter}-${verse.verse}`}
-                className={`mb-5 transition-all duration-300 ${highlightedVerse === index
+                className={`mb-4 transition-all duration-300 ${highlightedVerse === index
                     ? 'bg-primary/20 rounded-lg px-3 py-2 -mx-3'
                     : ''
                   }`}
               >
                 <sup className="verse-number font-semibold text-primary/70 mr-2 text-sm">{verse.verse}</sup>
-                <span dangerouslySetInnerHTML={{ __html: verse.text.trim() }} />
-              </p>
+                <span className="verse-content" dangerouslySetInnerHTML={{ __html: verse.text.trim() }} />
+              </div>
             ))}
           </article>
 

@@ -64,7 +64,7 @@ class SpeechService {
     this.synth = window.speechSynthesis;
     this.settings = this.loadSettings();
     this.loadBrowserVoices();
-    
+
     if (this.synth.onvoiceschanged !== undefined) {
       this.synth.onvoiceschanged = () => this.loadBrowserVoices();
     }
@@ -72,7 +72,7 @@ class SpeechService {
 
   private loadBrowserVoices(): void {
     const rawVoices = this.synth.getVoices();
-    
+
     this.browserVoices = rawVoices
       .filter(v => v.lang.startsWith('es') || v.lang.startsWith('en') || v.lang.startsWith('pt'))
       .map(v => ({
@@ -96,7 +96,7 @@ class SpeechService {
     const lowerName = name.toLowerCase();
     const femaleNames = ['female', 'mujer', 'femenin', 'mónica', 'paulina', 'helena', 'lucia', 'maria', 'carmen', 'rosa', 'ana', 'elena', 'sara', 'laura', 'marta', 'isabel', 'google español', 'microsoft helena', 'microsoft sabina', 'microsoft laura'];
     const maleNames = ['male', 'hombre', 'masculin', 'jorge', 'pablo', 'diego', 'carlos', 'juan', 'pedro', 'miguel', 'antonio', 'jose', 'david', 'microsoft pablo'];
-    
+
     if (femaleNames.some(n => lowerName.includes(n))) return 'female';
     if (maleNames.some(n => lowerName.includes(n))) return 'male';
     return 'unknown';
@@ -150,10 +150,25 @@ class SpeechService {
     return EDGE_VOICES[0]; // Por defecto Álvaro (España)
   }
 
+  // Limpiar texto de etiquetas HTML y optimizar para TTS
+  private cleanText(text: string): string {
+    if (!text) return '';
+
+    return text
+      // Eliminar etiquetas HTML
+      .replace(/<[^>]*>/g, ' ')
+      // Reemplazar saltos de línea y múltiples espacios
+      .replace(/\s+/g, ' ')
+      // Asegurar que haya espacio después de puntuación si falta
+      .replace(/([,:;?!)])([^\s])/g, '$1 $2')
+      .trim();
+  }
+
   // Generar audio con Edge TTS
   private async generateEdgeAudio(text: string, voiceId: string): Promise<string> {
-    const cacheKey = `${voiceId}_${text.substring(0, 50)}`;
-    
+    const cleanedText = this.cleanText(text);
+    const cacheKey = `${voiceId}_${cleanedText.substring(0, 50)}`;
+
     if (this.audioCache.has(cacheKey)) {
       return this.audioCache.get(cacheKey)!;
     }
@@ -161,16 +176,16 @@ class SpeechService {
     // Usar servicio proxy de Edge TTS
     const rate = Math.round((this.settings.rate - 1) * 100);
     const rateStr = rate >= 0 ? `+${rate}%` : `${rate}%`;
-    
-    const url = `https://api.streamelements.com/kappa/v2/speech?voice=${voiceId}&text=${encodeURIComponent(text)}`;
-    
+
+    const url = `https://api.streamelements.com/kappa/v2/speech?voice=${voiceId}&text=${encodeURIComponent(cleanedText)}`;
+
     try {
       const response = await fetch(url);
       if (!response.ok) throw new Error('Edge TTS error');
-      
+
       const blob = await response.blob();
       const audioUrl = URL.createObjectURL(blob);
-      
+
       // Cache limitado (últimos 20)
       if (this.audioCache.size > 20) {
         const firstKey = this.audioCache.keys().next().value;
@@ -180,7 +195,7 @@ class SpeechService {
         }
       }
       this.audioCache.set(cacheKey, audioUrl);
-      
+
       return audioUrl;
     } catch (error) {
       console.error('Edge TTS error, falling back to browser:', error);
@@ -198,17 +213,17 @@ class SpeechService {
 
     try {
       const audioUrl = await this.generateEdgeAudio(text, voice.id);
-      
+
       this.currentAudio = new Audio(audioUrl);
       this.currentAudio.volume = this.settings.volume;
       this.currentAudio.playbackRate = this.settings.rate;
-      
+
       this.currentAudio.onplay = () => {
         this.isPlaying = true;
         this.isPaused = false;
         this.onStateChange?.('playing');
       };
-      
+
       this.currentAudio.onended = () => {
         this.isPlaying = false;
         this.isPaused = false;
@@ -216,12 +231,12 @@ class SpeechService {
         this.onStateChange?.('stopped');
         onEnd?.();
       };
-      
+
       this.currentAudio.onerror = () => {
         console.error('Audio playback error, falling back to browser');
         this.speakWithBrowser(text, onEnd);
       };
-      
+
       await this.currentAudio.play();
     } catch (error) {
       this.speakWithBrowser(text, onEnd);
@@ -231,47 +246,48 @@ class SpeechService {
   // Reproducir con Web Speech API (fallback)
   private speakWithBrowser(text: string, onEnd?: () => void): void {
     this.synth.cancel();
-    
-    const utterance = new SpeechSynthesisUtterance(text);
+
+    const cleanedText = this.cleanText(text);
+    const utterance = new SpeechSynthesisUtterance(cleanedText);
     const voice = this.getSelectedVoice();
-    
+
     if (voice?.native) {
       utterance.voice = voice.native;
       utterance.lang = voice.lang;
     } else {
       utterance.lang = 'es-ES';
     }
-    
+
     utterance.rate = this.settings.rate;
     utterance.pitch = this.settings.pitch;
     utterance.volume = this.settings.volume;
-    
+
     utterance.onstart = () => {
       this.isPlaying = true;
       this.isPaused = false;
       this.onStateChange?.('playing');
     };
-    
+
     utterance.onend = () => {
       this.isPlaying = false;
       this.isPaused = false;
       this.onStateChange?.('stopped');
       onEnd?.();
     };
-    
+
     utterance.onerror = (e) => {
       console.error('Speech error:', e);
       this.isPlaying = false;
       this.onStateChange?.('stopped');
     };
-    
+
     this.synth.speak(utterance);
   }
 
   // Reproducir texto
   speak(text: string, onEnd?: () => void): void {
     this.stop();
-    
+
     const voice = this.getSelectedVoice();
     if (voice?.provider === 'edge') {
       this.speakWithEdge(text, onEnd);
@@ -283,27 +299,27 @@ class SpeechService {
   // Reproducir versículos uno por uno
   speakVerses(verses: string[], onVerseStart?: (index: number) => void, onComplete?: () => void): void {
     this.stop();
-    
+
     let currentIndex = 0;
-    
+
     const speakNext = () => {
       if (currentIndex >= verses.length) {
         this.onStateChange?.('stopped');
         onComplete?.();
         return;
       }
-      
+
       onVerseStart?.(currentIndex);
       this.onVerseChange?.(currentIndex);
-      
+
       const text = verses[currentIndex];
-      
+
       const onEnd = () => {
         currentIndex++;
         // Pequeña pausa entre versículos
         setTimeout(speakNext, 300);
       };
-      
+
       const voice = this.getSelectedVoice();
       if (voice?.provider === 'edge') {
         this.speakWithEdge(text, onEnd);
@@ -311,7 +327,7 @@ class SpeechService {
         this.speakWithBrowser(text, onEnd);
       }
     };
-    
+
     speakNext();
   }
 

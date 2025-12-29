@@ -84,7 +84,7 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
 
   const handleVoiceChange = (voiceId: string) => {
     const voice = voices.find(v => v.id === voiceId);
-    speechService.updateSettings({ 
+    speechService.updateSettings({
       voiceId,
       provider: voice?.provider || 'edge'
     });
@@ -104,7 +104,7 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
   // Separar voces Edge (naturales) y del navegador
   const edgeVoices = voices.filter(v => v.provider === 'edge');
   const browserVoices = voices.filter(v => v.provider === 'browser');
-  
+
   // Agrupar voces Edge por idioma
   const edgeSpanish = edgeVoices.filter(v => v.lang.startsWith('es'));
   const edgeEnglish = edgeVoices.filter(v => v.lang.startsWith('en'));
@@ -146,7 +146,7 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
             )}
           </Button>
         )}
-        
+
         {state !== 'stopped' && (
           <Button
             variant="ghost"
@@ -195,7 +195,7 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
               <Volume2 className="h-4 w-4 text-primary" />
               <h4 className="font-medium">Configuración de Audio</h4>
             </div>
-            
+
             {/* Selector de voz */}
             <div className="space-y-2">
               <label className="text-xs text-muted-foreground font-medium">Voz del Narrador</label>
@@ -208,7 +208,7 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
                   <div className="px-2 py-1.5 text-xs font-medium text-primary flex items-center gap-1 bg-primary/5">
                     <Sparkles className="h-3 w-3" /> Voces Naturales (Recomendadas)
                   </div>
-                  
+
                   {edgeSpanish.length > 0 && (
                     <>
                       <div className="px-2 py-1 text-xs text-muted-foreground">
@@ -224,7 +224,7 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
                       ))}
                     </>
                   )}
-                  
+
                   {edgeEnglish.length > 0 && (
                     <>
                       <div className="px-2 py-1 text-xs text-muted-foreground mt-1">
@@ -240,7 +240,7 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
                       ))}
                     </>
                   )}
-                  
+
                   {edgePortuguese.length > 0 && (
                     <>
                       <div className="px-2 py-1 text-xs text-muted-foreground mt-1">
@@ -256,7 +256,7 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
                       ))}
                     </>
                   )}
-                  
+
                   {/* Voces del navegador */}
                   {browserVoices.length > 0 && (
                     <>
