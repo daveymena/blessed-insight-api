@@ -1,7 +1,6 @@
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
 import type { BibleBook, BiblePassage } from '@/lib/bibleApi';
 
 interface ScriptureReaderProps {
@@ -27,6 +26,7 @@ export function ScriptureReader({
   onNext,
   onPrevious,
 }: ScriptureReaderProps) {
+  // Welcome state when no book selected
   if (!book) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
@@ -44,6 +44,62 @@ export function ScriptureReader({
       </div>
     );
   }
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-3" />
+            <p className="text-muted-foreground">Cargando escrituras...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="text-center py-20 animate-fade-in">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
+            <span className="text-2xl">⚠️</span>
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            Error al cargar
+          </h3>
+          <p className="text-muted-foreground text-sm max-w-md mx-auto">
+            No se pudo cargar el capítulo. Por favor, intenta nuevamente.
+          </p>
+        </div>
+      );
+    }
+
+    if (passage?.verses && passage.verses.length > 0) {
+      return (
+        <div className="animate-fade-in">
+          <article className="scripture-text text-foreground leading-[2] space-y-1">
+            {passage.verses.map((verse) => (
+              <span key={`${verse.chapter}-${verse.verse}`} className="inline">
+                <sup className="verse-number">{verse.verse}</sup>
+                <span>{verse.text.trim()}</span>{' '}
+              </span>
+            ))}
+          </article>
+
+          <div className="mt-12 pt-6 border-t border-border">
+            <p className="text-sm text-muted-foreground text-center">
+              {passage.translation_name || 'Reina Valera'}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="text-center py-20 text-muted-foreground">
+        No hay contenido disponible para este capítulo.
+      </div>
+    );
+  };
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
@@ -80,52 +136,11 @@ export function ScriptureReader({
       </div>
 
       {/* Scripture Content */}
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-auto">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-8">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="text-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-3" />
-                <p className="text-muted-foreground">Cargando escrituras...</p>
-              </div>
-            </div>
-          ) : error ? (
-            <div className="text-center py-20 animate-fade-in">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
-                <span className="text-2xl">⚠️</span>
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                Error al cargar
-              </h3>
-              <p className="text-muted-foreground text-sm max-w-md mx-auto">
-                No se pudo cargar el capítulo. Por favor, intenta nuevamente.
-              </p>
-            </div>
-          ) : passage?.verses ? (
-            <div className="animate-fade-in">
-              <article className="scripture-text text-foreground leading-[2] space-y-1">
-                {passage.verses.map((verse, index) => (
-                  <span key={`${verse.chapter}-${verse.verse}`} className="inline">
-                    <sup className="verse-number">{verse.verse}</sup>
-                    <span>{verse.text.trim()}</span>{' '}
-                  </span>
-                ))}
-              </article>
-
-              {/* Footer with translation info */}
-              <div className="mt-12 pt-6 border-t border-border">
-                <p className="text-sm text-muted-foreground text-center">
-                  {passage.translation_name || 'Reina Valera 1960'}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-20 text-muted-foreground">
-              No hay contenido disponible para este capítulo.
-            </div>
-          )}
+          {renderContent()}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Bottom Navigation - Mobile */}
       <div className="md:hidden border-t border-border p-4 flex items-center justify-between bg-card/50">

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Book, ChevronDown, ChevronRight, Search } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { bibleBooks, type BibleBook, getBooksByTestament } from '@/lib/bibleApi';
@@ -50,7 +49,7 @@ export function BookSelector({ selectedBook, onSelectBook, onClose }: BookSelect
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-auto">
         <div className="p-2">
           {/* Nuevo Testamento */}
           <div className="mb-2">
@@ -108,7 +107,7 @@ export function BookSelector({ selectedBook, onSelectBook, onClose }: BookSelect
             )}
           </div>
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }

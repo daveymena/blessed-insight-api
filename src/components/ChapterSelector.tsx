@@ -1,5 +1,4 @@
 import { cn } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import type { BibleBook } from '@/lib/bibleApi';
 
 interface ChapterSelectorProps {
@@ -31,7 +30,7 @@ export function ChapterSelector({
           {book.chapters} capítulo{book.chapters > 1 ? 's' : ''}
         </p>
       </div>
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-auto">
         <div className="p-3 grid grid-cols-5 gap-2">
           {chapters.map((chapter) => (
             <button
@@ -48,7 +47,7 @@ export function ChapterSelector({
             </button>
           ))}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }
