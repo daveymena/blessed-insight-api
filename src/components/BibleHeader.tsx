@@ -47,6 +47,22 @@ export function BibleHeader({
     }
   }, [darkMode]);
 
+  const handleFontSizeChange = (delta: number) => {
+    try {
+      const saved = localStorage.getItem('bible_theme_settings');
+      let settings = saved ? JSON.parse(saved) : { fontSize: 18 };
+
+      const newSize = Math.max(14, Math.min(60, (settings.fontSize || 18) + delta));
+      const newSettings = { ...settings, fontSize: newSize };
+
+      localStorage.setItem('bible_theme_settings', JSON.stringify(newSettings));
+      // Notificar a otros componentes (ScriptureReader)
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {
+      console.error('Error changing font size:', e);
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container flex items-center justify-between h-16 px-4 md:px-6">
@@ -110,6 +126,29 @@ export function BibleHeader({
           >
             <Heart className="h-5 w-5" />
           </Button>
+
+          {/* Botones de Zoom Rápido (Accesibilidad) */}
+          <div className="flex items-center border border-border rounded-md px-1 bg-muted/20">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-foreground"
+              onClick={() => handleFontSizeChange(-2)}
+              title="Disminuir tamaño de letra"
+            >
+              <span className="text-xs font-bold leading-none">A-</span>
+            </Button>
+            <div className="w-[1px] h-4 bg-border mx-0.5" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-foreground"
+              onClick={() => handleFontSizeChange(2)}
+              title="Aumentar tamaño de letra"
+            >
+              <span className="text-base font-bold leading-none">A+</span>
+            </Button>
+          </div>
 
           {/* Botón Personalizar Tema */}
           {onThemeClick && (
