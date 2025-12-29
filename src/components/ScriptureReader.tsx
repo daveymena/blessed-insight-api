@@ -24,7 +24,7 @@ function getThemeSettings() {
     if (saved) {
       return JSON.parse(saved);
     }
-  } catch (e) {}
+  } catch (e) { }
   return { background: 'none', fontSize: 18, lineHeight: 2, font: 'serif' };
 }
 
@@ -70,9 +70,9 @@ export function ScriptureReader({
     const handleStorageChange = () => {
       setThemeSettings(getThemeSettings());
     };
-    
+
     window.addEventListener('storage', handleStorageChange);
-    
+
     // También escuchar cambios locales
     const interval = setInterval(() => {
       const newSettings = getThemeSettings();
@@ -89,7 +89,7 @@ export function ScriptureReader({
 
   const backgroundClass = BACKGROUND_CLASSES[themeSettings.background] || '';
   const fontFamily = FONT_FAMILIES[themeSettings.font] || FONT_FAMILIES.serif;
-  
+
   // Welcome state when no book selected
   if (!book) {
     return (
@@ -159,7 +159,7 @@ export function ScriptureReader({
             </div>
           )}
 
-          <article 
+          <article
             className="scripture-text text-foreground"
             style={{
               fontFamily,
@@ -168,16 +168,15 @@ export function ScriptureReader({
             }}
           >
             {passage.verses.map((verse, index) => (
-              <p 
-                key={`${verse.chapter}-${verse.verse}`} 
-                className={`mb-5 transition-all duration-300 ${
-                  highlightedVerse === index 
-                    ? 'bg-primary/20 rounded-lg px-3 py-2 -mx-3' 
+              <p
+                key={`${verse.chapter}-${verse.verse}`}
+                className={`mb-5 transition-all duration-300 ${highlightedVerse === index
+                    ? 'bg-primary/20 rounded-lg px-3 py-2 -mx-3'
                     : ''
-                }`}
+                  }`}
               >
                 <sup className="verse-number font-semibold text-primary/70 mr-2 text-sm">{verse.verse}</sup>
-                <span>{verse.text.trim()}</span>
+                <span dangerouslySetInnerHTML={{ __html: verse.text.trim() }} />
               </p>
             ))}
           </article>
@@ -220,7 +219,7 @@ export function ScriptureReader({
             </h2>
             <p className="text-sm text-muted-foreground">Capítulo {chapter}</p>
           </div>
-          
+
           {/* Botón de Audio */}
           <Button
             variant={showAudioPlayer ? "default" : "ghost"}

@@ -46,7 +46,7 @@ export interface BibleVersion {
 export const bibleVersions: BibleVersion[] = [
   // ===== ESPAÑOL - Versiones Locales =====
   { id: 'rvr', name: 'Reina Valera 1909', shortName: 'RVR', language: 'Español', languageCode: 'es', description: 'Versión clásica en español' },
-  
+
   // ===== ESPAÑOL - Versiones Online (bolls.life) =====
   ...onlineVersions.map(v => ({
     id: v.id,
@@ -57,11 +57,11 @@ export const bibleVersions: BibleVersion[] = [
     description: '🌐 Online',
     isOnline: true,
   })),
-  
+
   // ===== INGLÉS =====
   { id: 'kjv', name: 'King James Version', shortName: 'KJV', language: 'English', languageCode: 'en', description: 'Versión clásica en inglés (1611)' },
   { id: 'bbe', name: 'Bible in Basic English', shortName: 'BBE', language: 'English', languageCode: 'en', description: 'Inglés simplificado' },
-  
+
   // ===== PORTUGUÉS =====
   { id: 'nvi_pt', name: 'Almeida Revisada', shortName: 'ARA', language: 'Português', languageCode: 'pt', description: 'Versión en portugués' },
 ];
@@ -120,7 +120,7 @@ let preloadStarted = false;
 export function preloadDefaultBible(): void {
   if (preloadStarted) return;
   preloadStarted = true;
-  
+
   // Cargar después de que la UI esté lista
   setTimeout(() => {
     loadBibleVersion('rvr');
@@ -213,16 +213,18 @@ export function setVersion(versionId: string): void {
 }
 
 export function getVersion(): string {
-  if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('bible_version');
-    if (saved && (bibleImports[saved] || isOnlineVersion(saved))) {
-      currentVersion = saved;
-    } else {
-      localStorage.setItem('bible_version', 'rvr');
-      currentVersion = 'rvr';
-    }
+  const saved = localStorage.getItem('bible_version');
+  if (saved && (bibleImports[saved] || isOnlineVersion(saved))) {
+    currentVersion = saved;
+  } else {
+    // Forzar RVR como versión por defecto si no hay nada guardado
+    currentVersion = 'rvr';
+    localStorage.setItem('bible_version', 'rvr');
   }
-  return currentVersion;
+} else {
+  currentVersion = 'rvr';
+}
+return currentVersion;
 }
 
 export function getCurrentVersionInfo(): BibleVersion {
@@ -238,7 +240,7 @@ export async function fetchChapter(
 ): Promise<BiblePassage> {
   const version = versionId || getVersion();
   const versionInfo = bibleVersions.find(v => v.id === version) || bibleVersions[0];
-  
+
   const book = getBookById(bookId);
   if (!book) {
     throw new Error(`Libro no encontrado: ${bookId}`);
@@ -252,9 +254,9 @@ export async function fetchChapter(
   // ===== VERSIONES ONLINE (bolls.life) =====
   if (isOnlineVersion(version)) {
     console.log(`  🌐 Descargando desde bolls.life...`);
-    
+
     const onlineVerses = await fetchOnlineChapter(version, book.index, chapter);
-    
+
     if (!onlineVerses || onlineVerses.length === 0) {
       throw new Error(`No se pudo cargar ${book.name} ${chapter} desde ${versionInfo.name}`);
     }
@@ -281,19 +283,19 @@ export async function fetchChapter(
 
   // ===== VERSIONES LOCALES (lazy loading) =====
   const bibleData = await loadBibleVersion(version);
-  
+
   if (!bibleData) {
     throw new Error(`Versión no encontrada: ${version}`);
   }
 
   const bookData = bibleData[book.index];
-  
+
   if (!bookData || !bookData.chapters) {
     throw new Error(`No se encontraron datos para ${book.name}`);
   }
 
   const chapterData = bookData.chapters[chapter - 1];
-  
+
   if (!chapterData || chapterData.length === 0) {
     throw new Error(`Capítulo ${chapter} no encontrado en ${book.name}`);
   }
@@ -301,7 +303,7 @@ export async function fetchChapter(
   // Si se solicita equivalente en español y no es versión española, usar RVR
   let versesData = chapterData;
   let actualVersion = versionInfo;
-  
+
   if (showSpanishEquivalent && !isSpanishVersion) {
     const spanishData = await loadBibleVersion('rvr');
     if (spanishData) {
@@ -330,8 +332,8 @@ export async function fetchChapter(
     text: verses.map((v) => v.text).join(' '),
     translation_id: showSpanishEquivalent && !isSpanishVersion ? 'rvr' : version,
     translation_name: actualVersion.name,
-    translation_note: showSpanishEquivalent && !isSpanishVersion 
-      ? `Equivalente en español (${versionInfo.shortName} → RVR)` 
+    translation_note: showSpanishEquivalent && !isSpanishVersion
+      ? `Equivalente en español (${versionInfo.shortName} → RVR)`
       : versionInfo.language,
   };
 }
@@ -344,7 +346,7 @@ export async function compareVersions(
 ): Promise<Array<{ version: BibleVersion; text: string }>> {
   const results: Array<{ version: BibleVersion; text: string }> = [];
   const book = getBookById(bookId);
-  
+
   if (!book) return results;
 
   // Solo comparar versiones locales cargadas
@@ -378,7 +380,7 @@ export async function searchVerses(query: string, versionId?: string): Promise<B
   const version = versionId || getVersion();
   const bibleData = await loadBibleVersion(version);
   const versionInfo = bibleVersions.find(v => v.id === version) || bibleVersions[0];
-  
+
   if (!bibleData) return null;
 
   const results: BibleVerse[] = [];
@@ -387,17 +389,17 @@ export async function searchVerses(query: string, versionId?: string): Promise<B
   for (let bookIndex = 0; bookIndex < bibleData.length && results.length < 20; bookIndex++) {
     const bookData = bibleData[bookIndex];
     const book = bibleBooks[bookIndex];
-    
+
     if (!bookData?.chapters || !book) continue;
 
     const bookName = book.name;
 
     for (let chapterIndex = 0; chapterIndex < bookData.chapters.length && results.length < 20; chapterIndex++) {
       const chapter = bookData.chapters[chapterIndex];
-      
+
       for (let verseIndex = 0; verseIndex < chapter.length && results.length < 20; verseIndex++) {
         const verseText = chapter[verseIndex];
-        
+
         if (verseText.toLowerCase().includes(searchTerm)) {
           results.push({
             book_id: book.id,
@@ -437,15 +439,15 @@ export async function getVerseOfTheDay(): Promise<BiblePassage | null> {
     { book: 'psalms', chapter: 46, verse: 1 },
     { book: 'joshua', chapter: 1, verse: 9 },
   ];
-  
+
   const today = new Date();
   const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
   const verseData = popularVerses[dayOfYear % popularVerses.length];
-  
+
   const version = getVersion();
   const bibleData = await loadBibleVersion(version);
   const versionInfo = bibleVersions.find(v => v.id === version) || bibleVersions[0];
-  
+
   const book = getBookById(verseData.book);
   if (!book || !bibleData) return null;
 

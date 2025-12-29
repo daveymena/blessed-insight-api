@@ -17,10 +17,10 @@ interface BibleHeaderProps {
   isSpanishVersion?: boolean;
 }
 
-export function BibleHeader({ 
-  onMenuClick, 
-  onAIClick, 
-  onSearchClick, 
+export function BibleHeader({
+  onMenuClick,
+  onAIClick,
+  onSearchClick,
   onFavoritesClick,
   onStudyClick,
   onThemeClick,
@@ -73,11 +73,11 @@ export function BibleHeader({
             </div>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-1 sm:gap-2">
           <VersionSelector onVersionChange={onVersionChange} />
-          
-          {/* Toggle para mostrar equivalente en español - solo visible si no es versión española */}
+
+          {/* Toggle para mostrar equivalente en español - visible si la versión actual NO es en español */}
           {!isSpanishVersion && onSpanishToggle && (
             <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-md bg-muted/50" title="Mostrar equivalente en español (RVR)">
               <Languages className="h-4 w-4 text-muted-foreground" />
@@ -89,7 +89,7 @@ export function BibleHeader({
               />
             </div>
           )}
-          
+
           {/* Botones ocultos en móvil - se muestran en la barra inferior */}
           <Button
             variant="ghost"
@@ -100,7 +100,7 @@ export function BibleHeader({
           >
             <Search className="h-5 w-5" />
           </Button>
-          
+
           <Button
             variant="ghost"
             size="icon"

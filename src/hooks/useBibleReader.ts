@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, useCallback } from 'react';
-import { 
-  fetchChapter, 
-  bibleBooks, 
+import {
+  fetchChapter,
+  bibleBooks,
   getChaptersForBook,
   getVersion,
   getCurrentVersionInfo,
@@ -19,13 +19,13 @@ export interface ReaderState {
 export function useBibleReader() {
   const queryClient = useQueryClient();
   const [state, setState] = useState<ReaderState>({
-    selectedBook: bibleBooks.find(b => b.id === 'john') || bibleBooks[0],
+    selectedBook: bibleBooks[0], // Génesis por defecto
     selectedChapter: 1,
-    showSpanishEquivalent: false, // Por defecto mostrar idioma original
+    showSpanishEquivalent: false,
   });
 
   const { selectedBook, selectedChapter, showSpanishEquivalent } = state;
-  
+
   // Incluir la versión en la queryKey para que se recargue al cambiar
   const currentVersion = getVersion();
   const versionInfo = getCurrentVersionInfo();
@@ -69,7 +69,7 @@ export function useBibleReader() {
 
   const goToNextChapter = useCallback(() => {
     if (!selectedBook) return;
-    
+
     const maxChapters = selectedBook.chapters;
     if (selectedChapter < maxChapters) {
       selectChapter(selectedChapter + 1);
@@ -89,7 +89,7 @@ export function useBibleReader() {
 
   const goToPreviousChapter = useCallback(() => {
     if (!selectedBook) return;
-    
+
     if (selectedChapter > 1) {
       selectChapter(selectedChapter - 1);
     } else {
@@ -109,12 +109,12 @@ export function useBibleReader() {
   const chapters = selectedBook ? getChaptersForBook(selectedBook.id) : [];
 
   const canGoNext = selectedBook && (
-    selectedChapter < selectedBook.chapters || 
+    selectedChapter < selectedBook.chapters ||
     bibleBooks.findIndex((b) => b.id === selectedBook.id) < bibleBooks.length - 1
   );
 
   const canGoPrevious = selectedBook && (
-    selectedChapter > 1 || 
+    selectedChapter > 1 ||
     bibleBooks.findIndex((b) => b.id === selectedBook.id) > 0
   );
 
