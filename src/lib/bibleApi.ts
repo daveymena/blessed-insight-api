@@ -100,12 +100,15 @@ export const bibleBooks: BibleBook[] = [
 // HelloAO Bible API - Free Bible API with Spanish support
 const BASE_URL = 'https://bible.helloao.org/api';
 
-// Available Spanish translation
-const SPANISH_TRANSLATION = 'spa_rvr'; // Reina Valera
+// Correct Spanish translation ID
+const SPANISH_TRANSLATION = 'spa_rv1909'; // Reina Valera 1909
 
-interface HelloAOVerse {
-  verse: number;
-  text: string;
+// HelloAO API response types
+interface HelloAOContentItem {
+  type: 'heading' | 'verse' | 'line_break' | 'hebrew_subtitle';
+  verse?: number;
+  value?: string;
+  content?: string;
 }
 
 interface HelloAOChapter {
@@ -119,7 +122,7 @@ interface HelloAOChapter {
     name: string;
   };
   chapter: number;
-  verses: HelloAOVerse[];
+  content: HelloAOContentItem[];
 }
 
 // Fetch a specific chapter from a book
@@ -132,30 +135,65 @@ export async function fetchChapter(
     throw new Error(`Book not found: ${bookId}`);
   }
 
-  const response = await fetch(
-    `${BASE_URL}/${SPANISH_TRANSLATION}/${book.apiName}/${chapter}.json`
-  );
+  const url = `${BASE_URL}/${SPANISH_TRANSLATION}/${book.apiName}/${chapter}.json`;
+  console.log('Fetching Bible chapter from:', url);
+
+  const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(`Failed to fetch chapter: ${response.statusText}`);
   }
 
+  const contentType = response.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    throw new Error('API returned non-JSON response');
+  }
+
   const data: HelloAOChapter = await response.json();
 
-  // Transform to our internal format
-  return {
-    reference: `${book.name} ${chapter}`,
-    verses: data.verses.map((v) => ({
+  // Extract verses from content array
+  const verses: BibleVerse[] = [];
+  let currentVerse = 0;
+  let currentText = '';
+
+  for (const item of data.content) {
+    if (item.type === 'verse' && item.verse !== undefined) {
+      // Save previous verse if exists
+      if (currentVerse > 0 && currentText) {
+        verses.push({
+          book_id: bookId,
+          book_name: book.name,
+          chapter: chapter,
+          verse: currentVerse,
+          text: currentText.trim(),
+        });
+      }
+      currentVerse = item.verse;
+      currentText = item.value || '';
+    } else if (item.type === 'verse' && currentVerse > 0) {
+      // Continuation of current verse
+      currentText += ' ' + (item.value || '');
+    }
+  }
+
+  // Add last verse
+  if (currentVerse > 0 && currentText) {
+    verses.push({
       book_id: bookId,
       book_name: book.name,
       chapter: chapter,
-      verse: v.verse,
-      text: v.text,
-    })),
-    text: data.verses.map((v) => v.text).join(' '),
-    translation_id: data.translation.id,
-    translation_name: data.translation.name,
-    translation_note: 'Reina Valera',
+      verse: currentVerse,
+      text: currentText.trim(),
+    });
+  }
+
+  return {
+    reference: `${book.name} ${chapter}`,
+    verses,
+    text: verses.map((v) => v.text).join(' '),
+    translation_id: data.translation?.id || SPANISH_TRANSLATION,
+    translation_name: data.translation?.name || 'Reina Valera 1909',
+    translation_note: 'Reina Valera 1909',
   };
 }
 
