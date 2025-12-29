@@ -214,3 +214,40 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
 }
+
+
+/* Safe area for mobile devices with notch */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Mobile bottom navigation styles */
+@layer components {
+  .mobile-nav-item {
+    @apply flex flex-col items-center justify-center gap-0.5 p-2 rounded-lg 
+           hover:bg-muted/50 active:bg-muted transition-colors min-w-[56px];
+  }
+  
+  .mobile-nav-item-active {
+    @apply bg-primary/10 text-primary;
+  }
+}
+
+/* Prevent content from being hidden behind bottom nav on mobile */
+@media (max-width: 767px) {
+  .main-content {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 767px) {
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

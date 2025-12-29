@@ -6,6 +6,7 @@ import { AIStudyPanel } from '@/components/AIStudyPanel';
 import { SearchModal } from '@/components/SearchModal';
 import { FavoritesPanel } from '@/components/FavoritesPanel';
 import { StudyCenter } from '@/components/StudyCenter';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { useBibleReader } from '@/hooks/useBibleReader';
 import type { BibleBook } from '@/lib/bibleApi';
 
@@ -61,7 +62,7 @@ const Index = () => {
         isSpanishVersion={isSpanishVersion}
       />
       
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden pb-16 md:pb-0">
         <BibleSidebar
           selectedBook={selectedBook}
           selectedChapter={selectedChapter}
@@ -86,6 +87,15 @@ const Index = () => {
           />
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav
+        onMenuClick={() => setSidebarOpen(true)}
+        onSearchClick={() => setSearchOpen(true)}
+        onFavoritesClick={() => setFavoritesOpen(true)}
+        onAIClick={() => setAiPanelOpen(true)}
+        onStudyClick={() => setStudyCenterOpen(true)}
+      />
 
       {/* AI Study Panel */}
       <AIStudyPanel

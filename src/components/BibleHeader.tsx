@@ -88,11 +88,13 @@ export function BibleHeader({
             </div>
           )}
           
+          {/* Botones ocultos en móvil - se muestran en la barra inferior */}
           <Button
             variant="ghost"
             size="icon"
             onClick={onSearchClick}
             title="Buscar"
+            className="hidden sm:flex"
           >
             <Search className="h-5 w-5" />
           </Button>
@@ -102,6 +104,7 @@ export function BibleHeader({
             size="icon"
             onClick={onFavoritesClick}
             title="Favoritos"
+            className="hidden sm:flex"
           >
             <Heart className="h-5 w-5" />
           </Button>
@@ -124,7 +127,7 @@ export function BibleHeader({
             variant="default"
             size="sm"
             onClick={onAIClick}
-            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 gap-1"
+            className="hidden sm:flex bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 gap-1"
           >
             <Sparkles className="h-4 w-4" />
             <span className="hidden sm:inline">IA</span>
