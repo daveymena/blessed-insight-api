@@ -1,4 +1,4 @@
-// Bible API service using bible-api.com with Reina Valera 1960 (Spanish)
+// Bible API service using the free HelloAO Bible API with Reina Valera 1909 (Spanish)
 
 export interface BibleVerse {
   book_id: string;
@@ -22,117 +22,141 @@ export interface BibleBook {
   name: string;
   testament: 'old' | 'new';
   chapters: number;
+  apiName: string; // Name used in API URL
 }
 
 // Complete list of Bible books in Spanish with chapter counts
 export const bibleBooks: BibleBook[] = [
   // Antiguo Testamento
-  { id: 'genesis', name: 'Génesis', testament: 'old', chapters: 50 },
-  { id: 'exodus', name: 'Éxodo', testament: 'old', chapters: 40 },
-  { id: 'leviticus', name: 'Levítico', testament: 'old', chapters: 27 },
-  { id: 'numbers', name: 'Números', testament: 'old', chapters: 36 },
-  { id: 'deuteronomy', name: 'Deuteronomio', testament: 'old', chapters: 34 },
-  { id: 'joshua', name: 'Josué', testament: 'old', chapters: 24 },
-  { id: 'judges', name: 'Jueces', testament: 'old', chapters: 21 },
-  { id: 'ruth', name: 'Rut', testament: 'old', chapters: 4 },
-  { id: '1samuel', name: '1 Samuel', testament: 'old', chapters: 31 },
-  { id: '2samuel', name: '2 Samuel', testament: 'old', chapters: 24 },
-  { id: '1kings', name: '1 Reyes', testament: 'old', chapters: 22 },
-  { id: '2kings', name: '2 Reyes', testament: 'old', chapters: 25 },
-  { id: '1chronicles', name: '1 Crónicas', testament: 'old', chapters: 29 },
-  { id: '2chronicles', name: '2 Crónicas', testament: 'old', chapters: 36 },
-  { id: 'ezra', name: 'Esdras', testament: 'old', chapters: 10 },
-  { id: 'nehemiah', name: 'Nehemías', testament: 'old', chapters: 13 },
-  { id: 'esther', name: 'Ester', testament: 'old', chapters: 10 },
-  { id: 'job', name: 'Job', testament: 'old', chapters: 42 },
-  { id: 'psalms', name: 'Salmos', testament: 'old', chapters: 150 },
-  { id: 'proverbs', name: 'Proverbios', testament: 'old', chapters: 31 },
-  { id: 'ecclesiastes', name: 'Eclesiastés', testament: 'old', chapters: 12 },
-  { id: 'songofsolomon', name: 'Cantares', testament: 'old', chapters: 8 },
-  { id: 'isaiah', name: 'Isaías', testament: 'old', chapters: 66 },
-  { id: 'jeremiah', name: 'Jeremías', testament: 'old', chapters: 52 },
-  { id: 'lamentations', name: 'Lamentaciones', testament: 'old', chapters: 5 },
-  { id: 'ezekiel', name: 'Ezequiel', testament: 'old', chapters: 48 },
-  { id: 'daniel', name: 'Daniel', testament: 'old', chapters: 12 },
-  { id: 'hosea', name: 'Oseas', testament: 'old', chapters: 14 },
-  { id: 'joel', name: 'Joel', testament: 'old', chapters: 3 },
-  { id: 'amos', name: 'Amós', testament: 'old', chapters: 9 },
-  { id: 'obadiah', name: 'Abdías', testament: 'old', chapters: 1 },
-  { id: 'jonah', name: 'Jonás', testament: 'old', chapters: 4 },
-  { id: 'micah', name: 'Miqueas', testament: 'old', chapters: 7 },
-  { id: 'nahum', name: 'Nahúm', testament: 'old', chapters: 3 },
-  { id: 'habakkuk', name: 'Habacuc', testament: 'old', chapters: 3 },
-  { id: 'zephaniah', name: 'Sofonías', testament: 'old', chapters: 3 },
-  { id: 'haggai', name: 'Hageo', testament: 'old', chapters: 2 },
-  { id: 'zechariah', name: 'Zacarías', testament: 'old', chapters: 14 },
-  { id: 'malachi', name: 'Malaquías', testament: 'old', chapters: 4 },
+  { id: 'genesis', name: 'Génesis', testament: 'old', chapters: 50, apiName: 'GEN' },
+  { id: 'exodus', name: 'Éxodo', testament: 'old', chapters: 40, apiName: 'EXO' },
+  { id: 'leviticus', name: 'Levítico', testament: 'old', chapters: 27, apiName: 'LEV' },
+  { id: 'numbers', name: 'Números', testament: 'old', chapters: 36, apiName: 'NUM' },
+  { id: 'deuteronomy', name: 'Deuteronomio', testament: 'old', chapters: 34, apiName: 'DEU' },
+  { id: 'joshua', name: 'Josué', testament: 'old', chapters: 24, apiName: 'JOS' },
+  { id: 'judges', name: 'Jueces', testament: 'old', chapters: 21, apiName: 'JDG' },
+  { id: 'ruth', name: 'Rut', testament: 'old', chapters: 4, apiName: 'RUT' },
+  { id: '1samuel', name: '1 Samuel', testament: 'old', chapters: 31, apiName: '1SA' },
+  { id: '2samuel', name: '2 Samuel', testament: 'old', chapters: 24, apiName: '2SA' },
+  { id: '1kings', name: '1 Reyes', testament: 'old', chapters: 22, apiName: '1KI' },
+  { id: '2kings', name: '2 Reyes', testament: 'old', chapters: 25, apiName: '2KI' },
+  { id: '1chronicles', name: '1 Crónicas', testament: 'old', chapters: 29, apiName: '1CH' },
+  { id: '2chronicles', name: '2 Crónicas', testament: 'old', chapters: 36, apiName: '2CH' },
+  { id: 'ezra', name: 'Esdras', testament: 'old', chapters: 10, apiName: 'EZR' },
+  { id: 'nehemiah', name: 'Nehemías', testament: 'old', chapters: 13, apiName: 'NEH' },
+  { id: 'esther', name: 'Ester', testament: 'old', chapters: 10, apiName: 'EST' },
+  { id: 'job', name: 'Job', testament: 'old', chapters: 42, apiName: 'JOB' },
+  { id: 'psalms', name: 'Salmos', testament: 'old', chapters: 150, apiName: 'PSA' },
+  { id: 'proverbs', name: 'Proverbios', testament: 'old', chapters: 31, apiName: 'PRO' },
+  { id: 'ecclesiastes', name: 'Eclesiastés', testament: 'old', chapters: 12, apiName: 'ECC' },
+  { id: 'songofsolomon', name: 'Cantares', testament: 'old', chapters: 8, apiName: 'SNG' },
+  { id: 'isaiah', name: 'Isaías', testament: 'old', chapters: 66, apiName: 'ISA' },
+  { id: 'jeremiah', name: 'Jeremías', testament: 'old', chapters: 52, apiName: 'JER' },
+  { id: 'lamentations', name: 'Lamentaciones', testament: 'old', chapters: 5, apiName: 'LAM' },
+  { id: 'ezekiel', name: 'Ezequiel', testament: 'old', chapters: 48, apiName: 'EZK' },
+  { id: 'daniel', name: 'Daniel', testament: 'old', chapters: 12, apiName: 'DAN' },
+  { id: 'hosea', name: 'Oseas', testament: 'old', chapters: 14, apiName: 'HOS' },
+  { id: 'joel', name: 'Joel', testament: 'old', chapters: 3, apiName: 'JOL' },
+  { id: 'amos', name: 'Amós', testament: 'old', chapters: 9, apiName: 'AMO' },
+  { id: 'obadiah', name: 'Abdías', testament: 'old', chapters: 1, apiName: 'OBA' },
+  { id: 'jonah', name: 'Jonás', testament: 'old', chapters: 4, apiName: 'JON' },
+  { id: 'micah', name: 'Miqueas', testament: 'old', chapters: 7, apiName: 'MIC' },
+  { id: 'nahum', name: 'Nahúm', testament: 'old', chapters: 3, apiName: 'NAM' },
+  { id: 'habakkuk', name: 'Habacuc', testament: 'old', chapters: 3, apiName: 'HAB' },
+  { id: 'zephaniah', name: 'Sofonías', testament: 'old', chapters: 3, apiName: 'ZEP' },
+  { id: 'haggai', name: 'Hageo', testament: 'old', chapters: 2, apiName: 'HAG' },
+  { id: 'zechariah', name: 'Zacarías', testament: 'old', chapters: 14, apiName: 'ZEC' },
+  { id: 'malachi', name: 'Malaquías', testament: 'old', chapters: 4, apiName: 'MAL' },
   // Nuevo Testamento
-  { id: 'matthew', name: 'Mateo', testament: 'new', chapters: 28 },
-  { id: 'mark', name: 'Marcos', testament: 'new', chapters: 16 },
-  { id: 'luke', name: 'Lucas', testament: 'new', chapters: 24 },
-  { id: 'john', name: 'Juan', testament: 'new', chapters: 21 },
-  { id: 'acts', name: 'Hechos', testament: 'new', chapters: 28 },
-  { id: 'romans', name: 'Romanos', testament: 'new', chapters: 16 },
-  { id: '1corinthians', name: '1 Corintios', testament: 'new', chapters: 16 },
-  { id: '2corinthians', name: '2 Corintios', testament: 'new', chapters: 13 },
-  { id: 'galatians', name: 'Gálatas', testament: 'new', chapters: 6 },
-  { id: 'ephesians', name: 'Efesios', testament: 'new', chapters: 6 },
-  { id: 'philippians', name: 'Filipenses', testament: 'new', chapters: 4 },
-  { id: 'colossians', name: 'Colosenses', testament: 'new', chapters: 4 },
-  { id: '1thessalonians', name: '1 Tesalonicenses', testament: 'new', chapters: 5 },
-  { id: '2thessalonians', name: '2 Tesalonicenses', testament: 'new', chapters: 3 },
-  { id: '1timothy', name: '1 Timoteo', testament: 'new', chapters: 6 },
-  { id: '2timothy', name: '2 Timoteo', testament: 'new', chapters: 4 },
-  { id: 'titus', name: 'Tito', testament: 'new', chapters: 3 },
-  { id: 'philemon', name: 'Filemón', testament: 'new', chapters: 1 },
-  { id: 'hebrews', name: 'Hebreos', testament: 'new', chapters: 13 },
-  { id: 'james', name: 'Santiago', testament: 'new', chapters: 5 },
-  { id: '1peter', name: '1 Pedro', testament: 'new', chapters: 5 },
-  { id: '2peter', name: '2 Pedro', testament: 'new', chapters: 3 },
-  { id: '1john', name: '1 Juan', testament: 'new', chapters: 5 },
-  { id: '2john', name: '2 Juan', testament: 'new', chapters: 1 },
-  { id: '3john', name: '3 Juan', testament: 'new', chapters: 1 },
-  { id: 'jude', name: 'Judas', testament: 'new', chapters: 1 },
-  { id: 'revelation', name: 'Apocalipsis', testament: 'new', chapters: 22 },
+  { id: 'matthew', name: 'Mateo', testament: 'new', chapters: 28, apiName: 'MAT' },
+  { id: 'mark', name: 'Marcos', testament: 'new', chapters: 16, apiName: 'MRK' },
+  { id: 'luke', name: 'Lucas', testament: 'new', chapters: 24, apiName: 'LUK' },
+  { id: 'john', name: 'Juan', testament: 'new', chapters: 21, apiName: 'JHN' },
+  { id: 'acts', name: 'Hechos', testament: 'new', chapters: 28, apiName: 'ACT' },
+  { id: 'romans', name: 'Romanos', testament: 'new', chapters: 16, apiName: 'ROM' },
+  { id: '1corinthians', name: '1 Corintios', testament: 'new', chapters: 16, apiName: '1CO' },
+  { id: '2corinthians', name: '2 Corintios', testament: 'new', chapters: 13, apiName: '2CO' },
+  { id: 'galatians', name: 'Gálatas', testament: 'new', chapters: 6, apiName: 'GAL' },
+  { id: 'ephesians', name: 'Efesios', testament: 'new', chapters: 6, apiName: 'EPH' },
+  { id: 'philippians', name: 'Filipenses', testament: 'new', chapters: 4, apiName: 'PHP' },
+  { id: 'colossians', name: 'Colosenses', testament: 'new', chapters: 4, apiName: 'COL' },
+  { id: '1thessalonians', name: '1 Tesalonicenses', testament: 'new', chapters: 5, apiName: '1TH' },
+  { id: '2thessalonians', name: '2 Tesalonicenses', testament: 'new', chapters: 3, apiName: '2TH' },
+  { id: '1timothy', name: '1 Timoteo', testament: 'new', chapters: 6, apiName: '1TI' },
+  { id: '2timothy', name: '2 Timoteo', testament: 'new', chapters: 4, apiName: '2TI' },
+  { id: 'titus', name: 'Tito', testament: 'new', chapters: 3, apiName: 'TIT' },
+  { id: 'philemon', name: 'Filemón', testament: 'new', chapters: 1, apiName: 'PHM' },
+  { id: 'hebrews', name: 'Hebreos', testament: 'new', chapters: 13, apiName: 'HEB' },
+  { id: 'james', name: 'Santiago', testament: 'new', chapters: 5, apiName: 'JAS' },
+  { id: '1peter', name: '1 Pedro', testament: 'new', chapters: 5, apiName: '1PE' },
+  { id: '2peter', name: '2 Pedro', testament: 'new', chapters: 3, apiName: '2PE' },
+  { id: '1john', name: '1 Juan', testament: 'new', chapters: 5, apiName: '1JN' },
+  { id: '2john', name: '2 Juan', testament: 'new', chapters: 1, apiName: '2JN' },
+  { id: '3john', name: '3 Juan', testament: 'new', chapters: 1, apiName: '3JN' },
+  { id: 'jude', name: 'Judas', testament: 'new', chapters: 1, apiName: 'JUD' },
+  { id: 'revelation', name: 'Apocalipsis', testament: 'new', chapters: 22, apiName: 'REV' },
 ];
 
-const BASE_URL = 'https://bible-api.com';
+// HelloAO Bible API - Free Bible API with Spanish support
+const BASE_URL = 'https://bible.helloao.org/api';
+
+// Available Spanish translation
+const SPANISH_TRANSLATION = 'spa_rvr'; // Reina Valera
+
+interface HelloAOVerse {
+  verse: number;
+  text: string;
+}
+
+interface HelloAOChapter {
+  translation: {
+    id: string;
+    name: string;
+    language: string;
+  };
+  book: {
+    id: string;
+    name: string;
+  };
+  chapter: number;
+  verses: HelloAOVerse[];
+}
 
 // Fetch a specific chapter from a book
 export async function fetchChapter(
   bookId: string,
-  chapter: number,
-  translation: string = 'rvr1960'
+  chapter: number
 ): Promise<BiblePassage> {
+  const book = getBookById(bookId);
+  if (!book) {
+    throw new Error(`Book not found: ${bookId}`);
+  }
+
   const response = await fetch(
-    `${BASE_URL}/${bookId}+${chapter}?translation=${translation}`
+    `${BASE_URL}/${SPANISH_TRANSLATION}/${book.apiName}/${chapter}.json`
   );
 
   if (!response.ok) {
     throw new Error(`Failed to fetch chapter: ${response.statusText}`);
   }
 
-  return response.json();
-}
+  const data: HelloAOChapter = await response.json();
 
-// Fetch a specific verse or range of verses
-export async function fetchVerses(
-  bookId: string,
-  chapter: number,
-  startVerse: number,
-  endVerse?: number,
-  translation: string = 'rvr1960'
-): Promise<BiblePassage> {
-  const verseRange = endVerse ? `${startVerse}-${endVerse}` : `${startVerse}`;
-  const response = await fetch(
-    `${BASE_URL}/${bookId}+${chapter}:${verseRange}?translation=${translation}`
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch verses: ${response.statusText}`);
-  }
-
-  return response.json();
+  // Transform to our internal format
+  return {
+    reference: `${book.name} ${chapter}`,
+    verses: data.verses.map((v) => ({
+      book_id: bookId,
+      book_name: book.name,
+      chapter: chapter,
+      verse: v.verse,
+      text: v.text,
+    })),
+    text: data.verses.map((v) => v.text).join(' '),
+    translation_id: data.translation.id,
+    translation_name: data.translation.name,
+    translation_note: 'Reina Valera',
+  };
 }
 
 // Get book by ID

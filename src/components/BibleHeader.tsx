@@ -35,7 +35,7 @@ export function BibleHeader({ onMenuClick }: BibleHeaderProps) {
         
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground">
-            RVR 1960
+            Reina Valera
           </span>
         </div>
       </div>
