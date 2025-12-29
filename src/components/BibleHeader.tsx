@@ -79,7 +79,7 @@ export function BibleHeader({
 
           {/* Toggle para mostrar equivalente en español - visible si la versión actual NO es en español */}
           {!isSpanishVersion && onSpanishToggle && (
-            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-md bg-muted/50" title="Mostrar equivalente en español (RVR)">
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-muted/50" title="Mostrar equivalente en español (RVR)">
               <Languages className="h-4 w-4 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">ES</span>
               <Switch
