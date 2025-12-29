@@ -8,6 +8,7 @@ import { FavoritesPanel } from '@/components/FavoritesPanel';
 import { StudyCenter } from '@/components/StudyCenter';
 import { ThemeCustomizer } from '@/components/ThemeCustomizer';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
+import { WelcomeCover } from '@/components/WelcomeCover';
 import { useBibleReader } from '@/hooks/useBibleReader';
 import type { BibleBook } from '@/lib/bibleApi';
 
@@ -18,15 +19,21 @@ const Index = () => {
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const [studyCenterOpen, setStudyCenterOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
+  const [showCover, setShowCover] = useState(true);
 
-  // Inicializar tema al cargar
+  // Inicializar tema y portada al cargar
   useEffect(() => {
+    // Verificar si ya se mostró la portada en esta sesión
+    const coverShown = sessionStorage.getItem('bible_welcome_shown');
+    if (coverShown) {
+      setShowCover(false);
+    }
+
     // Cargar configuración del tema guardada
     try {
       const saved = localStorage.getItem('bible_theme_settings');
       if (saved) {
         const settings = JSON.parse(saved);
-        // Aplicar modo oscuro si está guardado
         if (settings.darkMode) {
           document.documentElement.classList.add('dark');
         }
@@ -35,6 +42,11 @@ const Index = () => {
       console.error('Error loading theme:', e);
     }
   }, []);
+
+  const handleEnterApp = () => {
+    setShowCover(false);
+    sessionStorage.setItem('bible_welcome_shown', 'true');
+  };
 
   const {
     selectedBook,
@@ -63,13 +75,15 @@ const Index = () => {
   };
 
   const handleVersionChange = () => {
-    // Recargar el capítulo actual con la nueva versión
     refetch();
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <BibleHeader 
+    <div className="min-h-screen bg-background flex flex-col relative">
+      {/* Welcome Cover Layer */}
+      {showCover && <WelcomeCover onEnter={handleEnterApp} />}
+
+      <BibleHeader
         onMenuClick={() => setSidebarOpen(true)}
         onAIClick={() => setAiPanelOpen(true)}
         onSearchClick={() => setSearchOpen(true)}
@@ -81,7 +95,7 @@ const Index = () => {
         onSpanishToggle={setShowSpanishEquivalent}
         isSpanishVersion={isSpanishVersion}
       />
-      
+
       <div className="flex-1 flex overflow-hidden pb-16 md:pb-0">
         <BibleSidebar
           selectedBook={selectedBook}
@@ -117,7 +131,7 @@ const Index = () => {
         onStudyClick={() => setStudyCenterOpen(true)}
       />
 
-      {/* AI Study Panel */}
+      {/* Panels and Modals */}
       <AIStudyPanel
         book={selectedBook}
         chapter={selectedChapter}
@@ -126,20 +140,17 @@ const Index = () => {
         onClose={() => setAiPanelOpen(false)}
       />
 
-      {/* Search Modal */}
       <SearchModal
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}
         onSelectBook={handleSearchSelect}
       />
 
-      {/* Favorites Panel */}
       <FavoritesPanel
         isOpen={favoritesOpen}
         onClose={() => setFavoritesOpen(false)}
       />
 
-      {/* Study Center */}
       <StudyCenter
         book={selectedBook}
         chapter={selectedChapter}
@@ -148,7 +159,6 @@ const Index = () => {
         onClose={() => setStudyCenterOpen(false)}
       />
 
-      {/* Theme Customizer */}
       <ThemeCustomizer
         isOpen={themeOpen}
         onClose={() => setThemeOpen(false)}
