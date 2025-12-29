@@ -79,7 +79,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col relative">
+    <div className="h-screen bg-background flex flex-col relative overflow-hidden">
       {/* Welcome Cover Layer */}
       {showCover && <WelcomeCover onEnter={handleEnterApp} />}
 
@@ -96,7 +96,7 @@ const Index = () => {
         isSpanishVersion={isSpanishVersion}
       />
 
-      <div className="flex-1 flex overflow-hidden pb-16 md:pb-0">
+      <div className="flex-1 flex overflow-hidden relative">
         <BibleSidebar
           selectedBook={selectedBook}
           selectedChapter={selectedChapter}
@@ -107,18 +107,20 @@ const Index = () => {
           onClose={() => setSidebarOpen(false)}
         />
 
-        <main className="flex-1 flex flex-col min-h-0">
-          <ScriptureReader
-            book={selectedBook}
-            chapter={selectedChapter}
-            passage={passage}
-            isLoading={isLoading}
-            error={error as Error | null}
-            canGoNext={!!canGoNext}
-            canGoPrevious={!!canGoPrevious}
-            onNext={goToNextChapter}
-            onPrevious={goToPreviousChapter}
-          />
+        <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
+          <div className="flex-1 overflow-y-auto pb-20 md:pb-8">
+            <ScriptureReader
+              book={selectedBook}
+              chapter={selectedChapter}
+              passage={passage}
+              isLoading={isLoading}
+              error={error as Error | null}
+              canGoNext={!!canGoNext}
+              canGoPrevious={!!canGoPrevious}
+              onNext={goToNextChapter}
+              onPrevious={goToPreviousChapter}
+            />
+          </div>
         </main>
       </div>
 
