@@ -1,6 +1,7 @@
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronLeft, ChevronRight, Loader2, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { AudioPlayer } from '@/components/AudioPlayer';
 import type { BibleBook, BiblePassage } from '@/lib/bibleApi';
 
 interface ScriptureReaderProps {
@@ -26,6 +27,8 @@ export function ScriptureReader({
   onNext,
   onPrevious,
 }: ScriptureReaderProps) {
+  const [highlightedVerse, setHighlightedVerse] = useState(-1);
+  const [showAudioPlayer, setShowAudioPlayer] = useState(false);
   // Welcome state when no book selected
   if (!book) {
     return (
@@ -76,9 +79,26 @@ export function ScriptureReader({
     if (passage?.verses && passage.verses.length > 0) {
       return (
         <div className="animate-fade-in">
+          {/* Audio Player */}
+          {showAudioPlayer && (
+            <div className="mb-6">
+              <AudioPlayer
+                verses={passage.verses.map(v => `Versículo ${v.verse}. ${v.text}`)}
+                onVerseHighlight={setHighlightedVerse}
+              />
+            </div>
+          )}
+
           <article className="scripture-text text-foreground leading-[2] space-y-1">
-            {passage.verses.map((verse) => (
-              <span key={`${verse.chapter}-${verse.verse}`} className="inline">
+            {passage.verses.map((verse, index) => (
+              <span 
+                key={`${verse.chapter}-${verse.verse}`} 
+                className={`inline transition-all duration-300 ${
+                  highlightedVerse === index 
+                    ? 'bg-primary/20 rounded px-1 py-0.5' 
+                    : ''
+                }`}
+              >
                 <sup className="verse-number">{verse.verse}</sup>
                 <span>{verse.text.trim()}</span>{' '}
               </span>
@@ -116,11 +136,24 @@ export function ScriptureReader({
           <span className="hidden sm:inline">Anterior</span>
         </Button>
 
-        <div className="text-center">
-          <h2 className="text-xl md:text-2xl font-serif font-semibold text-foreground">
-            {book.name}
-          </h2>
-          <p className="text-sm text-muted-foreground">Capítulo {chapter}</p>
+        <div className="text-center flex items-center gap-2">
+          <div>
+            <h2 className="text-xl md:text-2xl font-serif font-semibold text-foreground">
+              {book.name}
+            </h2>
+            <p className="text-sm text-muted-foreground">Capítulo {chapter}</p>
+          </div>
+          
+          {/* Botón de Audio */}
+          <Button
+            variant={showAudioPlayer ? "default" : "ghost"}
+            size="icon"
+            onClick={() => setShowAudioPlayer(!showAudioPlayer)}
+            className={`h-9 w-9 ${showAudioPlayer ? 'bg-primary' : ''}`}
+            title={showAudioPlayer ? "Ocultar reproductor" : "Escuchar capítulo"}
+          >
+            <Volume2 className="h-4 w-4" />
+          </Button>
         </div>
 
         <Button
