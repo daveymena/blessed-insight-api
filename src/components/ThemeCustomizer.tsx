@@ -9,7 +9,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, Moon, Sun, Palette, Image as ImageIcon } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Palette, Image as ImageIcon, Type, AlignLeft } from "lucide-react";
 
 interface ThemeCustomizerProps {
     isOpen: boolean;
@@ -31,58 +32,49 @@ const BACKGROUNDS = [
 ];
 
 export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
-    const [currentTheme, setCurrentTheme] = useState("light");
-    const [currentBg, setCurrentBg] = useState("none");
+    const [settings, setSettings] = useState({
+        theme: "light",
+        background: "none",
+        fontSize: 18,
+        lineHeight: 2,
+        font: "serif"
+    });
 
     useEffect(() => {
         if (isOpen) {
-            // Leer estado actual del DOM
-            const html = document.documentElement;
-            const body = document.body;
-
-            // Detectar tema
-            if (html.classList.contains("theme-sepia")) setCurrentTheme("sepia");
-            else if (html.classList.contains("theme-navy")) setCurrentTheme("navy");
-            else if (html.classList.contains("theme-slate")) setCurrentTheme("slate");
-            else if (html.classList.contains("dark")) setCurrentTheme("dark");
-            else setCurrentTheme("light");
-
-            // Detectar fondo
-            if (body.classList.contains("bg-pattern-dots")) setCurrentBg("dots");
-            else if (body.classList.contains("bg-pattern-paper")) setCurrentBg("paper");
-            else setCurrentBg("none");
+            const saved = localStorage.getItem("bible_theme_settings");
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    setSettings(prev => ({ ...prev, ...parsed }));
+                } catch (e) { }
+            }
         }
     }, [isOpen]);
 
-    const applyTheme = (theme: string) => {
-        setCurrentTheme(theme);
-        const html = document.documentElement;
+    const updateSetting = (key: string, value: any) => {
+        const newSettings = { ...settings, [key]: value };
+        setSettings(newSettings);
 
-        // Resetear clases
-        html.classList.remove("dark", "theme-sepia", "theme-navy", "theme-slate");
+        // Aplicar tema si es la clave de tema
+        if (key === "theme") {
+            const html = document.documentElement;
+            html.classList.remove("dark", "theme-sepia", "theme-navy", "theme-slate");
+            if (value === "dark") html.classList.add("dark");
+            else if (value !== "light") html.classList.add(`theme-${value}`);
+        }
 
-        if (theme === "dark") html.classList.add("dark");
-        else if (theme !== "light") html.classList.add(`theme-${theme}`);
+        // Aplicar fondo si es la clave de fondo
+        if (key === "background") {
+            const body = document.body;
+            body.classList.remove("bg-pattern-dots", "bg-pattern-paper");
+            if (value !== "none") body.classList.add(`bg-pattern-${value}`);
+        }
 
-        // Persistir
-        const settings = JSON.parse(localStorage.getItem("bible_theme_settings") || "{}");
-        settings.theme = theme;
-        localStorage.setItem("bible_theme_settings", JSON.stringify(settings));
-    };
+        localStorage.setItem("bible_theme_settings", JSON.stringify(newSettings));
 
-    const applyBackground = (bg: string) => {
-        setCurrentBg(bg);
-        const body = document.body;
-
-        // Resetear fondos
-        body.classList.remove("bg-pattern-dots", "bg-pattern-paper");
-
-        if (bg !== "none") body.classList.add(`bg-pattern-${bg}`);
-
-        // Persistir
-        const settings = JSON.parse(localStorage.getItem("bible_theme_settings") || "{}");
-        settings.background = bg;
-        localStorage.setItem("bible_theme_settings", JSON.stringify(settings));
+        // Dispatch event to notify Other components (ScriptureReader)
+        window.dispatchEvent(new Event('storage'));
     };
 
     return (
@@ -95,16 +87,16 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
                     </DialogDescription>
                 </DialogHeader>
 
-                <ScrollArea className="max-h-[60vh] pr-4">
-                    <div className="space-y-6">
+                <ScrollArea className="max-h-[70vh] pr-4">
+                    <div className="space-y-6 py-2">
 
                         {/* Selector de Tema */}
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
-                                <Palette className="w-4 h-4 text-muted-foreground" />
+                                <Palette className="w-4 h-4 text-primary" />
                                 <Label className="text-base font-semibold">Tema de Color</Label>
                             </div>
-                            <RadioGroup value={currentTheme} onValueChange={applyTheme} className="grid grid-cols-2 gap-4">
+                            <RadioGroup value={settings.theme} onValueChange={(v) => updateSetting("theme", v)} className="grid grid-cols-2 gap-4">
                                 {THEMES.map((theme) => (
                                     <div key={theme.id}>
                                         <RadioGroupItem value={theme.id} id={`theme-${theme.id}`} className="peer sr-only" />
@@ -122,24 +114,66 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
 
                         <div className="w-full border-t my-4" />
 
+                        {/* Tipografía y Tamaño (Separación de texto) */}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2">
+                                <Type className="w-4 h-4 text-primary" />
+                                <Label className="text-base font-semibold">Tipografía y Lectura</Label>
+                            </div>
+
+                            <div className="space-y-3 px-1">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-muted-foreground flex items-center gap-2">
+                                        <Type className="h-3 w-3" /> Tamaño de letra
+                                    </span>
+                                    <span className="font-medium">{settings.fontSize}px</span>
+                                </div>
+                                <Slider
+                                    value={[settings.fontSize]}
+                                    onValueChange={(v) => updateSetting("fontSize", v[0])}
+                                    min={14}
+                                    max={32}
+                                    step={1}
+                                />
+                            </div>
+
+                            <div className="space-y-3 px-1">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-muted-foreground flex items-center gap-2">
+                                        <AlignLeft className="h-3 w-3" /> Separación (Interlineado)
+                                    </span>
+                                    <span className="font-medium">{settings.lineHeight.toFixed(1)}x</span>
+                                </div>
+                                <Slider
+                                    value={[settings.lineHeight]}
+                                    onValueChange={(v) => updateSetting("lineHeight", v[0])}
+                                    min={1.2}
+                                    max={3.0}
+                                    step={0.1}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="w-full border-t my-4" />
+
                         {/* Selector de Fondo */}
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
-                                <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                                <ImageIcon className="w-4 h-4 text-primary" />
                                 <Label className="text-base font-semibold">Fondo / Textura</Label>
                             </div>
-                            <RadioGroup value={currentBg} onValueChange={applyBackground} className="grid grid-cols-3 gap-3">
+                            <RadioGroup value={settings.background} onValueChange={(v) => updateSetting("background", v)} className="grid grid-cols-3 gap-3">
                                 {BACKGROUNDS.map((bg) => (
                                     <div key={bg.id}>
                                         <RadioGroupItem value={bg.id} id={`bg-${bg.id}`} className="peer sr-only" />
                                         <Label
                                             htmlFor={`bg-${bg.id}`}
-                                            className="flex flex-col items-center justify-center text-center rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent peer-data-[state=checked]:border-primary cursor-pointer h-20 transition-all"
+                                            className="flex flex-col items-center justify-center text-center rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent peer-data-[state=checked]:border-primary cursor-pointer h-20 transition-all font-medium"
                                         >
                                             {bg.id === "none" && <div className="w-full h-full bg-slate-100 dark:bg-slate-800 rounded mb-1" />}
                                             {bg.id === "dots" && <div className="w-full h-full bg-slate-100 dark:bg-slate-800 rounded mb-1 opacity-50" style={{ backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)', backgroundSize: '10px 10px' }} />}
                                             {bg.id === "paper" && <div className="w-full h-full bg-[#f4ecd8] rounded mb-1 border" />}
-                                            <span className="text-xs mt-2 font-medium">{bg.name}</span>
+                                            <span className="text-xs mt-auto">{bg.name}</span>
                                         </Label>
                                     </div>
                                 ))}
