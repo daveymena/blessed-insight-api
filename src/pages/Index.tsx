@@ -8,6 +8,7 @@ import { FavoritesPanel } from '@/components/FavoritesPanel';
 import { StudyCenter } from '@/components/StudyCenter';
 import { ThemeCustomizer } from '@/components/ThemeCustomizer';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
+import { BackgroundLayer } from '@/components/BackgroundLayer';
 import { WelcomeCover } from '@/components/WelcomeCover';
 import { useBibleReader } from '@/hooks/useBibleReader';
 import type { BibleBook } from '@/lib/bibleApi';
@@ -82,6 +83,8 @@ const Index = () => {
     <div className="h-screen bg-background flex flex-col relative overflow-hidden">
       {/* Welcome Cover Layer */}
       {showCover && <WelcomeCover onEnter={handleEnterApp} />}
+
+      <BackgroundLayer />
 
       <BibleHeader
         onMenuClick={() => setSidebarOpen(true)}

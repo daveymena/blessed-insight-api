@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { getCurrentVersionInfo } from '@/lib/bibleApi';
 import type { BibleBook, BiblePassage } from '@/lib/bibleApi';
+import { useThemeSettings } from '@/hooks/useThemeSettings';
 
 interface ScriptureReaderProps {
   book: BibleBook | null;
@@ -60,32 +61,10 @@ export function ScriptureReader({
   onNext,
   onPrevious,
 }: ScriptureReaderProps) {
+  const { settings: themeSettings, hasScenicBackground } = useThemeSettings();
   const [highlightedVerse, setHighlightedVerse] = useState(-1);
   const [showAudioPlayer, setShowAudioPlayer] = useState(false);
-  const [themeSettings, setThemeSettings] = useState(getThemeSettings);
   const versionInfo = getCurrentVersionInfo();
-
-  // Escuchar cambios en el tema
-  useEffect(() => {
-    const handleStorageChange = () => {
-      setThemeSettings(getThemeSettings());
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    // También escuchar cambios locales
-    const interval = setInterval(() => {
-      const newSettings = getThemeSettings();
-      if (JSON.stringify(newSettings) !== JSON.stringify(themeSettings)) {
-        setThemeSettings(newSettings);
-      }
-    }, 500);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-    };
-  }, [themeSettings]);
 
   const backgroundClass = BACKGROUND_CLASSES[themeSettings.background] || '';
   const fontFamily = FONT_FAMILIES[themeSettings.font] || FONT_FAMILIES.serif;
@@ -171,8 +150,8 @@ export function ScriptureReader({
               <div
                 key={`${verse.chapter}-${verse.verse}`}
                 className={`mb-4 transition-all duration-300 ${highlightedVerse === index
-                    ? 'bg-primary/20 rounded-lg px-3 py-2 -mx-3'
-                    : ''
+                  ? 'bg-primary/20 rounded-lg px-3 py-2 -mx-3'
+                  : ''
                   }`}
               >
                 <sup className="verse-number font-semibold text-primary/70 mr-2 text-sm">{verse.verse}</sup>
@@ -245,8 +224,8 @@ export function ScriptureReader({
       </div>
 
       {/* Scripture Content with Background */}
-      <div className={`flex-1 overflow-auto ${backgroundClass} transition-colors duration-500`}>
-        <div className="max-w-3xl mx-auto px-4 md:px-8 py-8">
+      <div className={`flex-1 overflow-auto ${!hasScenicBackground ? backgroundClass : ''} transition-colors duration-500`}>
+        <div className={`max-w-3xl mx-auto px-4 md:px-8 py-8 min-h-full transition-all duration-500 ${hasScenicBackground ? 'bg-glass/80 rounded-xl my-4 mx-4 shadow-xl backdrop-blur-md' : ''}`}>
           {renderContent()}
         </div>
       </div>

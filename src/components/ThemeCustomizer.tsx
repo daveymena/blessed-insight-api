@@ -31,6 +31,9 @@ const BACKGROUNDS = [
     { id: "none", name: "Liso" },
     { id: "dots", name: "Puntos" },
     { id: "paper", name: "Sutil" },
+    { id: "misty-mountains", name: "Cumbres" },
+    { id: "calm-ocean", name: "Océano" },
+    { id: "warm-clouds", name: "Celestial" },
 ];
 
 export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
@@ -92,6 +95,7 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
 
         localStorage.setItem("bible_theme_settings", JSON.stringify(newSettings));
         window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new Event('theme-change'));
     };
 
     const adjustFontSize = (delta: number) => {

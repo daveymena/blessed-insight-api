@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { VersionSelector } from './VersionSelector';
 import { Switch } from '@/components/ui/switch';
+import { useThemeSettings } from '@/hooks/useThemeSettings';
 
 interface BibleHeaderProps {
   onMenuClick: () => void;
@@ -29,6 +30,7 @@ export function BibleHeader({
   onSpanishToggle,
   isSpanishVersion = true
 }: BibleHeaderProps) {
+  const { hasScenicBackground } = useThemeSettings();
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -64,7 +66,7 @@ export function BibleHeader({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+    <header className={`sticky top-0 z-40 border-b border-border transition-all duration-500 ${hasScenicBackground ? 'bg-background/60 backdrop-blur-md shadow-sm' : 'bg-background/95 backdrop-blur-sm'}`}>
       <div className="container flex items-center justify-between h-16 px-4 md:px-6">
         <div className="flex items-center gap-3">
           <Button
