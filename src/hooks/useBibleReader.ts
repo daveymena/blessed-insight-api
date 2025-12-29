@@ -11,17 +11,15 @@ import {
 export interface ReaderState {
   selectedBook: BibleBook | null;
   selectedChapter: number;
-  translation: string;
 }
 
 export function useBibleReader() {
   const [state, setState] = useState<ReaderState>({
     selectedBook: bibleBooks.find(b => b.id === 'john') || bibleBooks[0],
     selectedChapter: 1,
-    translation: 'rvr1960',
   });
 
-  const { selectedBook, selectedChapter, translation } = state;
+  const { selectedBook, selectedChapter } = state;
 
   const {
     data: passage,
@@ -29,11 +27,12 @@ export function useBibleReader() {
     error,
     refetch,
   } = useQuery<BiblePassage>({
-    queryKey: ['chapter', selectedBook?.id, selectedChapter, translation],
-    queryFn: () => fetchChapter(selectedBook!.id, selectedChapter, translation),
+    queryKey: ['chapter', selectedBook?.id, selectedChapter],
+    queryFn: () => fetchChapter(selectedBook!.id, selectedChapter),
     enabled: !!selectedBook,
     staleTime: 1000 * 60 * 30, // Cache for 30 minutes
     gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour
+    retry: 2,
   });
 
   const selectBook = useCallback((book: BibleBook) => {
@@ -48,13 +47,6 @@ export function useBibleReader() {
     setState((prev) => ({
       ...prev,
       selectedChapter: chapter,
-    }));
-  }, []);
-
-  const setTranslation = useCallback((translation: string) => {
-    setState((prev) => ({
-      ...prev,
-      translation,
     }));
   }, []);
 
@@ -76,7 +68,7 @@ export function useBibleReader() {
         });
       }
     }
-  }, [selectedBook, selectedChapter, state]);
+  }, [selectedBook, selectedChapter, state, selectChapter]);
 
   const goToPreviousChapter = useCallback(() => {
     if (!selectedBook) return;
@@ -95,7 +87,7 @@ export function useBibleReader() {
         });
       }
     }
-  }, [selectedBook, selectedChapter, state]);
+  }, [selectedBook, selectedChapter, state, selectChapter]);
 
   const chapters = selectedBook ? getChaptersForBook(selectedBook.id) : [];
 
@@ -112,7 +104,6 @@ export function useBibleReader() {
   return {
     selectedBook,
     selectedChapter,
-    translation,
     passage,
     isLoading,
     error,
@@ -121,7 +112,6 @@ export function useBibleReader() {
     canGoPrevious,
     selectBook,
     selectChapter,
-    setTranslation,
     goToNextChapter,
     goToPreviousChapter,
     refetch,
