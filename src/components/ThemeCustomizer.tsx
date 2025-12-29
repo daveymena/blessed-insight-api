@@ -6,11 +6,13 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
-import { Palette, Image as ImageIcon, Type, AlignLeft } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Palette, Image as ImageIcon, Type, AlignLeft, Moon, Sun, Languages } from "lucide-react";
 
 interface ThemeCustomizerProps {
     isOpen: boolean;
@@ -111,6 +113,50 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
 
                 <ScrollArea className="max-h-[80vh] px-6 py-4">
                     <div className="space-y-8 pb-6">
+
+                        {/* Preferencias Generales */}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2">
+                                <AlignLeft className="w-5 h-5 text-primary" />
+                                <Label className="text-lg font-serif">Preferencias</Label>
+                            </div>
+
+                            <div className="space-y-4 bg-muted/30 p-4 rounded-xl border border-border/50">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-background rounded-lg shadow-sm">
+                                            <Moon className="w-4 h-4 text-primary" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <Label htmlFor="dark-mode" className="font-medium cursor-pointer">Modo Oscuro</Label>
+                                            <span className="text-xs text-muted-foreground">Interfaz nocturna</span>
+                                        </div>
+                                    </div>
+                                    <Switch
+                                        id="dark-mode"
+                                        checked={settings.darkMode}
+                                        onCheckedChange={(v) => updateSetting("darkMode", v)}
+                                    />
+                                </div>
+
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-background rounded-lg shadow-sm">
+                                            <Languages className="w-4 h-4 text-primary" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <Label htmlFor="spanish-equiv" className="font-medium cursor-pointer">Traducción RVR</Label>
+                                            <span className="text-xs text-muted-foreground">Ver en español</span>
+                                        </div>
+                                    </div>
+                                    <Switch
+                                        id="spanish-equiv"
+                                        checked={settings.spanishEquivalent}
+                                        onCheckedChange={(v) => updateSetting("spanishEquivalent", v)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
 
                         {/* Visual y Apariencia */}
                         <div className="space-y-4">
