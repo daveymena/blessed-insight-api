@@ -157,9 +157,11 @@ class SpeechService {
     return text
       // Eliminar etiquetas HTML
       .replace(/<[^>]*>/g, ' ')
+      // Eliminar espacios antes de signos de puntuación (causa lectura literal de la coma/punto)
+      .replace(/\s+([,.!?;:])/g, '$1')
       // Reemplazar saltos de línea y múltiples espacios
       .replace(/\s+/g, ' ')
-      // Asegurar que haya espacio después de puntuación si falta
+      // Asegurar que haya espacio después de puntuación si falta (mejora pausas)
       .replace(/([,:;?!)])([^\s])/g, '$1 $2')
       .trim();
   }
