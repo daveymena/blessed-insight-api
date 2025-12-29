@@ -1,0 +1,60 @@
+{
+  "$schema": "https://easypanel.io/schema.json",
+  "name": "blessed-insight",
+  "services": [
+    {
+      "type": "app",
+      "name": "web",
+      "source": {
+        "type": "github",
+        "owner": "daveymena",
+        "repo": "blessed-insight-api"
+      },
+      "build": {
+        "type": "dockerfile",
+        "file": "Dockerfile"
+      },
+      "env": [
+        {
+          "name": "VITE_OLLAMA_BASE_URL",
+          "value": "https://ollama-ollama.ginee6.easypanel.host"
+        },
+        {
+          "name": "VITE_OLLAMA_MODEL",
+          "value": "gemma2:2b"
+        },
+        {
+          "name": "VITE_USE_OLLAMA",
+          "value": "true"
+        },
+        {
+          "name": "VITE_GROQ_API_KEY",
+          "value": ""
+        },
+        {
+          "name": "VITE_GROQ_API_KEY_2",
+          "value": ""
+        },
+        {
+          "name": "VITE_GROQ_API_KEY_3",
+          "value": ""
+        },
+        {
+          "name": "VITE_GROQ_API_KEY_4",
+          "value": ""
+        }
+      ],
+      "domains": [
+        {
+          "name": "blessed-insight"
+        }
+      ],
+      "ports": [
+        {
+          "published": 80,
+          "target": 80
+        }
+      ]
+    }
+  ]
+}
