@@ -18,17 +18,17 @@ interface ThemeCustomizerProps {
 }
 
 const THEMES = [
-    { id: "light", name: "Claro (Sistema)", color: "bg-white border-2" },
-    { id: "dark", name: "Oscuro", color: "bg-slate-950 border-2" },
-    { id: "sepia", name: "Lectura (Sepia)", color: "bg-[#f4ecd8] border-2 border-[#5b4636]" },
-    { id: "navy", name: "Royal Navy", color: "bg-[#0a192f] border-2 border-blue-400" },
-    { id: "slate", name: "Slate Modern", color: "bg-slate-100 border-2 border-slate-800" },
+    { id: "light", name: "Día", color: "bg-white border-2" },
+    { id: "dark", name: "Noche", color: "bg-slate-950 border-2" },
+    { id: "sepia", name: "Sepia", color: "bg-[#f4ecd8] border-2 border-[#5b4636]" },
+    { id: "navy", name: "Abisal", color: "bg-[#0a192f] border-2 border-blue-400" },
+    { id: "slate", name: "Moderno", color: "bg-slate-100 border-2 border-slate-800" },
 ];
 
 const BACKGROUNDS = [
-    { id: "none", name: "Sólido (Default)" },
-    { id: "dots", name: "Puntos Sutiles" },
-    { id: "paper", name: "Papel Texturizado" },
+    { id: "none", name: "Liso" },
+    { id: "dots", name: "Puntos" },
+    { id: "paper", name: "Sutil" },
 ];
 
 export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
@@ -37,16 +37,23 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
         background: "none",
         fontSize: 18,
         lineHeight: 2,
-        font: "serif"
+        font: "serif",
+        darkMode: false,
+        spanishEquivalent: false
     });
 
     useEffect(() => {
         if (isOpen) {
             const saved = localStorage.getItem("bible_theme_settings");
+            const darkSaved = localStorage.getItem("bible_darkMode");
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    setSettings(prev => ({ ...prev, ...parsed }));
+                    setSettings(prev => ({
+                        ...prev,
+                        ...parsed,
+                        darkMode: darkSaved ? JSON.parse(darkSaved) : false
+                    }));
                 } catch (e) { }
             }
         }
@@ -56,15 +63,25 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
         const newSettings = { ...settings, [key]: value };
         setSettings(newSettings);
 
-        // Aplicar tema si es la clave de tema
         if (key === "theme") {
             const html = document.documentElement;
             html.classList.remove("dark", "theme-sepia", "theme-navy", "theme-slate");
-            if (value === "dark") html.classList.add("dark");
-            else if (value !== "light") html.classList.add(`theme-${value}`);
+            if (value === "dark") {
+                html.classList.add("dark");
+                localStorage.setItem("bible_darkMode", "true");
+            } else {
+                localStorage.setItem("bible_darkMode", "false");
+                if (value !== "light") html.classList.add(`theme-${value}`);
+            }
         }
 
-        // Aplicar fondo si es la clave de fondo
+        if (key === "darkMode") {
+            const html = document.documentElement;
+            if (value) html.classList.add("dark");
+            else html.classList.remove("dark");
+            localStorage.setItem("bible_darkMode", JSON.stringify(value));
+        }
+
         if (key === "background") {
             const body = document.body;
             body.classList.remove("bg-pattern-dots", "bg-pattern-paper");
@@ -72,112 +89,124 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
         }
 
         localStorage.setItem("bible_theme_settings", JSON.stringify(newSettings));
-
-        // Dispatch event to notify Other components (ScriptureReader)
         window.dispatchEvent(new Event('storage'));
+    };
+
+    const adjustFontSize = (delta: number) => {
+        const newSize = Math.max(14, Math.min(60, settings.fontSize + delta));
+        updateSetting("fontSize", newSize);
     };
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle>Personalizar Experiencia</DialogTitle>
-                    <DialogDescription>
-                        Elige el ambiente perfecto para tu estudio.
-                    </DialogDescription>
-                </DialogHeader>
+            <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-none shadow-2xl">
+                <div className="bg-primary/5 p-6 border-b border-border">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-serif">Ajustes de Lectura</DialogTitle>
+                        <DialogDescription className="text-primary/70">
+                            Personaliza tu encuentro con las Escrituras.
+                        </DialogDescription>
+                    </DialogHeader>
+                </div>
 
-                <ScrollArea className="max-h-[70vh] pr-4">
-                    <div className="space-y-6 py-2">
+                <ScrollArea className="max-h-[80vh] px-6 py-4">
+                    <div className="space-y-8 pb-6">
 
-                        {/* Selector de Tema */}
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                                <Palette className="w-4 h-4 text-primary" />
-                                <Label className="text-base font-semibold">Tema de Color</Label>
+                        {/* Visual y Apariencia */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Palette className="w-5 h-5 text-primary" />
+                                    <Label className="text-lg font-serif">Ambiente y Color</Label>
+                                </div>
                             </div>
-                            <RadioGroup value={settings.theme} onValueChange={(v) => updateSetting("theme", v)} className="grid grid-cols-2 gap-4">
+
+                            <RadioGroup
+                                value={settings.theme}
+                                onValueChange={(v) => updateSetting("theme", v)}
+                                className="grid grid-cols-3 gap-3"
+                            >
                                 {THEMES.map((theme) => (
                                     <div key={theme.id}>
                                         <RadioGroupItem value={theme.id} id={`theme-${theme.id}`} className="peer sr-only" />
                                         <Label
                                             htmlFor={`theme-${theme.id}`}
-                                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all"
+                                            className="flex flex-col items-center justify-center rounded-xl border-2 border-muted bg-popover p-2 hover:bg-accent peer-data-[state=checked]:border-primary transition-all cursor-pointer h-20"
                                         >
-                                            <div className={`w-full h-12 rounded-md mb-3 ${theme.color} shadow-sm`} />
-                                            <span className="font-medium">{theme.name}</span>
+                                            <div className={`w-8 h-8 rounded-full mb-1 ${theme.color} shadow-inner`} />
+                                            <span className="text-[10px] font-medium opacity-80">{theme.name}</span>
                                         </Label>
                                     </div>
                                 ))}
                             </RadioGroup>
                         </div>
 
-                        <div className="w-full border-t my-4" />
-
-                        {/* Tipografía y Tamaño (Separación de texto) */}
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2">
-                                <Type className="w-4 h-4 text-primary" />
-                                <Label className="text-base font-semibold">Tipografía y Lectura</Label>
+                        {/* Tamaño y Lectura */}
+                        <div className="space-y-5 bg-muted/30 p-4 rounded-2xl border border-border/50">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Type className="w-5 h-5 text-primary" />
+                                <Label className="text-lg font-serif">Tamaño de Texto</Label>
                             </div>
 
-                            <div className="space-y-3 px-1">
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-muted-foreground flex items-center gap-2">
-                                        <Type className="h-3 w-3" /> Tamaño de letra
-                                    </span>
-                                    <span className="font-medium">{settings.fontSize}px</span>
+                            <div className="flex items-center justify-between gap-4">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-12 w-12 rounded-xl border-2"
+                                    onClick={() => adjustFontSize(-2)}
+                                >
+                                    <span className="text-lg font-bold">A-</span>
+                                </Button>
+
+                                <div className="flex-1 text-center">
+                                    <div className="text-3xl font-serif font-bold text-primary">{settings.fontSize}</div>
+                                    <div className="text-[10px] uppercase tracking-tighter text-muted-foreground">Píxeles</div>
                                 </div>
-                                <Slider
-                                    value={[settings.fontSize]}
-                                    onValueChange={(v) => updateSetting("fontSize", v[0])}
-                                    min={14}
-                                    max={32}
-                                    step={1}
-                                />
+
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-12 w-12 rounded-xl border-2"
+                                    onClick={() => adjustFontSize(2)}
+                                >
+                                    <span className="text-xl font-bold">A+</span>
+                                </Button>
                             </div>
 
-                            <div className="space-y-3 px-1">
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-muted-foreground flex items-center gap-2">
-                                        <AlignLeft className="h-3 w-3" /> Separación (Interlineado)
-                                    </span>
-                                    <span className="font-medium">{settings.lineHeight.toFixed(1)}x</span>
-                                </div>
+                            <div className="pt-2">
+                                <Label className="text-sm text-muted-foreground flex items-center gap-2 mb-3">
+                                    <AlignLeft className="h-4 w-4" /> Interlineado (Espacio)
+                                </Label>
                                 <Slider
                                     value={[settings.lineHeight]}
                                     onValueChange={(v) => updateSetting("lineHeight", v[0])}
                                     min={1.2}
                                     max={3.0}
                                     step={0.1}
+                                    className="py-4"
                                 />
                             </div>
                         </div>
 
-                        <div className="w-full border-t my-4" />
-
-                        {/* Selector de Fondo */}
-                        <div className="space-y-3">
+                        {/* Opciones Avanzadas */}
+                        <div className="space-y-4">
                             <div className="flex items-center gap-2">
-                                <ImageIcon className="w-4 h-4 text-primary" />
-                                <Label className="text-base font-semibold">Fondo / Textura</Label>
+                                <ImageIcon className="w-5 h-5 text-primary" />
+                                <Label className="text-lg font-serif">Textura de Fondo</Label>
                             </div>
-                            <RadioGroup value={settings.background} onValueChange={(v) => updateSetting("background", v)} className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-3 gap-2">
                                 {BACKGROUNDS.map((bg) => (
-                                    <div key={bg.id}>
-                                        <RadioGroupItem value={bg.id} id={`bg-${bg.id}`} className="peer sr-only" />
-                                        <Label
-                                            htmlFor={`bg-${bg.id}`}
-                                            className="flex flex-col items-center justify-center text-center rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent peer-data-[state=checked]:border-primary cursor-pointer h-20 transition-all font-medium"
-                                        >
-                                            {bg.id === "none" && <div className="w-full h-full bg-slate-100 dark:bg-slate-800 rounded mb-1" />}
-                                            {bg.id === "dots" && <div className="w-full h-full bg-slate-100 dark:bg-slate-800 rounded mb-1 opacity-50" style={{ backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)', backgroundSize: '10px 10px' }} />}
-                                            {bg.id === "paper" && <div className="w-full h-full bg-[#f4ecd8] rounded mb-1 border" />}
-                                            <span className="text-xs mt-auto">{bg.name}</span>
-                                        </Label>
-                                    </div>
+                                    <Button
+                                        key={bg.id}
+                                        variant={settings.background === bg.id ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => updateSetting("background", bg.id)}
+                                        className="h-9 rounded-lg"
+                                    >
+                                        {bg.name}
+                                    </Button>
                                 ))}
-                            </RadioGroup>
+                            </div>
                         </div>
 
                     </div>

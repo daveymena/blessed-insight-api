@@ -90,111 +90,75 @@ export function BibleHeader({
           </div>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-1 sm:gap-3">
+          {/* Selector de Versión (Compacto en móvil) */}
           <VersionSelector onVersionChange={onVersionChange} />
 
-          {/* Toggle para mostrar equivalente en español - visible si la versión actual NO es en español */}
-          {!isSpanishVersion && onSpanishToggle && (
-            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-muted/50" title="Mostrar equivalente en español (RVR)">
-              <Languages className="h-4 w-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">ES</span>
-              <Switch
-                checked={showSpanishEquivalent}
-                onCheckedChange={onSpanishToggle}
-                className="scale-75"
-              />
-            </div>
-          )}
-
-          {/* Botones ocultos en móvil - se muestran en la barra inferior */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onSearchClick}
-            title="Buscar"
-            className="hidden sm:flex"
-          >
-            <Search className="h-5 w-5" />
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onFavoritesClick}
-            title="Favoritos"
-            className="hidden sm:flex"
-          >
-            <Heart className="h-5 w-5" />
-          </Button>
-
-          {/* Botones de Zoom Rápido (Accesibilidad) */}
-          <div className="flex items-center border border-border rounded-md px-1 bg-muted/20">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-foreground"
-              onClick={() => handleFontSizeChange(-2)}
-              title="Disminuir tamaño de letra"
-            >
-              <span className="text-xs font-bold leading-none">A-</span>
-            </Button>
-            <div className="w-[1px] h-4 bg-border mx-0.5" />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-foreground"
-              onClick={() => handleFontSizeChange(2)}
-              title="Aumentar tamaño de letra"
-            >
-              <span className="text-base font-bold leading-none">A+</span>
-            </Button>
-          </div>
-
-          {/* Botón Personalizar Tema */}
-          {onThemeClick && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onThemeClick}
-              title="Personalizar apariencia"
-              className="text-violet-600 hover:text-violet-700 hover:bg-violet-50 dark:text-violet-400 dark:hover:bg-violet-900/20"
-            >
-              <Palette className="h-5 w-5" />
-            </Button>
-          )}
-
-          {/* Botón Centro de Estudio */}
-          {onStudyClick && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onStudyClick}
-              className="hidden sm:flex gap-1 border-indigo-300 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-700 dark:text-indigo-400"
-              title="Centro de Estudio"
-            >
-              <GraduationCap className="h-4 w-4" />
-              <span className="hidden md:inline">Estudio</span>
-            </Button>
-          )}
-
+          {/* Botón IA (Principal) */}
           <Button
             variant="default"
             size="sm"
             onClick={onAIClick}
-            className="hidden sm:flex bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 gap-1"
+            className="hidden sm:flex bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 gap-1 shadow-md"
           >
             <Sparkles className="h-4 w-4" />
-            <span className="hidden sm:inline">IA</span>
+            <span className="hidden md:inline">IA</span>
           </Button>
 
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setDarkMode(!darkMode)}
-            title={darkMode ? 'Modo claro' : 'Modo oscuro'}
+            onClick={onAIClick}
+            className="sm:hidden text-purple-600 dark:text-purple-400"
+            title="Asistente IA"
           >
-            {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            <Sparkles className="h-5 w-5" />
           </Button>
+
+          <div className="w-[1px] h-6 bg-border mx-1" />
+
+          {/* Ajustes Unificados (Principal para móvil) */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onThemeClick}
+            title="Ajustes de Lectura"
+            className="flex sm:hidden border-primary/20 bg-primary/5 text-primary"
+          >
+            <Palette className="h-5 w-5" />
+          </Button>
+
+          {/* Escritorio: Controles Individuales */}
+          <div className="hidden sm:flex items-center gap-2">
+            {/* Zoom en escritorio */}
+            <div className="flex items-center border border-border rounded-lg bg-muted/30 p-1">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleFontSizeChange(-2)}>
+                <span className="text-xs font-bold">A-</span>
+              </Button>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleFontSizeChange(2)}>
+                <span className="text-xs font-bold">A+</span>
+              </Button>
+            </div>
+
+            {/* Tema y Modo Oscuro en escritorio */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onThemeClick}
+              className="text-muted-foreground"
+            >
+              <Palette className="h-5 w-5" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDarkMode(!darkMode)}
+              className="text-muted-foreground"
+            >
+              {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+          </div>
         </div>
       </div>
     </header>
