@@ -213,18 +213,19 @@ export function setVersion(versionId: string): void {
 }
 
 export function getVersion(): string {
-  const saved = localStorage.getItem('bible_version');
-  if (saved && (bibleImports[saved] || isOnlineVersion(saved))) {
-    currentVersion = saved;
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('bible_version');
+    if (saved && (bibleImports[saved] || isOnlineVersion(saved))) {
+      currentVersion = saved;
+    } else {
+      // Forzar RVR como versión por defecto si no hay nada guardado
+      currentVersion = 'rvr';
+      localStorage.setItem('bible_version', 'rvr');
+    }
   } else {
-    // Forzar RVR como versión por defecto si no hay nada guardado
     currentVersion = 'rvr';
-    localStorage.setItem('bible_version', 'rvr');
   }
-} else {
-  currentVersion = 'rvr';
-}
-return currentVersion;
+  return currentVersion;
 }
 
 export function getCurrentVersionInfo(): BibleVersion {
