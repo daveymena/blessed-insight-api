@@ -1,68 +1,46 @@
-# Welcome to your Lovable project
+# Blessed Insight - Biblia de Estudio con IA
 
-## 📖 Blessed Insight - Biblia de Estudio con IA
+📖 Aplicación web profesional para el estudio de la Biblia con inteligencia artificial.
 
-Una aplicación web completa para leer y estudiar la Biblia con asistencia de Inteligencia Artificial.
+## Características
 
-## ✨ Características
+- 📚 **Múltiples versiones**: RVR, NVI, NTV, RV1960, LBLA, KJV, BBE y más
+- 🤖 **IA integrada**: Análisis, exégesis y devocionales con Ollama y Groq
+- 🔊 **Audio**: Escucha la Biblia con voces masculinas y femeninas
+- 📱 **Responsive**: Diseño optimizado para móvil y escritorio
+- 🌙 **Modo oscuro**: Interfaz adaptable día/noche
+- ⭐ **Favoritos**: Guarda tus versículos preferidos
+- 🔍 **Búsqueda**: Encuentra versículos por texto
+- 📖 **Centro de Estudio**: Exégesis, devocionales, planes de lectura
 
-- 📚 **66 libros completos** - Desde Génesis hasta Apocalipsis (Reina Valera 1909)
-- 🔍 **Búsqueda** - Por libro o acceso rápido a referencias populares
-- 🤖 **Estudio con IA** - Análisis de pasajes, preguntas y planes de estudio personalizados
-- ❤️ **Favoritos** - Guarda tus versículos preferidos
-- 🌙 **Modo oscuro** - Para lectura nocturna cómoda
-- 📱 **Responsive** - Funciona perfectamente en móvil y escritorio
-
-## 🚀 Instalación
-
-```bash
-# Instalar dependencias
-npm install
-
-# Iniciar en desarrollo
-npm run dev
-
-# Construir para producción
-npm run build
-```
-
-## 🤖 Configurar IA (Opcional)
-
-Para habilitar el análisis con IA:
-
-1. Obtén una API key de [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Crea un archivo `.env` en la raíz del proyecto:
-
-```
-VITE_GEMINI_API_KEY=tu_api_key
-```
-
-## 📡 APIs de Biblia Integradas
-
-La aplicación usa múltiples APIs públicas gratuitas con fallback automático:
-
-| API | Versión | Características |
-|-----|---------|-----------------|
-| [HelloAO](https://bible.helloao.org) | RV 1909 | Principal, muy rápida |
-| [Bolls.life](https://bolls.life) | RV 1960 | Backup, completa |
-| [Bible-API.com](https://bible-api.com) | RV 1960 | Búsqueda de versículos |
-| [GetBible.net](https://getbible.net) | RV 1909 | Fallback adicional |
-
-Si una API falla, automáticamente intenta la siguiente.
-
-## 🤖 APIs de IA Soportadas
-
-- **Ollama** (local o remoto) - Modelo gemma2:2b
-- **Groq** (cloud) - Modelo llama-3.1-8b-instant
-
-## 🛠️ Tecnologías
+## Tecnologías
 
 - React 18 + TypeScript
 - Vite
 - Tailwind CSS
 - shadcn/ui
 - TanStack Query
-- Lucide Icons
+- Web Speech API
 
----
-*"Lámpara es a mis pies tu palabra, y lumbrera a mi camino." - Salmos 119:105*
+## Instalación
+
+```bash
+npm install
+npm run dev
+```
+
+## Variables de Entorno
+
+```env
+VITE_OLLAMA_BASE_URL=https://tu-ollama-url
+VITE_OLLAMA_MODEL=gemma2:2b
+VITE_USE_OLLAMA=true
+VITE_GROQ_API_KEY=tu-api-key
+VITE_GROQ_API_KEY_2=tu-api-key-2
+VITE_GROQ_API_KEY_3=tu-api-key-3
+VITE_GROQ_API_KEY_4=tu-api-key-4
+```
+
+## Licencia
+
+MIT
