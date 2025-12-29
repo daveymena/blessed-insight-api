@@ -1,73 +1,68 @@
 # Welcome to your Lovable project
 
-## Project info
+## 📖 Blessed Insight - Biblia de Estudio con IA
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Una aplicación web completa para leer y estudiar la Biblia con asistencia de Inteligencia Artificial.
 
-## How can I edit this code?
+## ✨ Características
 
-There are several ways of editing your application.
+- 📚 **66 libros completos** - Desde Génesis hasta Apocalipsis (Reina Valera 1909)
+- 🔍 **Búsqueda** - Por libro o acceso rápido a referencias populares
+- 🤖 **Estudio con IA** - Análisis de pasajes, preguntas y planes de estudio personalizados
+- ❤️ **Favoritos** - Guarda tus versículos preferidos
+- 🌙 **Modo oscuro** - Para lectura nocturna cómoda
+- 📱 **Responsive** - Funciona perfectamente en móvil y escritorio
 
-**Use Lovable**
+## 🚀 Instalación
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+```bash
+# Instalar dependencias
+npm install
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Iniciar en desarrollo
 npm run dev
+
+# Construir para producción
+npm run build
 ```
 
-**Edit a file directly in GitHub**
+## 🤖 Configurar IA (Opcional)
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Para habilitar el análisis con IA:
 
-**Use GitHub Codespaces**
+1. Obtén una API key de [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Crea un archivo `.env` en la raíz del proyecto:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```
+VITE_GEMINI_API_KEY=tu_api_key
+```
 
-## What technologies are used for this project?
+## 📡 APIs de Biblia Integradas
 
-This project is built with:
+La aplicación usa múltiples APIs públicas gratuitas con fallback automático:
 
+| API | Versión | Características |
+|-----|---------|-----------------|
+| [HelloAO](https://bible.helloao.org) | RV 1909 | Principal, muy rápida |
+| [Bolls.life](https://bolls.life) | RV 1960 | Backup, completa |
+| [Bible-API.com](https://bible-api.com) | RV 1960 | Búsqueda de versículos |
+| [GetBible.net](https://getbible.net) | RV 1909 | Fallback adicional |
+
+Si una API falla, automáticamente intenta la siguiente.
+
+## 🤖 APIs de IA Soportadas
+
+- **Ollama** (local o remoto) - Modelo gemma2:2b
+- **Groq** (cloud) - Modelo llama-3.1-8b-instant
+
+## 🛠️ Tecnologías
+
+- React 18 + TypeScript
 - Vite
-- TypeScript
-- React
-- shadcn-ui
 - Tailwind CSS
+- shadcn/ui
+- TanStack Query
+- Lucide Icons
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+---
+*"Lámpara es a mis pies tu palabra, y lumbrera a mi camino." - Salmos 119:105*

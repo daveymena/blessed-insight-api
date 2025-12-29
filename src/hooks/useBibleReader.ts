@@ -1,9 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, useCallback } from 'react';
 import { 
   fetchChapter, 
   bibleBooks, 
   getChaptersForBook,
+  getVersion,
+  getCurrentVersionInfo,
   type BibleBook,
   type BiblePassage
 } from '@/lib/bibleApi';
@@ -11,15 +13,23 @@ import {
 export interface ReaderState {
   selectedBook: BibleBook | null;
   selectedChapter: number;
+  showSpanishEquivalent: boolean;
 }
 
 export function useBibleReader() {
+  const queryClient = useQueryClient();
   const [state, setState] = useState<ReaderState>({
     selectedBook: bibleBooks.find(b => b.id === 'john') || bibleBooks[0],
     selectedChapter: 1,
+    showSpanishEquivalent: false, // Por defecto mostrar idioma original
   });
 
-  const { selectedBook, selectedChapter } = state;
+  const { selectedBook, selectedChapter, showSpanishEquivalent } = state;
+  
+  // Incluir la versión en la queryKey para que se recargue al cambiar
+  const currentVersion = getVersion();
+  const versionInfo = getCurrentVersionInfo();
+  const isSpanishVersion = versionInfo.languageCode === 'es';
 
   const {
     data: passage,
@@ -27,8 +37,8 @@ export function useBibleReader() {
     error,
     refetch,
   } = useQuery<BiblePassage>({
-    queryKey: ['chapter', selectedBook?.id, selectedChapter],
-    queryFn: () => fetchChapter(selectedBook!.id, selectedChapter),
+    queryKey: ['chapter', selectedBook?.id, selectedChapter, currentVersion, showSpanishEquivalent],
+    queryFn: () => fetchChapter(selectedBook!.id, selectedChapter, currentVersion, showSpanishEquivalent),
     enabled: !!selectedBook,
     staleTime: 1000 * 60 * 30, // Cache for 30 minutes
     gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour
@@ -50,6 +60,13 @@ export function useBibleReader() {
     }));
   }, []);
 
+  const setShowSpanishEquivalent = useCallback((show: boolean) => {
+    setState((prev) => ({
+      ...prev,
+      showSpanishEquivalent: show,
+    }));
+  }, []);
+
   const goToNextChapter = useCallback(() => {
     if (!selectedBook) return;
     
@@ -61,14 +78,14 @@ export function useBibleReader() {
       const currentIndex = bibleBooks.findIndex((b) => b.id === selectedBook.id);
       if (currentIndex < bibleBooks.length - 1) {
         const nextBook = bibleBooks[currentIndex + 1];
-        setState({
-          ...state,
+        setState((prev) => ({
+          ...prev,
           selectedBook: nextBook,
           selectedChapter: 1,
-        });
+        }));
       }
     }
-  }, [selectedBook, selectedChapter, state, selectChapter]);
+  }, [selectedBook, selectedChapter, selectChapter]);
 
   const goToPreviousChapter = useCallback(() => {
     if (!selectedBook) return;
@@ -80,14 +97,14 @@ export function useBibleReader() {
       const currentIndex = bibleBooks.findIndex((b) => b.id === selectedBook.id);
       if (currentIndex > 0) {
         const prevBook = bibleBooks[currentIndex - 1];
-        setState({
-          ...state,
+        setState((prev) => ({
+          ...prev,
           selectedBook: prevBook,
           selectedChapter: prevBook.chapters,
-        });
+        }));
       }
     }
-  }, [selectedBook, selectedChapter, state, selectChapter]);
+  }, [selectedBook, selectedChapter, selectChapter]);
 
   const chapters = selectedBook ? getChaptersForBook(selectedBook.id) : [];
 
@@ -115,5 +132,9 @@ export function useBibleReader() {
     goToNextChapter,
     goToPreviousChapter,
     refetch,
+    // Propiedades para mostrar equivalente español
+    showSpanishEquivalent,
+    setShowSpanishEquivalent,
+    isSpanishVersion,
   };
 }
