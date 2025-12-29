@@ -117,7 +117,7 @@ export function BibleHeader({
 
           <div className="w-[1px] h-6 bg-border mx-1" />
 
-          {/* Ajustes Unificados (Principal para móvil) */}
+          {/* MÓVIL: Botón de Ajustes Unificado */}
           <Button
             variant="outline"
             size="icon"
@@ -128,7 +128,7 @@ export function BibleHeader({
             <Palette className="h-5 w-5" />
           </Button>
 
-          {/* Escritorio: Controles Individuales */}
+          {/* ESCRITORIO: Controles Individuales */}
           <div className="hidden sm:flex items-center gap-2">
             {/* Zoom en escritorio */}
             <div className="flex items-center border border-border rounded-lg bg-muted/30 p-1">
