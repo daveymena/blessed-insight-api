@@ -95,7 +95,7 @@ export function BibleHeader({
             </div>
             <div>
               <h1 className="text-xl font-serif font-semibold text-foreground flex items-center gap-2">
-                {selectedBook ? `${selectedBook.name} ${selectedChapter}` : 'Blessed Insight'}
+                {selectedBook ? `${selectedBook.abbrev} ${selectedChapter}` : 'Blessed Insight'}
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </h1>
               <p className="text-xs text-muted-foreground hidden sm:block">
