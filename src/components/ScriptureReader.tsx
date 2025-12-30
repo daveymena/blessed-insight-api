@@ -5,6 +5,7 @@ import { AudioPlayer } from '@/components/AudioPlayer';
 import { getCurrentVersionInfo } from '@/lib/bibleApi';
 import type { BibleBook, BiblePassage } from '@/lib/bibleApi';
 import { useThemeSettings } from '@/hooks/useThemeSettings';
+import { AdPlaceholder } from './AdPlaceholder';
 
 interface ScriptureReaderProps {
   book: BibleBook | null;
@@ -160,6 +161,11 @@ export function ScriptureReader({
               </div>
             ))}
           </article>
+
+          {/* Ad Placement: End of Chapter */}
+          <div className="my-10">
+            <AdPlaceholder type="banner" />
+          </div>
 
           <div className="mt-12 pt-6 border-t border-border/50">
             <p className="text-sm text-muted-foreground text-center">

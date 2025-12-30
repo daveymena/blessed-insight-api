@@ -18,6 +18,8 @@ interface BibleHeaderProps {
   showSpanishEquivalent?: boolean;
   onSpanishToggle?: (value: boolean) => void;
   isSpanishVersion?: boolean;
+  user?: any;
+  onLoginClick?: () => void;
   onTitleClick?: () => void;
   selectedBook?: BibleBook | null;
   selectedChapter?: number;
@@ -34,6 +36,8 @@ export function BibleHeader({
   showSpanishEquivalent = false,
   onSpanishToggle,
   isSpanishVersion = true,
+  user,
+  onLoginClick,
   onTitleClick,
   selectedBook,
   selectedChapter
@@ -102,6 +106,24 @@ export function BibleHeader({
         </div>
 
         <div className="flex items-center gap-1 sm:gap-3">
+          {/* User Auth Status */}
+          {user ? (
+            <div className="hidden sm:flex items-center gap-2 mr-2">
+              <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold border border-primary/30">
+                {user.name ? user.name[0].toUpperCase() : 'U'}
+              </div>
+            </div>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onLoginClick}
+              className="mr-2 hidden sm:flex border-primary/20 text-primary hover:bg-primary/5"
+            >
+              Acceder
+            </Button>
+          )}
+
           {/* Selector de Versión (Compacto en móvil) */}
           <VersionSelector onVersionChange={onVersionChange} />
 

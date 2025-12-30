@@ -13,6 +13,8 @@ import { WelcomeCover } from '@/components/WelcomeCover';
 import { NavigationModal } from '@/components/NavigationModal';
 import { useBibleReader } from '@/hooks/useBibleReader';
 import type { BibleBook } from '@/lib/bibleApi';
+import { useAuth } from '@/context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -23,6 +25,8 @@ const Index = () => {
   const [themeOpen, setThemeOpen] = useState(false);
   const [navModalOpen, setNavModalOpen] = useState(false);
   const [showCover, setShowCover] = useState(true);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Inicializar tema y portada al cargar
   useEffect(() => {
@@ -120,6 +124,8 @@ const Index = () => {
         showSpanishEquivalent={showSpanishEquivalent}
         onSpanishToggle={setShowSpanishEquivalent}
         isSpanishVersion={isSpanishVersion}
+        user={user}
+        onLoginClick={() => navigate('/login')}
         onTitleClick={() => setNavModalOpen(true)}
         selectedBook={selectedBook}
         selectedChapter={selectedChapter}

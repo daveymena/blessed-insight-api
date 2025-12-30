@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { X, Sparkles, Send, BookOpen, Lightbulb, Calendar, Loader2 } from 'lucide-react';
+import { X, Sparkles, Send, BookOpen, Lightbulb, Calendar, Loader2, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { analyzePassage, askBibleQuestion, generateStudyPlan } from '@/lib/aiStudyService';
 import type { BibleBook, BiblePassage } from '@/lib/bibleApi';
+import { AdPlaceholder } from './AdPlaceholder';
+import { PremiumBanner } from './PremiumBanner';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 interface AIStudyPanelProps {
   book: BibleBook | null;
@@ -21,15 +25,25 @@ export function AIStudyPanel({ book, chapter, passage, isOpen, onClose }: AIStud
   const [studyTopic, setStudyTopic] = useState('');
   const [response, setResponse] = useState<{ content: string; source: string } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [usageCount, setUsageCount] = useState(0);
+  const { user } = useAuth();
+
+  const isFreeTier = !user || user.tier === 'FREE';
+  const limitReached = isFreeTier && usageCount >= 3;
 
   const passageText = passage?.verses?.map((v) => v.text).join(' ') || '';
 
   const handleAnalyze = async () => {
     if (!book) return;
+    if (limitReached) {
+      toast.error('Límite de análisis diario alcanzado para cuenta gratuita');
+      return;
+    }
     setLoading(true);
     setResponse(null);
     const result = await analyzePassage(passageText, book.name, chapter);
     setResponse({ content: result.content, source: result.source });
+    setUsageCount(prev => prev + 1);
     setLoading(false);
   };
 
@@ -197,11 +211,11 @@ export function AIStudyPanel({ book, chapter, passage, isOpen, onClose }: AIStud
 
             {/* Response */}
             {response && (
-              <div className="mt-6 p-4 bg-muted rounded-lg">
+              <div className="mt-6 p-4 bg-muted rounded-lg border border-border">
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="h-4 w-4 text-purple-600" />
                   <span className="text-sm font-semibold text-purple-600">
-                    Respuesta {response.source === 'AI' ? 'de IA' : 'offline'}
+                    Respuesta de IA
                   </span>
                 </div>
                 <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -209,6 +223,18 @@ export function AIStudyPanel({ book, chapter, passage, isOpen, onClose }: AIStud
                 </div>
               </div>
             )}
+
+            {/* Premium Upsell for Free Users */}
+            {isFreeTier && (
+              <div className="mt-8">
+                <PremiumBanner />
+              </div>
+            )}
+
+            {/* Ad Placement: Bottom of AI Panel */}
+            <div className="mt-8 pt-4 border-t border-border/50">
+              <AdPlaceholder type="banner" />
+            </div>
           </div>
         </ScrollArea>
       </Tabs>
