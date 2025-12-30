@@ -84,11 +84,11 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
           stream: false,
           options: { 
             temperature: 0.7, 
-            num_predict: Math.min(maxTokens, 800), // Limitar para velocidad
+            num_predict: maxTokens,
           },
         }),
       }),
-      15000 // 15 segundos timeout
+      60000 // 60 segundos timeout para respuestas largas
     );
 
     if (response.ok) {
@@ -126,10 +126,10 @@ async function callGroq(messages: AIMessage[], maxTokens: number): Promise<AIRes
           model: GROQ_MODEL,
           messages: messages.map(m => ({ role: m.role, content: m.content })),
           temperature: 0.7,
-          max_tokens: Math.min(maxTokens, 800), // Limitar para velocidad
+          max_tokens: maxTokens,
         }),
       }),
-      10000 // 10 segundos timeout (Groq es rápido)
+      45000 // 45 segundos timeout
     );
 
     if (response.ok) {
@@ -156,7 +156,7 @@ async function callGroq(messages: AIMessage[], maxTokens: number): Promise<AIRes
 }
 
 // FUNCIÓN PRINCIPAL: Llamadas PARALELAS - devuelve la primera respuesta
-export async function callAI(messages: AIMessage[], maxTokens: number = 800): Promise<AIResponse> {
+export async function callAI(messages: AIMessage[], maxTokens: number = 1500): Promise<AIResponse> {
   const startTime = Date.now();
   
   // Lanzar ambas llamadas en paralelo
@@ -197,12 +197,12 @@ export async function callAI(messages: AIMessage[], maxTokens: number = 800): Pr
 
 // Versión RÁPIDA para respuestas cortas (preguntas simples)
 export async function callAIFast(messages: AIMessage[]): Promise<AIResponse> {
-  return callAI(messages, 400); // Menos tokens = más rápido
+  return callAI(messages, 1000);
 }
 
 // Versión para respuestas largas (exégesis, planes)
 export async function callAIDetailed(messages: AIMessage[]): Promise<AIResponse> {
-  return callAI(messages, 1200);
+  return callAI(messages, 3000);
 }
 
 // Info del estado

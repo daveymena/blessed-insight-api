@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Loader2, Volume2, Wifi } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Volume2, Wifi, Heart, BookOpen, Languages, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { getCurrentVersionInfo } from '@/lib/bibleApi';
 import type { BibleBook, BiblePassage } from '@/lib/bibleApi';
 import { useThemeSettings } from '@/hooks/useThemeSettings';
 import { AdPlaceholder } from './AdPlaceholder';
+import { NoteDialog } from './NoteDialog';
+import { VersionComparator } from './VersionComparator';
+import { personalStudyService, type Note } from '@/lib/personalStudyService';
+import { toast } from 'sonner';
+import { callAIFast } from '@/lib/aiProvider';
 
 interface ScriptureReaderProps {
   book: BibleBook | null;
@@ -17,17 +22,7 @@ interface ScriptureReaderProps {
   canGoPrevious: boolean;
   onNext: () => void;
   onPrevious: () => void;
-}
-
-// Obtener configuración del tema
-function getThemeSettings() {
-  try {
-    const saved = localStorage.getItem('bible_theme_settings');
-    if (saved) {
-      return JSON.parse(saved);
-    }
-  } catch (e) { }
-  return { background: 'none', fontSize: 18, lineHeight: 2, font: 'serif' };
+  user?: any;
 }
 
 // Mapeo de fondos
@@ -61,11 +56,112 @@ export function ScriptureReader({
   canGoPrevious,
   onNext,
   onPrevious,
+  user,
 }: ScriptureReaderProps) {
   const { settings: themeSettings, hasScenicBackground } = useThemeSettings();
   const [highlightedVerse, setHighlightedVerse] = useState(-1);
+  const [selectedVerseIndex, setSelectedVerseIndex] = useState(-1);
   const [showAudioPlayer, setShowAudioPlayer] = useState(false);
+  const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
+  const [isComparatorOpen, setIsComparatorOpen] = useState(false);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [analysisContent, setAnalysisContent] = useState<string | null>(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
   const versionInfo = getCurrentVersionInfo();
+
+  // Cargar notas al montar o cambiar de capítulo
+  useEffect(() => {
+    if (user) {
+      personalStudyService.getNotes().then(allNotes => {
+        const chapterNotes = allNotes.filter(n => n.bookId === book?.id && n.chapter === chapter);
+        setNotes(chapterNotes);
+      });
+    }
+  }, [book?.id, chapter, user]);
+
+  // Reset analysis when chapter changes
+  useEffect(() => {
+    setAnalysisContent(null);
+    setShowAnalysis(false);
+  }, [book?.id, chapter]);
+
+  const handleQuickAnalysis = async () => {
+    if (!book || !passage?.verses) return;
+    
+    // Check cache first
+    const cacheKey = `quick_analysis_${book.id}_${chapter}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const { content, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp < 30 * 60 * 1000) { // 30 min cache
+        setAnalysisContent(content);
+        setShowAnalysis(true);
+        return;
+      }
+    }
+
+    setAnalysisLoading(true);
+    setShowAnalysis(true);
+    
+    const passageText = passage.verses.map(v => v.text).join(' ').substring(0, 1200);
+    
+    const messages = [
+      { role: 'system' as const, content: `Eres un teólogo experto. Responde en español de forma clara y estructurada con emojis.` },
+      { role: 'user' as const, content: `Análisis rápido de ${book.name} ${chapter}:
+"${passageText}"
+
+Proporciona un análisis BREVE pero ÚTIL:
+
+📋 RESUMEN (2-3 oraciones sobre el contenido principal)
+
+🎯 TEMA CENTRAL (1 frase)
+
+👥 PERSONAJES CLAVE (si los hay)
+
+💎 VERSÍCULOS DESTACADOS (2-3 versículos importantes con breve explicación)
+
+🔑 PALABRAS CLAVE (3-4 términos importantes)
+
+💡 APLICACIÓN PRÁCTICA (1-2 puntos concretos para hoy)
+
+🙏 ORACIÓN SUGERIDA (1-2 oraciones basadas en el texto)
+
+Sé conciso pero profundo.` }
+    ];
+
+    try {
+      const result = await callAIFast(messages);
+      setAnalysisContent(result.content);
+      // Cache the result
+      localStorage.setItem(cacheKey, JSON.stringify({ content: result.content, timestamp: Date.now() }));
+    } catch (e) {
+      setAnalysisContent('Error al generar el análisis. Intenta nuevamente.');
+    }
+    setAnalysisLoading(false);
+  };
+
+  const handleHighlight = async (color: string) => {
+    if (selectedVerseIndex < 0 || !passage?.verses[selectedVerseIndex]) return;
+    const verseNum = passage.verses[selectedVerseIndex].verse;
+
+    try {
+      const existingNote = notes.find(n => n.verse === verseNum);
+      await personalStudyService.saveNote({
+        bookId: book!.id,
+        chapter,
+        verse: verseNum,
+        content: existingNote ? existingNote.content : '',
+        color
+      });
+      // Refresh notes
+      const all = await personalStudyService.getNotes();
+      setNotes(all.filter(n => n.bookId === book?.id && n.chapter === chapter));
+      setSelectedVerseIndex(-1);
+    } catch (e) {
+      toast.error('Error al resaltar');
+    }
+  };
 
   const backgroundClass = BACKGROUND_CLASSES[themeSettings.background] || '';
   const fontFamily = FONT_FAMILIES[themeSettings.font] || FONT_FAMILIES.serif;
@@ -151,16 +247,111 @@ export function ScriptureReader({
               <div
                 key={`${verse.chapter}-${verse.verse}`}
                 id={`verse-${verse.verse}`}
-                className={`mb-4 transition-all duration-300 scroll-mt-24 p-2 rounded-lg ${highlightedVerse === index
+                onClick={() => setSelectedVerseIndex(selectedVerseIndex === index ? -1 : index)}
+                className={`mb-4 transition-all duration-300 scroll-mt-24 p-2 rounded-lg cursor-pointer hover:bg-primary/5 active:scale-[0.98] ${highlightedVerse === index
                   ? 'bg-primary/20 -mx-2'
-                  : ''
+                  : selectedVerseIndex === index
+                    ? 'ring-2 ring-primary/50 shadow-md bg-primary/5 -mx-2'
+                    : notes.find(n => n.verse === verse.verse)?.color || ''
                   }`}
               >
                 <sup className="verse-number font-semibold text-primary/70 mr-2 text-sm">{verse.verse}</sup>
                 <span className="verse-content" dangerouslySetInnerHTML={{ __html: verse.text.trim() }} />
+
+                {/* Verse Actions Toolbar (appears when selected) */}
+                {selectedVerseIndex === index && (
+                  <div className="mt-2 p-2 bg-background border border-border rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+                    <div className="flex gap-1 mr-2 border-r border-border pr-2">
+                      <button onClick={(e) => { e.stopPropagation(); handleHighlight('bg-yellow-200/50'); }} className="w-6 h-6 rounded-full bg-yellow-200 hover:scale-110 transition-transform" />
+                      <button onClick={(e) => { e.stopPropagation(); handleHighlight('bg-green-200/50'); }} className="w-6 h-6 rounded-full bg-green-200 hover:scale-110 transition-transform" />
+                      <button onClick={(e) => { e.stopPropagation(); handleHighlight('bg-blue-200/50'); }} className="w-6 h-6 rounded-full bg-blue-200 hover:scale-110 transition-transform" />
+                      <button onClick={(e) => { e.stopPropagation(); handleHighlight('bg-pink-200/50'); }} className="w-6 h-6 rounded-full bg-pink-200 hover:scale-110 transition-transform" />
+                    </div>
+                    <Button variant="ghost" size="sm" className="h-8 text-xs gap-1">
+                      <Heart className="h-3 w-3" /> Favorito
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={(e) => {
+                      e.stopPropagation();
+                      setIsNoteDialogOpen(true);
+                    }}>
+                      <BookOpen className="h-3 w-3" /> Añadir Nota
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
           </article>
+
+          {/* Quick Analysis Panel */}
+          <div className="mt-8 border-t border-border/50 pt-6">
+            {!showAnalysis ? (
+              <Button 
+                onClick={handleQuickAnalysis}
+                variant="outline"
+                className="w-full h-14 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 border-indigo-200 dark:border-indigo-800 hover:from-indigo-100 hover:to-purple-100"
+              >
+                <Sparkles className="h-5 w-5 mr-2 text-indigo-600" />
+                <span className="font-medium text-indigo-700 dark:text-indigo-300">Obtener Análisis del Capítulo</span>
+              </Button>
+            ) : (
+              <div className="bg-gradient-to-br from-indigo-50/80 to-purple-50/80 dark:from-indigo-950/40 dark:to-purple-950/40 rounded-xl border border-indigo-200 dark:border-indigo-800 overflow-hidden">
+                <div 
+                  className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 cursor-pointer"
+                  onClick={() => setShowAnalysis(!showAnalysis)}
+                >
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-indigo-600" />
+                    <span className="font-semibold text-indigo-800 dark:text-indigo-200">Análisis de {book.name} {chapter}</span>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setShowAnalysis(false); }}>
+                    <ChevronUp className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="p-5">
+                  {analysisLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-indigo-600 mr-3" />
+                      <span className="text-indigo-700 dark:text-indigo-300">Generando análisis...</span>
+                    </div>
+                  ) : analysisContent ? (
+                    <div className="space-y-1 text-sm">
+                      {analysisContent.split('\n').map((line, idx) => {
+                        const trimmed = line.trim();
+                        if (!trimmed) return <div key={idx} className="h-2" />;
+                        
+                        // Headers with emojis
+                        const headerMatch = trimmed.match(/^([\p{Emoji}]+)\s*(.+)$/u);
+                        if (headerMatch && (trimmed.includes('RESUMEN') || trimmed.includes('TEMA') || trimmed.includes('PERSONAJES') || trimmed.includes('VERSÍCULOS') || trimmed.includes('PALABRAS') || trimmed.includes('APLICACIÓN') || trimmed.includes('ORACIÓN'))) {
+                          return (
+                            <div key={idx} className="mt-4 mb-2 first:mt-0">
+                              <div className="flex items-center gap-2 bg-white/60 dark:bg-black/20 p-2 rounded-lg">
+                                <span className="text-lg">{headerMatch[1]}</span>
+                                <h4 className="font-bold text-indigo-800 dark:text-indigo-200 text-sm">{headerMatch[2]}</h4>
+                              </div>
+                            </div>
+                          );
+                        }
+                        
+                        // List items
+                        if (trimmed.startsWith('-') || trimmed.startsWith('•')) {
+                          return (
+                            <div key={idx} className="flex gap-2 ml-3 my-1">
+                              <span className="text-indigo-500">•</span>
+                              <span className="text-foreground/90">{trimmed.replace(/^[-•]\s*/, '')}</span>
+                            </div>
+                          );
+                        }
+                        
+                        // Regular text
+                        return <p key={idx} className="text-foreground/90 leading-relaxed my-1">{trimmed}</p>;
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Ad Placement: End of Chapter */}
           <div className="my-10">
@@ -216,6 +407,16 @@ export function ScriptureReader({
           >
             <Volume2 className="h-4 w-4" />
           </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsComparatorOpen(true)}
+            className="h-9 w-9"
+            title="Comparar Versiones"
+          >
+            <Languages className="h-4 w-4" />
+          </Button>
         </div>
 
         <Button
@@ -236,6 +437,23 @@ export function ScriptureReader({
           {renderContent()}
         </div>
       </div>
+
+      {/* Note Dialog */}
+      {selectedVerseIndex >= 0 && passage?.verses[selectedVerseIndex] && (
+        <NoteDialog
+          isOpen={isNoteDialogOpen}
+          onClose={() => setIsNoteDialogOpen(false)}
+          bookId={book.id}
+          bookName={book.name}
+          chapter={chapter}
+          verse={passage.verses[selectedVerseIndex].verse}
+          existingContent={notes.find(n => n.verse === passage.verses[selectedVerseIndex].verse)?.content}
+          onSave={() => {
+            // Re-fetch notes after save
+            personalStudyService.getNotes().then(setNotes);
+          }}
+        />
+      )}
 
       {/* Bottom Navigation - Mobile */}
       <div className="md:hidden border-t border-border p-4 flex items-center justify-between bg-card/50 backdrop-blur-sm">
@@ -258,6 +476,30 @@ export function ScriptureReader({
           <ChevronRight className="h-4 w-4 ml-1" />
         </Button>
       </div>
+      {/* Version Comparator Modal */}
+      <VersionComparator
+        isOpen={isComparatorOpen}
+        onClose={() => setIsComparatorOpen(false)}
+        book={book}
+        chapter={chapter}
+      />
+
+      {selectedVerseIndex >= 0 && passage?.verses[selectedVerseIndex] && (
+        <NoteDialog
+          isOpen={isNoteDialogOpen}
+          onClose={() => setIsNoteDialogOpen(false)}
+          bookId={book!.id}
+          bookName={book!.name}
+          chapter={chapter}
+          verse={passage.verses[selectedVerseIndex].verse}
+          existingContent={notes.find(n => n.verse === passage.verses[selectedVerseIndex].verse)?.content || ''}
+          onSave={async () => {
+            const all = await personalStudyService.getNotes();
+            setNotes(all.filter(n => n.bookId === book?.id && n.chapter === chapter));
+            setSelectedVerseIndex(-1);
+          }}
+        />
+      )}
     </div>
   );
 }

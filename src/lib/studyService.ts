@@ -3,11 +3,27 @@
 
 import { callAI, callAIFast, callAIDetailed, type AIResponse } from './aiProvider';
 
-// ============ CONTEXTO DEL SISTEMA (más corto = más rápido) ============
-const BIBLE_EXPERT = `Eres un teólogo experto en hebreo, griego, historia bíblica y hermenéutica.
-Responde en español, de forma clara y concisa. Sé profundo pero breve.`;
+// ============ CONTEXTO DEL SISTEMA PARA EXÉGESIS PROFUNDA ============
+const BIBLE_SCHOLAR = `Eres un teólogo cristiano evangélico experto en estudios bíblicos, especializado en:
+- Lenguas originales (hebreo bíblico, griego koiné, arameo)
+- Historia del Antiguo Cercano Oriente y mundo grecorromano
+- Hermenéutica bíblica y exégesis
+- Teología bíblica sistemática
 
-// ============ EXÉGESIS (optimizada) ============
+PRINCIPIOS FUNDAMENTALES:
+- La Biblia es la Palabra de Dios, autoridad final en fe y práctica
+- Sola Scriptura: la Escritura se interpreta con la Escritura
+- Evita tradiciones humanas que contradigan la Biblia
+- Presenta perspectivas de diferentes corrientes CRISTIANAS (trinitarias, unitarias, pentecostales, reformadas, etc.)
+- Sé objetivo y bíblico, no denominacional
+
+Respondes en español con rigor académico pero accesible. SIEMPRE completa tu respuesta.`;
+
+const BIBLE_EXPERT_SIMPLE = `Eres un teólogo cristiano experto en hebreo, griego, historia bíblica y hermenéutica.
+Principio: Sola Scriptura - la Biblia es la autoridad final.
+Responde en español, de forma clara y profunda. COMPLETA siempre tu respuesta.`;
+
+// ============ EXÉGESIS PROFUNDA Y COMPLETA ============
 export async function performExegesis(
   passage: string,
   bookName: string,
@@ -17,35 +33,89 @@ export async function performExegesis(
   const reference = verses ? `${bookName} ${chapter}:${verses}` : `${bookName} ${chapter}`;
   
   const messages = [
-    { role: 'system' as const, content: BIBLE_EXPERT },
-    { role: 'user' as const, content: `Exégesis de ${reference}:
-"${passage.substring(0, 1000)}"
+    { role: 'system' as const, content: BIBLE_SCHOLAR },
+    { role: 'user' as const, content: `Análisis exegético de ${reference}:
 
-Responde BREVEMENTE:
-1. Contexto histórico (2-3 líneas)
-2. Significado del texto
-3. Palabras clave en hebreo/griego
-4. Aplicación práctica` }
+"${passage.substring(0, 1200)}"
+
+ESTRUCTURA (usa emojis y sé COMPLETO):
+
+📜 CONTEXTO HISTÓRICO
+- Autor, fecha aproximada, audiencia original
+- Situación histórica del pueblo
+- Contexto cultural relevante
+
+📖 CONTEXTO LITERARIO  
+- Género literario
+- Estructura y conexión con el libro
+- Temas principales
+
+🔤 ANÁLISIS DEL TEXTO ORIGINAL
+- Palabras clave en hebreo/griego con significado
+- Matices importantes de la traducción
+- Figuras literarias
+
+⛪ PERSPECTIVAS CRISTIANAS
+- ¿Cómo interpretan este pasaje las iglesias CRISTIANAS?
+- Perspectiva trinitaria vs unitaria (si aplica)
+- Perspectiva reformada/calvinista
+- Perspectiva pentecostal/carismática
+- Perspectiva arminiana
+- ¿Qué dice claramente la ESCRITURA? (más importante)
+
+🔗 CONEXIONES BÍBLICAS
+- Pasajes paralelos
+- Tipologías y profecías
+- Desarrollo del tema en la Biblia
+
+💡 SIGNIFICADO Y APLICACIÓN
+- ¿Qué revela sobre Dios?
+- ¿Qué enseña para hoy?
+- Aplicación práctica
+
+IMPORTANTE: Completa TODAS las secciones. Basa todo en la Escritura.` }
   ];
 
   return callAIDetailed(messages);
 }
 
-// ============ ESTUDIO TEMÁTICO (optimizado) ============
+// ============ ESTUDIO TEMÁTICO PROFUNDO ============
 export async function thematicStudy(topic: string): Promise<AIResponse> {
   const messages = [
-    { role: 'system' as const, content: BIBLE_EXPERT },
+    { role: 'system' as const, content: BIBLE_SCHOLAR },
     { role: 'user' as const, content: `Estudio bíblico sobre: "${topic}"
 
-Incluye:
-1. Definición bíblica
-2. 5 pasajes clave con breve explicación
-3. Aplicación práctica
+ESTRUCTURA (completa TODAS las secciones):
 
-Sé conciso pero profundo.` }
+📚 DEFINICIÓN BÍBLICA
+- Significado en hebreo/griego
+- Cómo la Biblia define este concepto
+
+📖 DESARROLLO EN LAS ESCRITURAS
+- Primera mención en la Biblia
+- Desarrollo en el Antiguo Testamento
+- Cumplimiento en el Nuevo Testamento
+- 8-10 pasajes clave con explicación breve
+
+⛪ PERSPECTIVAS CRISTIANAS
+- Diferentes interpretaciones dentro del cristianismo
+- Perspectiva reformada
+- Perspectiva pentecostal
+- Perspectiva arminiana
+- ¿Qué dice CLARAMENTE la Escritura? (lo más importante)
+
+⚠️ ERRORES COMUNES
+- Malentendidos frecuentes
+- Enseñanzas no bíblicas sobre este tema
+
+💡 APLICACIÓN HOY
+- Relevancia práctica
+- Cómo vivir esta verdad
+
+IMPORTANTE: Basa TODO en la Escritura, no en tradiciones humanas.` }
   ];
 
-  return callAI(messages, 1000);
+  return callAI(messages, 2500);
 }
 
 // ============ COMPARACIÓN DE VERSÍCULOS ============
@@ -55,28 +125,52 @@ export async function comparePassages(
   const passagesList = passages.map(p => `${p.reference}: "${p.text}"`).join('\n');
   
   const messages = [
-    { role: 'system' as const, content: BIBLE_EXPERT },
-    { role: 'user' as const, content: `Compara estos pasajes:
+    { role: 'system' as const, content: BIBLE_SCHOLAR },
+    { role: 'user' as const, content: `Compara estos pasajes bíblicos de forma profunda:
 ${passagesList}
 
-Analiza: similitudes, diferencias y enseñanza unificada.` }
+Analiza:
+1. Contexto de cada pasaje
+2. Similitudes temáticas y lingüísticas
+3. Diferencias de énfasis o perspectiva
+4. Cómo se complementan entre sí
+5. Enseñanza unificada que emerge
+6. Aplicación práctica combinada` }
   ];
 
   return callAIFast(messages);
 }
 
-// ============ PREGUNTAS DE REFLEXIÓN (rápido) ============
+// ============ PREGUNTAS DE REFLEXIÓN PROFUNDAS ============
 export async function generateReflectionQuestions(
   passage: string,
   bookName: string,
   chapter: number
 ): Promise<AIResponse> {
   const messages = [
-    { role: 'system' as const, content: BIBLE_EXPERT },
-    { role: 'user' as const, content: `Genera 6 preguntas de reflexión para ${bookName} ${chapter}:
-"${passage.substring(0, 800)}"
+    { role: 'system' as const, content: BIBLE_EXPERT_SIMPLE },
+    { role: 'user' as const, content: `Genera preguntas de reflexión PROFUNDAS para ${bookName} ${chapter}:
+"${passage.substring(0, 1000)}"
 
-2 de observación, 2 de interpretación, 2 de aplicación.` }
+Crea 10 preguntas organizadas así:
+
+📖 OBSERVACIÓN (¿Qué dice el texto?)
+1. Pregunta sobre detalles específicos del texto
+2. Pregunta sobre personajes o acciones
+3. Pregunta sobre palabras o frases clave
+
+🔍 INTERPRETACIÓN (¿Qué significa?)
+4. Pregunta sobre el significado para la audiencia original
+5. Pregunta sobre conexiones con otros pasajes bíblicos
+6. Pregunta teológica profunda
+7. Pregunta sobre lo que revela de Dios
+
+💡 APLICACIÓN (¿Cómo me afecta?)
+8. Pregunta sobre cambios personales necesarios
+9. Pregunta sobre relaciones con otros
+10. Pregunta sobre decisiones o acciones concretas
+
+Las preguntas deben provocar reflexión profunda, no respuestas superficiales.` }
   ];
 
   return callAIFast(messages);
@@ -97,23 +191,46 @@ export interface ReadingPlan {
   }>;
 }
 
-// Planes predefinidos
+// Planes predefinidos con lecturas reales
 export const READING_PLANS: ReadingPlan[] = [
-  {
-    id: 'bible-year',
-    name: 'La Biblia en un Año',
-    description: 'Lee toda la Biblia en 365 días',
-    duration: '365 días',
-    type: 'chronological',
-    readings: []
-  },
   {
     id: 'gospels-30',
     name: 'Los Evangelios en 30 Días',
     description: 'Conoce la vida de Jesús',
     duration: '30 días',
     type: 'book',
-    readings: []
+    readings: [
+      { day: 1, passages: [{ book: 'matthew', chapter: 1 }, { book: 'matthew', chapter: 2 }], reflection: 'El nacimiento de Jesús' },
+      { day: 2, passages: [{ book: 'matthew', chapter: 3 }, { book: 'matthew', chapter: 4 }], reflection: 'Bautismo y tentación' },
+      { day: 3, passages: [{ book: 'matthew', chapter: 5 }, { book: 'matthew', chapter: 6 }], reflection: 'Sermón del Monte' },
+      { day: 4, passages: [{ book: 'matthew', chapter: 7 }, { book: 'matthew', chapter: 8 }], reflection: 'Enseñanzas y milagros' },
+      { day: 5, passages: [{ book: 'matthew', chapter: 9 }, { book: 'matthew', chapter: 10 }], reflection: 'Llamado de los discípulos' },
+      { day: 6, passages: [{ book: 'matthew', chapter: 11 }, { book: 'matthew', chapter: 12 }], reflection: 'Jesús y Juan el Bautista' },
+      { day: 7, passages: [{ book: 'matthew', chapter: 13 }, { book: 'matthew', chapter: 14 }], reflection: 'Parábolas del Reino' },
+      { day: 8, passages: [{ book: 'mark', chapter: 1 }, { book: 'mark', chapter: 2 }], reflection: 'Inicio del ministerio' },
+      { day: 9, passages: [{ book: 'mark', chapter: 3 }, { book: 'mark', chapter: 4 }], reflection: 'Parábolas y milagros' },
+      { day: 10, passages: [{ book: 'mark', chapter: 5 }, { book: 'mark', chapter: 6 }], reflection: 'Poder sobre la muerte' },
+      { day: 11, passages: [{ book: 'mark', chapter: 7 }, { book: 'mark', chapter: 8 }], reflection: 'Fe y tradición' },
+      { day: 12, passages: [{ book: 'mark', chapter: 9 }, { book: 'mark', chapter: 10 }], reflection: 'Transfiguración' },
+      { day: 13, passages: [{ book: 'mark', chapter: 11 }, { book: 'mark', chapter: 12 }], reflection: 'Entrada triunfal' },
+      { day: 14, passages: [{ book: 'mark', chapter: 13 }, { book: 'mark', chapter: 14 }], reflection: 'Profecías y última cena' },
+      { day: 15, passages: [{ book: 'luke', chapter: 1 }, { book: 'luke', chapter: 2 }], reflection: 'Nacimiento de Juan y Jesús' },
+      { day: 16, passages: [{ book: 'luke', chapter: 3 }, { book: 'luke', chapter: 4 }], reflection: 'Genealogía y tentación' },
+      { day: 17, passages: [{ book: 'luke', chapter: 5 }, { book: 'luke', chapter: 6 }], reflection: 'Bienaventuranzas' },
+      { day: 18, passages: [{ book: 'luke', chapter: 7 }, { book: 'luke', chapter: 8 }], reflection: 'Fe del centurión' },
+      { day: 19, passages: [{ book: 'luke', chapter: 9 }, { book: 'luke', chapter: 10 }], reflection: 'Envío de los 70' },
+      { day: 20, passages: [{ book: 'luke', chapter: 11 }, { book: 'luke', chapter: 12 }], reflection: 'El Padre Nuestro' },
+      { day: 21, passages: [{ book: 'luke', chapter: 13 }, { book: 'luke', chapter: 14 }], reflection: 'Parábolas de salvación' },
+      { day: 22, passages: [{ book: 'luke', chapter: 15 }, { book: 'luke', chapter: 16 }], reflection: 'El hijo pródigo' },
+      { day: 23, passages: [{ book: 'luke', chapter: 17 }, { book: 'luke', chapter: 18 }], reflection: 'Fe y oración' },
+      { day: 24, passages: [{ book: 'john', chapter: 1 }, { book: 'john', chapter: 2 }], reflection: 'El Verbo hecho carne' },
+      { day: 25, passages: [{ book: 'john', chapter: 3 }, { book: 'john', chapter: 4 }], reflection: 'Nicodemo y la samaritana' },
+      { day: 26, passages: [{ book: 'john', chapter: 5 }, { book: 'john', chapter: 6 }], reflection: 'Pan de vida' },
+      { day: 27, passages: [{ book: 'john', chapter: 7 }, { book: 'john', chapter: 8 }], reflection: 'Luz del mundo' },
+      { day: 28, passages: [{ book: 'john', chapter: 9 }, { book: 'john', chapter: 10 }], reflection: 'El buen pastor' },
+      { day: 29, passages: [{ book: 'john', chapter: 11 }, { book: 'john', chapter: 12 }], reflection: 'Resurrección de Lázaro' },
+      { day: 30, passages: [{ book: 'john', chapter: 13 }, { book: 'john', chapter: 14 }], reflection: 'Yo soy el camino' },
+    ]
   },
   {
     id: 'psalms-month',
@@ -121,7 +238,11 @@ export const READING_PLANS: ReadingPlan[] = [
     description: '5 Salmos diarios',
     duration: '30 días',
     type: 'book',
-    readings: []
+    readings: Array.from({ length: 30 }, (_, i) => ({
+      day: i + 1,
+      passages: Array.from({ length: 5 }, (_, j) => ({ book: 'psalms', chapter: Math.min(i * 5 + j + 1, 150) })),
+      reflection: `Salmos ${i * 5 + 1}-${Math.min(i * 5 + 5, 150)}`
+    }))
   },
   {
     id: 'proverbs-month',
@@ -129,7 +250,11 @@ export const READING_PLANS: ReadingPlan[] = [
     description: 'Un capítulo diario',
     duration: '31 días',
     type: 'book',
-    readings: []
+    readings: Array.from({ length: 31 }, (_, i) => ({
+      day: i + 1,
+      passages: [{ book: 'proverbs', chapter: i + 1 }],
+      reflection: `Sabiduría del capítulo ${i + 1}`
+    }))
   },
   {
     id: 'family-week',
@@ -137,7 +262,54 @@ export const READING_PLANS: ReadingPlan[] = [
     description: 'Lecturas para toda la familia',
     duration: '7 días',
     type: 'family',
-    readings: []
+    readings: [
+      { day: 1, passages: [{ book: 'genesis', chapter: 1 }], reflection: 'La creación - Dios hizo todo' },
+      { day: 2, passages: [{ book: 'genesis', chapter: 6 }, { book: 'genesis', chapter: 7 }], reflection: 'Noé y el arca - Obediencia' },
+      { day: 3, passages: [{ book: 'exodus', chapter: 14 }], reflection: 'Cruzando el mar - Dios nos protege' },
+      { day: 4, passages: [{ book: 'daniel', chapter: 6 }], reflection: 'Daniel y los leones - Fe valiente' },
+      { day: 5, passages: [{ book: 'jonah', chapter: 1 }, { book: 'jonah', chapter: 2 }], reflection: 'Jonás - Segunda oportunidad' },
+      { day: 6, passages: [{ book: 'luke', chapter: 2 }], reflection: 'Nacimiento de Jesús - Amor de Dios' },
+      { day: 7, passages: [{ book: 'john', chapter: 3, verses: '1-21' }], reflection: 'Dios amó al mundo' },
+    ]
+  },
+  {
+    id: 'new-believer',
+    name: 'Nuevo Creyente',
+    description: 'Fundamentos de la fe cristiana',
+    duration: '14 días',
+    type: 'thematic',
+    readings: [
+      { day: 1, passages: [{ book: 'john', chapter: 3 }], reflection: 'Nacer de nuevo' },
+      { day: 2, passages: [{ book: 'romans', chapter: 3 }], reflection: 'Todos pecamos' },
+      { day: 3, passages: [{ book: 'romans', chapter: 5 }], reflection: 'Justificados por fe' },
+      { day: 4, passages: [{ book: 'romans', chapter: 6 }], reflection: 'Muertos al pecado' },
+      { day: 5, passages: [{ book: 'romans', chapter: 8 }], reflection: 'Vida en el Espíritu' },
+      { day: 6, passages: [{ book: 'ephesians', chapter: 2 }], reflection: 'Salvos por gracia' },
+      { day: 7, passages: [{ book: 'ephesians', chapter: 6 }], reflection: 'Armadura de Dios' },
+      { day: 8, passages: [{ book: 'philippians', chapter: 4 }], reflection: 'Gozo y paz' },
+      { day: 9, passages: [{ book: 'colossians', chapter: 3 }], reflection: 'Nueva vida en Cristo' },
+      { day: 10, passages: [{ book: '1john', chapter: 1 }], reflection: 'Comunión con Dios' },
+      { day: 11, passages: [{ book: '1john', chapter: 3 }], reflection: 'Hijos de Dios' },
+      { day: 12, passages: [{ book: 'james', chapter: 1 }], reflection: 'Fe y obras' },
+      { day: 13, passages: [{ book: '1peter', chapter: 2 }], reflection: 'Piedras vivas' },
+      { day: 14, passages: [{ book: 'hebrews', chapter: 11 }], reflection: 'Héroes de la fe' },
+    ]
+  },
+  {
+    id: 'prayer-week',
+    name: 'Semana de Oración',
+    description: 'Aprende a orar con la Biblia',
+    duration: '7 días',
+    type: 'thematic',
+    readings: [
+      { day: 1, passages: [{ book: 'matthew', chapter: 6, verses: '5-15' }], reflection: 'El Padre Nuestro' },
+      { day: 2, passages: [{ book: 'psalms', chapter: 51 }], reflection: 'Oración de arrepentimiento' },
+      { day: 3, passages: [{ book: 'psalms', chapter: 23 }], reflection: 'Confianza en Dios' },
+      { day: 4, passages: [{ book: 'philippians', chapter: 4, verses: '4-9' }], reflection: 'Oración y paz' },
+      { day: 5, passages: [{ book: 'james', chapter: 5, verses: '13-18' }], reflection: 'Oración eficaz' },
+      { day: 6, passages: [{ book: '1john', chapter: 5, verses: '14-15' }], reflection: 'Confianza al orar' },
+      { day: 7, passages: [{ book: 'psalms', chapter: 103 }], reflection: 'Oración de alabanza' },
+    ]
   }
 ];
 
@@ -165,7 +337,7 @@ Sé específico con las referencias.` }
   return callAI(messages, 1000);
 }
 
-// ============ DEVOCIONAL DIARIO (optimizado) ============
+// ============ DEVOCIONAL DIARIO PROFUNDO ============
 export async function generateDailyDevotional(
   passage: string,
   bookName: string,
@@ -175,19 +347,47 @@ export async function generateDailyDevotional(
   const reference = verse ? `${bookName} ${chapter}:${verse}` : `${bookName} ${chapter}`;
   
   const messages = [
-    { role: 'system' as const, content: `Eres un escritor devocional cristiano. Escribe en español, de forma cálida y personal.` },
-    { role: 'user' as const, content: `Devocional de ${reference}:
-"${passage.substring(0, 500)}"
+    { role: 'system' as const, content: `Eres un escritor devocional cristiano con profundidad teológica. 
+Escribes de forma cálida, personal y espiritualmente nutritiva. 
+Combinas solidez bíblica con aplicación práctica que toca el corazón.
+Responde en español.` },
+    { role: 'user' as const, content: `Escribe un devocional COMPLETO y PROFUNDO basado en ${reference}:
+"${passage.substring(0, 800)}"
 
-Incluye:
-📖 Lectura: ${reference}
-💭 Reflexión (2 párrafos)
-🔑 Verdad central (1 frase)
-🙏 Oración breve
-✨ Aplicación práctica` }
+ESTRUCTURA:
+
+📖 LECTURA DEL DÍA
+${reference}
+
+🌅 INTRODUCCIÓN
+- Una historia, ilustración o situación de la vida real que conecte con el tema
+- Algo que capture la atención y prepare el corazón
+
+💭 REFLEXIÓN PROFUNDA
+- Explica el contexto del pasaje brevemente
+- ¿Qué verdad central comunica Dios aquí?
+- ¿Cómo se relaciona con el carácter de Dios?
+- ¿Qué promesa o mandamiento encontramos?
+(3-4 párrafos sustanciales)
+
+🔑 VERDAD PARA HOY
+- Una frase memorable que resuma la enseñanza principal
+
+⚡ DESAFÍO PRÁCTICO
+- Una acción específica y concreta para hoy
+- Algo medible y alcanzable
+
+🙏 ORACIÓN
+- Una oración sincera y personal (no genérica)
+- Que responda al texto y pida ayuda para aplicarlo
+
+📝 VERSÍCULO PARA MEMORIZAR
+- El versículo más impactante del pasaje
+
+Escribe con calidez pastoral pero profundidad teológica.` }
   ];
 
-  return callAIFast(messages);
+  return callAI(messages, 1500);
 }
 
 // ============ VERSÍCULO DEL DÍA ============
@@ -311,4 +511,58 @@ export function getReadingStats(): { totalChapters: number; streak: number; last
     streak,
     lastRead: history.length > 0 ? new Date(history[history.length - 1].readAt) : null,
   };
+}
+
+// ============ PLANES DE LECTURA ACTIVOS ============
+export interface ActivePlan {
+  planId: string;
+  startDate: string;
+  currentDay: number;
+  completedDays: number[];
+}
+
+export function startPlan(planId: string): ActivePlan {
+  const plan: ActivePlan = {
+    planId,
+    startDate: new Date().toISOString(),
+    currentDay: 1,
+    completedDays: [],
+  };
+  localStorage.setItem('bible_active_plan', JSON.stringify(plan));
+  return plan;
+}
+
+export function getActivePlan(): ActivePlan | null {
+  const saved = localStorage.getItem('bible_active_plan');
+  return saved ? JSON.parse(saved) : null;
+}
+
+export function updatePlanProgress(day: number, completed: boolean): ActivePlan | null {
+  const plan = getActivePlan();
+  if (!plan) return null;
+  
+  if (completed && !plan.completedDays.includes(day)) {
+    plan.completedDays.push(day);
+  } else if (!completed) {
+    plan.completedDays = plan.completedDays.filter(d => d !== day);
+  }
+  
+  // Avanzar al siguiente día si completó el actual
+  if (completed && day === plan.currentDay) {
+    const planData = READING_PLANS.find(p => p.id === plan.planId);
+    if (planData && plan.currentDay < planData.readings.length) {
+      plan.currentDay = day + 1;
+    }
+  }
+  
+  localStorage.setItem('bible_active_plan', JSON.stringify(plan));
+  return plan;
+}
+
+export function cancelPlan(): void {
+  localStorage.removeItem('bible_active_plan');
+}
+
+export function getPlanById(planId: string): ReadingPlan | undefined {
+  return READING_PLANS.find(p => p.id === planId);
 }

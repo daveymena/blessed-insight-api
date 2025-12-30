@@ -40,30 +40,30 @@ export function SearchModal({ isOpen, onClose, onSelectBook }: SearchModalProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[80vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-2xl h-[85vh] max-h-[85vh] flex flex-col p-0">
+        <DialogHeader className="p-6 pb-0">
           <DialogTitle className="flex items-center gap-2">
             <Search className="h-5 w-5 text-primary" />
             Buscar en la Biblia
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={searchType} onValueChange={setSearchType} className="flex-1 flex flex-col min-h-0">
+        <Tabs value={searchType} onValueChange={setSearchType} className="flex-1 flex flex-col min-h-0 px-6 pb-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="book">Por Libro</TabsTrigger>
             <TabsTrigger value="quick">Acceso Rápido</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="book" className="flex-1 flex flex-col min-h-0 mt-4">
+          <TabsContent value="book" className="flex-1 flex flex-col min-h-0 mt-4 overflow-hidden">
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar libro..."
-              className="mb-4"
+              className="mb-4 flex-shrink-0"
             />
 
-            <ScrollArea className="flex-1">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pr-4">
+            <ScrollArea className="flex-1 h-full">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pr-4 pb-4">
                 {filteredBooks.map((book) => (
                   <Button
                     key={book.id}
@@ -79,53 +79,55 @@ export function SearchModal({ isOpen, onClose, onSelectBook }: SearchModalProps)
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="quick" className="mt-4 space-y-4">
-            <div>
-              <p className="text-sm text-muted-foreground mb-3">Referencias populares:</p>
-              <div className="flex flex-wrap gap-2">
-                {popularReferences.map((item, i) => (
-                  <Button
-                    key={i}
-                    variant="secondary"
-                    onClick={() => {
-                      const book = bibleBooks.find((b) => b.id === item.book);
-                      if (book) {
-                        onSelectBook(book, item.chapter);
-                        onClose();
-                      }
-                    }}
-                  >
-                    {item.ref}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sm text-muted-foreground mb-3">Antiguo Testamento:</p>
-              <div className="flex flex-wrap gap-2">
-                {bibleBooks
-                  .filter((b) => b.testament === 'old')
-                  .slice(0, 10)
-                  .map((book) => (
-                    <Button key={book.id} variant="outline" size="sm" onClick={() => handleBookSelect(book)}>
-                      {book.name}
+          <TabsContent value="quick" className="flex-1 mt-4 overflow-y-auto">
+            <div className="space-y-4 pb-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-3">Referencias populares:</p>
+                <div className="flex flex-wrap gap-2">
+                  {popularReferences.map((item, i) => (
+                    <Button
+                      key={i}
+                      variant="secondary"
+                      onClick={() => {
+                        const book = bibleBooks.find((b) => b.id === item.book);
+                        if (book) {
+                          onSelectBook(book, item.chapter);
+                          onClose();
+                        }
+                      }}
+                    >
+                      {item.ref}
                     </Button>
                   ))}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <p className="text-sm text-muted-foreground mb-3">Nuevo Testamento:</p>
-              <div className="flex flex-wrap gap-2">
-                {bibleBooks
-                  .filter((b) => b.testament === 'new')
-                  .slice(0, 10)
-                  .map((book) => (
-                    <Button key={book.id} variant="outline" size="sm" onClick={() => handleBookSelect(book)}>
-                      {book.name}
-                    </Button>
-                  ))}
+              <div>
+                <p className="text-sm text-muted-foreground mb-3">Antiguo Testamento:</p>
+                <div className="flex flex-wrap gap-2">
+                  {bibleBooks
+                    .filter((b) => b.testament === 'old')
+                    .slice(0, 10)
+                    .map((book) => (
+                      <Button key={book.id} variant="outline" size="sm" onClick={() => handleBookSelect(book)}>
+                        {book.name}
+                      </Button>
+                    ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground mb-3">Nuevo Testamento:</p>
+                <div className="flex flex-wrap gap-2">
+                  {bibleBooks
+                    .filter((b) => b.testament === 'new')
+                    .slice(0, 10)
+                    .map((book) => (
+                      <Button key={book.id} variant="outline" size="sm" onClick={() => handleBookSelect(book)}>
+                        {book.name}
+                      </Button>
+                    ))}
+                </div>
               </div>
             </div>
           </TabsContent>

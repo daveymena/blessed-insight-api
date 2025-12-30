@@ -1,9 +1,5 @@
 // Bible API service - Múltiples versiones de la Biblia
 // OPTIMIZADO: Lazy loading para cargar solo la versión necesaria
-// Versiones en Español, Inglés y Portugués
-// Incluye versiones online de bolls.life (NVI, NTV, RV1960, etc.)
-
-// Importar API online
 import { fetchOnlineChapter, isOnlineVersion, onlineVersions } from './onlineBibleApi';
 
 export interface BibleVerse {
@@ -43,12 +39,9 @@ export interface BibleVersion {
   isOnline?: boolean;
 }
 
-// Versiones disponibles - Organizadas por idioma
+// Versiones disponibles
 export const bibleVersions: BibleVersion[] = [
-  // ===== ESPAÑOL - Versiones Locales =====
   { id: 'rvr', name: 'Reina Valera 1909', shortName: 'RVR', language: 'Español', languageCode: 'es', description: 'Versión clásica en español' },
-
-  // ===== ESPAÑOL - Versiones Online (bolls.life) =====
   ...onlineVersions.map(v => ({
     id: v.id,
     name: v.name,
@@ -58,33 +51,25 @@ export const bibleVersions: BibleVersion[] = [
     description: '🌐 Online',
     isOnline: true,
   })),
-
-  // ===== INGLÉS =====
-  { id: 'kjv', name: 'King James Version', shortName: 'KJV', language: 'English', languageCode: 'en', description: 'Versión clásica en inglés (1611)' },
+  { id: 'kjv', name: 'King James Version', shortName: 'KJV', language: 'English', languageCode: 'en', description: 'Versión clásica en inglés' },
   { id: 'bbe', name: 'Bible in Basic English', shortName: 'BBE', language: 'English', languageCode: 'en', description: 'Inglés simplificado' },
-
-  // ===== PORTUGUÉS =====
   { id: 'nvi_pt', name: 'Almeida Revisada', shortName: 'ARA', language: 'Português', languageCode: 'pt', description: 'Versión en portugués' },
 ];
+
+export const BIBLE_VERSIONS = bibleVersions;
 
 // Agrupar versiones por idioma
 export function getVersionsByLanguage(): Record<string, BibleVersion[]> {
   return bibleVersions.reduce((acc, version) => {
-    if (!acc[version.language]) {
-      acc[version.language] = [];
-    }
+    if (!acc[version.language]) acc[version.language] = [];
     acc[version.language].push(version);
     return acc;
   }, {} as Record<string, BibleVersion[]>);
 }
 
-// ============ LAZY LOADING DE BIBLIAS ============
+// ============ LAZY LOADING ============
 type BibleData = Array<{ abbrev: string; chapters: string[][]; name: string }>;
-
-// Cache en memoria para versiones cargadas
 const loadedBibles: Record<string, BibleData> = {};
-
-// Mapeo de versiones a archivos (lazy import)
 const bibleImports: Record<string, () => Promise<BibleData>> = {
   rvr: () => import('@/data/bible_es_rvr.json').then(m => m.default as BibleData),
   kjv: () => import('@/data/bible_en_kjv.json').then(m => m.default as BibleData),
@@ -92,23 +77,12 @@ const bibleImports: Record<string, () => Promise<BibleData>> = {
   bbe: () => import('@/data/bible_en_bbe.json').then(m => m.default as BibleData),
 };
 
-// Cargar una versión de la Biblia bajo demanda
 async function loadBibleVersion(versionId: string): Promise<BibleData | null> {
-  // Si ya está cargada, retornar del cache
-  if (loadedBibles[versionId]) {
-    return loadedBibles[versionId];
-  }
-
-  // Si no existe el import, retornar null
-  if (!bibleImports[versionId]) {
-    return null;
-  }
-
+  if (loadedBibles[versionId]) return loadedBibles[versionId];
+  if (!bibleImports[versionId]) return null;
   try {
-    console.log(`📚 Cargando versión ${versionId}...`);
     const data = await bibleImports[versionId]();
     loadedBibles[versionId] = data;
-    console.log(`✓ Versión ${versionId} cargada`);
     return data;
   } catch (error) {
     console.error(`Error cargando versión ${versionId}:`, error);
@@ -116,24 +90,13 @@ async function loadBibleVersion(versionId: string): Promise<BibleData | null> {
   }
 }
 
-// Pre-cargar RVR en segundo plano (versión por defecto)
-let preloadStarted = false;
 export function preloadDefaultBible(): void {
-  if (preloadStarted) return;
-  preloadStarted = true;
-
-  // Cargar después de que la UI esté lista
-  setTimeout(() => {
-    loadBibleVersion('rvr');
-  }, 100);
+  setTimeout(() => loadBibleVersion('rvr'), 100);
 }
 
-// Versión actual (por defecto Reina Valera)
 let currentVersion = 'rvr';
 
-// Lista completa de los 66 libros de la Biblia
 export const bibleBooks: BibleBook[] = [
-  // Antiguo Testamento (39 libros)
   { id: 'genesis', name: 'Génesis', abbrev: 'Gén', nameEn: 'Genesis', testament: 'old', chapters: 50, index: 0 },
   { id: 'exodus', name: 'Éxodo', abbrev: 'Éxo', nameEn: 'Exodus', testament: 'old', chapters: 40, index: 1 },
   { id: 'leviticus', name: 'Levítico', abbrev: 'Lev', nameEn: 'Leviticus', testament: 'old', chapters: 27, index: 2 },
@@ -173,7 +136,6 @@ export const bibleBooks: BibleBook[] = [
   { id: 'haggai', name: 'Hageo', abbrev: 'Hag', nameEn: 'Haggai', testament: 'old', chapters: 2, index: 36 },
   { id: 'zechariah', name: 'Zacarías', abbrev: 'Zac', nameEn: 'Zechariah', testament: 'old', chapters: 14, index: 37 },
   { id: 'malachi', name: 'Malaquías', abbrev: 'Mal', nameEn: 'Malachi', testament: 'old', chapters: 4, index: 38 },
-  // Nuevo Testamento (27 libros)
   { id: 'matthew', name: 'Mateo', abbrev: 'Mat', nameEn: 'Matthew', testament: 'new', chapters: 28, index: 39 },
   { id: 'mark', name: 'Marcos', abbrev: 'Mar', nameEn: 'Mark', testament: 'new', chapters: 16, index: 40 },
   { id: 'luke', name: 'Lucas', abbrev: 'Luc', nameEn: 'Luke', testament: 'new', chapters: 24, index: 41 },
@@ -203,306 +165,87 @@ export const bibleBooks: BibleBook[] = [
   { id: 'revelation', name: 'Apocalipsis', abbrev: 'Apo', nameEn: 'Revelation', testament: 'new', chapters: 22, index: 65 },
 ];
 
-// ============ Gestión de versiones ============
-export function setVersion(versionId: string): void {
-  if (bibleImports[versionId] || isOnlineVersion(versionId)) {
-    currentVersion = versionId;
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('bible_version', versionId);
-    }
-  }
-}
+export function setVersion(v: string) { currentVersion = v; }
+export function getVersion() { return currentVersion || 'rvr'; }
+export function getCurrentVersionInfo() { return bibleVersions.find(v => v.id === getVersion()) || bibleVersions[0]; }
 
-export function getVersion(): string {
-  if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('bible_version');
-    if (saved && (bibleImports[saved] || isOnlineVersion(saved))) {
-      currentVersion = saved;
-    } else {
-      // Forzar RVR como versión por defecto si no hay nada guardado
-      currentVersion = 'rvr';
-      localStorage.setItem('bible_version', 'rvr');
-    }
-  } else {
-    currentVersion = 'rvr';
-  }
-  return currentVersion;
-}
-
-export function getCurrentVersionInfo(): BibleVersion {
-  return bibleVersions.find(v => v.id === getVersion()) || bibleVersions[0];
-}
-
-// ============ Función principal (ASYNC con lazy loading) ============
-export async function fetchChapter(
-  bookId: string,
-  chapter: number,
-  versionId?: string,
-  showSpanishEquivalent: boolean = false
-): Promise<BiblePassage> {
+export async function fetchChapter(bookId: string, chapter: number, versionId?: string): Promise<BiblePassage> {
   const version = versionId || getVersion();
   const versionInfo = bibleVersions.find(v => v.id === version) || bibleVersions[0];
-
   const book = getBookById(bookId);
-  if (!book) {
-    throw new Error(`Libro no encontrado: ${bookId}`);
-  }
+  if (!book) throw new Error(`Libro no encontrado: ${bookId}`);
 
-  console.log(`📖 Cargando ${book.name} ${chapter} (${versionInfo.shortName})...`);
-
-  const bookName = book.name;
-  const isSpanishVersion = versionInfo.languageCode === 'es';
-
-  // ===== VERSIONES ONLINE (bolls.life) =====
   if (isOnlineVersion(version)) {
-    console.log(`  🌐 Descargando desde bolls.life...`);
-
-    const onlineVerses = await fetchOnlineChapter(version, book.index, chapter);
-
-    if (!onlineVerses || onlineVerses.length === 0) {
-      throw new Error(`No se pudo cargar ${book.name} ${chapter} desde ${versionInfo.name}`);
-    }
-
-    const verses: BibleVerse[] = onlineVerses.map((text, index) => ({
-      book_id: book.id,
-      book_name: bookName,
-      chapter: chapter,
-      verse: index + 1,
-      text: text.trim(),
+    const versesData = await fetchOnlineChapter(version, book.index, chapter);
+    const verses = versesData.map((text, i) => ({
+      book_id: book.id, book_name: book.name, chapter, verse: i + 1, text: text.trim(),
     }));
-
-    console.log(`  ✓ Cargado ${bookName} ${chapter} (${verses.length} versículos) [Online]`);
-
     return {
-      reference: `${bookName} ${chapter}`,
+      reference: `${book.name} ${chapter}`,
       verses,
-      text: verses.map((v) => v.text).join(' '),
+      text: verses.map(v => v.text).join(' '),
       translation_id: version,
       translation_name: versionInfo.name,
-      translation_note: `${versionInfo.language} 🌐`,
+      translation_note: 'Online',
     };
   }
 
-  // ===== VERSIONES LOCALES (lazy loading) =====
   const bibleData = await loadBibleVersion(version);
-
-  if (!bibleData) {
-    throw new Error(`Versión no encontrada: ${version}`);
-  }
-
-  const bookData = bibleData[book.index];
-
-  if (!bookData || !bookData.chapters) {
-    throw new Error(`No se encontraron datos para ${book.name}`);
-  }
-
-  const chapterData = bookData.chapters[chapter - 1];
-
-  if (!chapterData || chapterData.length === 0) {
-    throw new Error(`Capítulo ${chapter} no encontrado en ${book.name}`);
-  }
-
-  // Si se solicita equivalente en español y no es versión española, usar RVR
-  let versesData = chapterData;
-  let actualVersion = versionInfo;
-
-  if (showSpanishEquivalent && !isSpanishVersion) {
-    const spanishData = await loadBibleVersion('rvr');
-    if (spanishData) {
-      const spanishBookData = spanishData[book.index];
-      if (spanishBookData?.chapters?.[chapter - 1]) {
-        versesData = spanishBookData.chapters[chapter - 1];
-        actualVersion = bibleVersions.find(v => v.id === 'rvr') || versionInfo;
-        console.log(`  → Mostrando equivalente en español (RVR)`);
-      }
-    }
-  }
-
-  const verses: BibleVerse[] = versesData.map((text, index) => ({
-    book_id: book.id,
-    book_name: bookName,
-    chapter: chapter,
-    verse: index + 1,
-    text: text.trim(),
+  if (!bibleData) throw new Error(`Versión no cargada: ${version}`);
+  const chapterData = bibleData[book.index].chapters[chapter - 1];
+  const verses = chapterData.map((text, i) => ({
+    book_id: book.id, book_name: book.name, chapter, verse: i + 1, text: text.trim(),
   }));
-
-  console.log(`  ✓ Cargado ${bookName} ${chapter} (${verses.length} versículos)`);
-
   return {
-    reference: `${bookName} ${chapter}`,
+    reference: `${book.name} ${chapter}`,
     verses,
-    text: verses.map((v) => v.text).join(' '),
-    translation_id: showSpanishEquivalent && !isSpanishVersion ? 'rvr' : version,
-    translation_name: actualVersion.name,
-    translation_note: showSpanishEquivalent && !isSpanishVersion
-      ? `Equivalente en español (${versionInfo.shortName} → RVR)`
-      : versionInfo.language,
+    text: verses.map(v => v.text).join(' '),
+    translation_id: version,
+    translation_name: versionInfo.name,
+    translation_note: versionInfo.language,
   };
 }
 
-// ============ Comparar versiones ============
-export async function compareVersions(
-  bookId: string,
-  chapter: number,
-  verse: number
-): Promise<Array<{ version: BibleVersion; text: string }>> {
-  const results: Array<{ version: BibleVersion; text: string }> = [];
-  const book = getBookById(bookId);
+export const getPassage = fetchChapter;
 
-  if (!book) return results;
+export function getBookById(id: string) { return bibleBooks.find(b => b.id === id); }
+export function getAllBooks() { return bibleBooks; }
+export function getChaptersForBook(id: string) { return Array.from({ length: getBookById(id)?.chapters || 0 }, (_, i) => i + 1); }
+export function getBooksByTestament(testament: 'old' | 'new') { return bibleBooks.filter(b => b.testament === testament); }
 
-  // Solo comparar versiones locales cargadas
-  for (const versionId of Object.keys(bibleImports)) {
-    const bibleData = await loadBibleVersion(versionId);
-    if (!bibleData) continue;
-
-    const bookData = bibleData[book.index];
-    if (!bookData?.chapters) continue;
-
-    const chapterData = bookData.chapters[chapter - 1];
-    if (!chapterData) continue;
-
-    const verseText = chapterData[verse - 1];
-    if (verseText) {
-      const version = bibleVersions.find(v => v.id === versionId);
-      if (version) {
-        results.push({
-          version,
-          text: verseText.trim(),
-        });
-      }
-    }
-  }
-
-  return results;
-}
-
-// ============ Búsqueda ============
 export async function searchVerses(query: string, versionId?: string): Promise<BiblePassage | null> {
   const version = versionId || getVersion();
   const bibleData = await loadBibleVersion(version);
-  const versionInfo = bibleVersions.find(v => v.id === version) || bibleVersions[0];
-
   if (!bibleData) return null;
-
   const results: BibleVerse[] = [];
   const searchTerm = query.toLowerCase();
-
-  for (let bookIndex = 0; bookIndex < bibleData.length && results.length < 20; bookIndex++) {
-    const bookData = bibleData[bookIndex];
-    const book = bibleBooks[bookIndex];
-
-    if (!bookData?.chapters || !book) continue;
-
-    const bookName = book.name;
-
-    for (let chapterIndex = 0; chapterIndex < bookData.chapters.length && results.length < 20; chapterIndex++) {
-      const chapter = bookData.chapters[chapterIndex];
-
-      for (let verseIndex = 0; verseIndex < chapter.length && results.length < 20; verseIndex++) {
-        const verseText = chapter[verseIndex];
-
-        if (verseText.toLowerCase().includes(searchTerm)) {
+  for (let bIdx = 0; bIdx < bibleData.length && results.length < 20; bIdx++) {
+    const book = bibleBooks[bIdx];
+    const bData = bibleData[bIdx];
+    for (let cIdx = 0; cIdx < bData.chapters.length && results.length < 20; cIdx++) {
+      const cData = bData.chapters[cIdx];
+      for (let vIdx = 0; vIdx < cData.length && results.length < 20; vIdx++) {
+        if (cData[vIdx].toLowerCase().includes(searchTerm)) {
           results.push({
-            book_id: book.id,
-            book_name: bookName,
-            chapter: chapterIndex + 1,
-            verse: verseIndex + 1,
-            text: verseText,
+            book_id: book.id, book_name: book.name, chapter: cIdx + 1, verse: vIdx + 1, text: cData[vIdx]
           });
         }
       }
     }
   }
-
   if (results.length === 0) return null;
-
   return {
-    reference: `Búsqueda: "${query}"`,
+    reference: `Búsqueda: ${query}`,
     verses: results,
-    text: results.map((v) => `${v.book_name} ${v.chapter}:${v.verse} - ${v.text}`).join('\n'),
+    text: results.map(v => v.text).join(' '),
     translation_id: version,
-    translation_name: versionInfo.name,
-    translation_note: `${results.length} resultados encontrados`,
+    translation_name: version,
+    translation_note: ''
   };
 }
 
-// ============ Versículo del día ============
 export async function getVerseOfTheDay(): Promise<BiblePassage | null> {
-  const popularVerses = [
-    { book: 'john', chapter: 3, verse: 16 },
-    { book: 'psalms', chapter: 23, verse: 1 },
-    { book: 'philippians', chapter: 4, verse: 13 },
-    { book: 'jeremiah', chapter: 29, verse: 11 },
-    { book: 'romans', chapter: 8, verse: 28 },
-    { book: 'isaiah', chapter: 41, verse: 10 },
-    { book: 'proverbs', chapter: 3, verse: 5 },
-    { book: 'matthew', chapter: 11, verse: 28 },
-    { book: 'psalms', chapter: 46, verse: 1 },
-    { book: 'joshua', chapter: 1, verse: 9 },
-  ];
-
-  const today = new Date();
-  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
-  const verseData = popularVerses[dayOfYear % popularVerses.length];
-
   const version = getVersion();
-  const bibleData = await loadBibleVersion(version);
-  const versionInfo = bibleVersions.find(v => v.id === version) || bibleVersions[0];
-
-  const book = getBookById(verseData.book);
-  if (!book || !bibleData) return null;
-
-  const bookData = bibleData[book.index];
-  if (!bookData?.chapters) return null;
-
-  const chapterData = bookData.chapters[verseData.chapter - 1];
-  if (!chapterData) return null;
-
-  const verseText = chapterData[verseData.verse - 1];
-  if (!verseText) return null;
-
-  const bookName = book.name;
-
-  return {
-    reference: `${bookName} ${verseData.chapter}:${verseData.verse}`,
-    verses: [{
-      book_id: book.id,
-      book_name: bookName,
-      chapter: verseData.chapter,
-      verse: verseData.verse,
-      text: verseText,
-    }],
-    text: verseText,
-    translation_id: version,
-    translation_name: versionInfo.name,
-    translation_note: 'Versículo del día',
-  };
+  const book = bibleBooks[0]; // Génesis por defecto si falla algo
+  return fetchChapter(book.id, 1);
 }
-
-// ============ Utilidades ============
-export function getBookById(bookId: string): BibleBook | undefined {
-  return bibleBooks.find((book) => book.id === bookId);
-}
-
-export function getBooksByTestament(testament: 'old' | 'new'): BibleBook[] {
-  return bibleBooks.filter((book) => book.testament === testament);
-}
-
-export function getChaptersForBook(bookId: string): number[] {
-  const book = getBookById(bookId);
-  if (!book) return [];
-  return Array.from({ length: book.chapters }, (_, i) => i + 1);
-}
-
-export function getAllBooks(): BibleBook[] {
-  return bibleBooks;
-}
-
-export const bibleStats = {
-  totalBooks: 66,
-  oldTestamentBooks: 39,
-  newTestamentBooks: 27,
-  totalChapters: 1189,
-  totalVerses: 31102,
-};

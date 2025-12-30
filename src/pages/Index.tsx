@@ -9,7 +9,7 @@ import { StudyCenter } from '@/components/StudyCenter';
 import { ThemeCustomizer } from '@/components/ThemeCustomizer';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { BackgroundLayer } from '@/components/BackgroundLayer';
-import { WelcomeCover } from '@/components/WelcomeCover';
+import { HomeScreen } from '@/components/HomeScreen';
 import { NavigationModal } from '@/components/NavigationModal';
 import { useBibleReader } from '@/hooks/useBibleReader';
 import type { BibleBook } from '@/lib/bibleApi';
@@ -24,16 +24,16 @@ const Index = () => {
   const [studyCenterOpen, setStudyCenterOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const [navModalOpen, setNavModalOpen] = useState(false);
-  const [showCover, setShowCover] = useState(true);
+  const [showHome, setShowHome] = useState(true);
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Inicializar tema y portada al cargar
+  // Inicializar tema al cargar
   useEffect(() => {
-    // Verificar si ya se mostró la portada en esta sesión
-    const coverShown = sessionStorage.getItem('bible_welcome_shown');
-    if (coverShown) {
-      setShowCover(false);
+    // Verificar si ya se mostró el home en esta sesión
+    const homeShown = sessionStorage.getItem('bible_home_dismissed');
+    if (homeShown) {
+      setShowHome(false);
     }
 
     // Cargar configuración del tema guardada
@@ -50,9 +50,14 @@ const Index = () => {
     }
   }, []);
 
-  const handleEnterApp = () => {
-    setShowCover(false);
-    sessionStorage.setItem('bible_welcome_shown', 'true');
+  const handleStartReading = () => {
+    setShowHome(false);
+    sessionStorage.setItem('bible_home_dismissed', 'true');
+  };
+
+  const handleGoHome = () => {
+    setShowHome(true);
+    sessionStorage.removeItem('bible_home_dismissed');
   };
 
   const {
@@ -108,8 +113,15 @@ const Index = () => {
 
   return (
     <div className="h-screen bg-background flex flex-col relative overflow-hidden">
-      {/* Welcome Cover Layer */}
-      {showCover && <WelcomeCover onEnter={handleEnterApp} />}
+      {/* Home Screen */}
+      {showHome && (
+        <HomeScreen 
+          onStartReading={handleStartReading}
+          onOpenSearch={() => { setShowHome(false); setSearchOpen(true); }}
+          onOpenStudyCenter={() => { setShowHome(false); setStudyCenterOpen(true); }}
+          onOpenFavorites={() => { setShowHome(false); setFavoritesOpen(true); }}
+        />
+      )}
 
       <BackgroundLayer />
 
@@ -120,6 +132,7 @@ const Index = () => {
         onFavoritesClick={() => setFavoritesOpen(true)}
         onStudyClick={() => setStudyCenterOpen(true)}
         onThemeClick={() => setThemeOpen(true)}
+        onHomeClick={handleGoHome}
         onVersionChange={handleVersionChange}
         showSpanishEquivalent={showSpanishEquivalent}
         onSpanishToggle={setShowSpanishEquivalent}

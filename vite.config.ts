@@ -5,9 +5,9 @@ import path from "path";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "172.28.80.1",
-    port: 8081,
-    strictPort: true,
+    host: "localhost",
+    port: 8080,
+    strictPort: false,
     open: true,
   },
   plugins: [react()],

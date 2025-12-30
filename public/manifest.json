@@ -1,55 +1,21 @@
 {
-  "name": "Blessed Insight - Biblia de Estudio con IA",
-  "short_name": "Blessed Insight",
-  "description": "Biblia de estudio profesional con inteligencia artificial. Múltiples versiones en español: Reina Valera, NVI, NTV, LBLA. Audio, exégesis, devocionales y planes de lectura.",
+  "name": "Blessed Insight - Biblia de Estudio IA",
+  "short_name": "Blessed",
+  "description": "Tu compañero espiritual con Inteligencia Artificial, Biblias multi-versión y voces naturales.",
   "start_url": "/",
-  "id": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "browser"],
-  "background_color": "#FDF6E3",
-  "theme_color": "#8B4513",
-  "orientation": "portrait-primary",
-  "scope": "/",
-  "categories": ["books", "education", "lifestyle", "religion"],
-  "lang": "es",
-  "dir": "ltr",
-  "prefer_related_applications": false,
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
     },
     {
-      "src": "/favicon.svg",
-      "sizes": "192x192 512x512",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
-    }
-  ],
-  "screenshots": [],
-  "shortcuts": [
-    {
-      "name": "Leer Génesis",
-      "short_name": "Génesis",
-      "description": "Comenzar a leer desde Génesis 1",
-      "url": "/?book=genesis&chapter=1",
-      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
-    },
-    {
-      "name": "Leer Juan",
-      "short_name": "Juan",
-      "description": "Leer el Evangelio de Juan",
-      "url": "/?book=john&chapter=1",
-      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
-    },
-    {
-      "name": "Salmos",
-      "short_name": "Salmos",
-      "description": "Leer los Salmos",
-      "url": "/?book=psalms&chapter=1",
-      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ]
 }

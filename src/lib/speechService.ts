@@ -6,7 +6,7 @@ export interface VoiceOption {
   name: string;
   lang: string;
   gender: 'male' | 'female' | 'unknown';
-  provider: 'browser' | 'edge';
+  provider: 'browser' | 'edge' | 'openai';
   native?: SpeechSynthesisVoice;
 }
 
@@ -15,7 +15,7 @@ export interface SpeechSettings {
   pitch: number;     // 0 - 2 (tono)
   volume: number;    // 0 - 1
   voiceId: string;
-  provider: 'browser' | 'edge';
+  provider: 'browser' | 'edge' | 'openai';
 }
 
 const DEFAULT_SETTINGS: SpeechSettings = {
@@ -44,9 +44,16 @@ const EDGE_VOICES: VoiceOption[] = [
   { id: 'en-US-GuyNeural', name: 'Guy (US)', lang: 'en-US', gender: 'male', provider: 'edge' },
   { id: 'en-US-JennyNeural', name: 'Jenny (US)', lang: 'en-US', gender: 'female', provider: 'edge' },
   { id: 'en-GB-RyanNeural', name: 'Ryan (UK)', lang: 'en-GB', gender: 'male', provider: 'edge' },
-  // Portugués
-  { id: 'pt-BR-AntonioNeural', name: 'Antonio (Brasil)', lang: 'pt-BR', gender: 'male', provider: 'edge' },
-  { id: 'pt-BR-FranciscaNeural', name: 'Francisca (Brasil)', lang: 'pt-BR', gender: 'female', provider: 'edge' },
+];
+
+// Voces de OpenAI TTS - Calidad Humana Superior
+const OPENAI_VOICES: VoiceOption[] = [
+  { id: 'alloy', name: 'Alloy (Urbana)', lang: 'es-ES', gender: 'male', provider: 'openai' },
+  { id: 'echo', name: 'Echo (Profunda)', lang: 'es-ES', gender: 'male', provider: 'openai' },
+  { id: 'fable', name: 'Fable (Narrativa)', lang: 'es-ES', gender: 'male', provider: 'openai' },
+  { id: 'onyx', name: 'Onyx (Autoritaria)', lang: 'es-ES', gender: 'male', provider: 'openai' },
+  { id: 'nova', name: 'Nova (Clara)', lang: 'es-ES', gender: 'female', provider: 'openai' },
+  { id: 'shimmer', name: 'Shimmer (Suave)', lang: 'es-ES', gender: 'female', provider: 'openai' },
 ];
 
 class SpeechService {
@@ -118,9 +125,9 @@ class SpeechService {
     localStorage.setItem('bible_speech_settings', JSON.stringify(this.settings));
   }
 
-  // Obtener todas las voces (Edge + Browser)
+  // Obtener todas las voces (OpenAI + Edge + Browser)
   getVoices(): VoiceOption[] {
-    return [...EDGE_VOICES, ...this.browserVoices];
+    return [...OPENAI_VOICES, ...EDGE_VOICES, ...this.browserVoices];
   }
 
   // Obtener solo voces Edge (más naturales)
@@ -147,22 +154,33 @@ class SpeechService {
     if (this.settings.voiceId) {
       return allVoices.find(v => v.id === this.settings.voiceId);
     }
-    return EDGE_VOICES[0]; // Por defecto Álvaro (España)
+    return OPENAI_VOICES[0] || EDGE_VOICES[0]; // Prioridad OpenAI
   }
 
-  // Limpiar texto de etiquetas HTML y optimizar para TTS
-  private cleanText(text: string): string {
+  // Limpiar texto de etiquetas HTML y optimizar para TTS (Human-friendly)
+  private cleanText(text: string, removeVerseNumbers: boolean = true): string {
     if (!text) return '';
 
-    return text
+    let cleaned = text
       // Eliminar etiquetas HTML
-      .replace(/<[^>]*>/g, ' ')
-      // Eliminar espacios antes de signos de puntuación (causa lectura literal de la coma/punto)
+      .replace(/<[^>]*>/g, ' ');
+
+    // Si detectamos patrones como "1 ", "2 ", o al inicio, los removemos para que no lea "Uno..."
+    if (removeVerseNumbers) {
+      // Intenta detectar si el texto empieza con un número de versículo (ej: "1 En el principio...")
+      cleaned = cleaned.replace(/^\s*\d+[\s\.]*/, '');
+    }
+
+    return cleaned
+      // Eliminar espacios antes de signos de puntuación
       .replace(/\s+([,.!?;:])/g, '$1')
       // Reemplazar saltos de línea y múltiples espacios
       .replace(/\s+/g, ' ')
-      // Asegurar que haya espacio después de puntuación si falta (mejora pausas)
+      // Asegurar que haya espacio después de puntuación si falta
       .replace(/([,:;?!)])([^\s])/g, '$1 $2')
+      // Reemplazar abreviaturas comunes para que se lean completas
+      .replace(/\bcap\./gi, 'capítulo')
+      .replace(/\bv\./gi, 'versículo')
       .trim();
   }
 
@@ -245,6 +263,53 @@ class SpeechService {
     }
   }
 
+  // Generar audio con OpenAI TTS (Alta Fidelidad)
+  private async speakWithOpenAI(text: string, onEnd?: () => void): Promise<void> {
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    if (!apiKey) {
+      console.warn('OpenAI API Key not found, falling back to Edge');
+      this.speakWithEdge(text, onEnd);
+      return;
+    }
+
+    const voice = this.getSelectedVoice();
+    const cleanedText = this.cleanText(text, true);
+
+    try {
+      const response = await fetch('https://api.openai.com/v1/audio/speech', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'tts-1',
+          voice: voice?.id || 'alloy',
+          input: cleanedText,
+          speed: this.settings.rate
+        })
+      });
+
+      if (!response.ok) throw new Error('OpenAI TTS error');
+
+      const blob = await response.blob();
+      const audioUrl = URL.createObjectURL(blob);
+
+      this.currentAudio = new Audio(audioUrl);
+      this.currentAudio.volume = this.settings.volume;
+      this.currentAudio.onplay = () => this.onStateChange?.('playing');
+      this.currentAudio.onended = () => {
+        this.currentAudio = null;
+        URL.revokeObjectURL(audioUrl);
+        onEnd?.();
+      };
+      await this.currentAudio.play();
+    } catch (error) {
+      console.error('OpenAI TTS failed:', error);
+      this.speakWithEdge(text, onEnd);
+    }
+  }
+
   // Reproducir con Web Speech API (fallback)
   private speakWithBrowser(text: string, onEnd?: () => void): void {
     this.synth.cancel();
@@ -291,14 +356,16 @@ class SpeechService {
     this.stop();
 
     const voice = this.getSelectedVoice();
-    if (voice?.provider === 'edge') {
+    if (voice?.provider === 'openai') {
+      this.speakWithOpenAI(text, onEnd);
+    } else if (voice?.provider === 'edge') {
       this.speakWithEdge(text, onEnd);
     } else {
       this.speakWithBrowser(text, onEnd);
     }
   }
 
-  // Reproducir versículos uno por uno
+  // Reproducir versículos uno por uno con flujo natural
   speakVerses(verses: string[], onVerseStart?: (index: number) => void, onComplete?: () => void): void {
     this.stop();
 
@@ -314,19 +381,23 @@ class SpeechService {
       onVerseStart?.(currentIndex);
       this.onVerseChange?.(currentIndex);
 
-      const text = verses[currentIndex];
+      // Limpiamos el texto eliminando el número de versículo para que la lectura sea humana
+      const rawText = verses[currentIndex];
+      const textToSpeak = this.cleanText(rawText, true);
 
       const onEnd = () => {
         currentIndex++;
-        // Pequeña pausa entre versículos
-        setTimeout(speakNext, 300);
+        // Pausa muy breve para que se sienta natural pero no fragmentado
+        setTimeout(speakNext, 150);
       };
 
       const voice = this.getSelectedVoice();
-      if (voice?.provider === 'edge') {
-        this.speakWithEdge(text, onEnd);
+      if (voice?.provider === 'openai') {
+        this.speakWithOpenAI(textToSpeak, onEnd);
+      } else if (voice?.provider === 'edge') {
+        this.speakWithEdge(textToSpeak, onEnd);
       } else {
-        this.speakWithBrowser(text, onEnd);
+        this.speakWithBrowser(textToSpeak, onEnd);
       }
     };
 

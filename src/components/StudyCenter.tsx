@@ -24,7 +24,14 @@ import {
   saveStudyNote,
   getNotesForPassage,
   getReadingStats,
-  type StudyNote
+  getActivePlan,
+  startPlan,
+  updatePlanProgress,
+  cancelPlan,
+  getPlanById,
+  type StudyNote,
+  type ActivePlan,
+  type ReadingPlan
 } from '@/lib/studyService';
 import type { BibleBook, BiblePassage } from '@/lib/bibleApi';
 
@@ -42,6 +49,129 @@ function getCachedResponse(key: string): string | null {
 
 function setCachedResponse(key: string, content: string): void {
   responseCache.set(key, { content, timestamp: Date.now() });
+}
+
+// Componente para renderizar la respuesta de IA con formato bonito
+function FormattedAIResponse({ content }: { content: string }) {
+  // Función para procesar el texto y convertirlo en elementos formateados
+  const formatContent = (text: string) => {
+    const lines = text.split('\n');
+    const elements: JSX.Element[] = [];
+    let currentIndex = 0;
+
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      
+      // Detectar encabezados con emojis (📜 1. TÍTULO)
+      const headerMatch = trimmedLine.match(/^([\p{Emoji}]+)\s*(\d+\.?\s*)?(.+)$/u);
+      const isMainHeader = headerMatch && (
+        trimmedLine.includes('CONTEXTO') ||
+        trimmedLine.includes('ANÁLISIS') ||
+        trimmedLine.includes('INTERPRETACIÓN') ||
+        trimmedLine.includes('APLICACIÓN') ||
+        trimmedLine.includes('CONEXIONES') ||
+        trimmedLine.includes('SIGNIFICADO') ||
+        trimmedLine.includes('DEFINICIÓN') ||
+        trimmedLine.includes('DESARROLLO') ||
+        trimmedLine.includes('PERSPECTIVAS') ||
+        trimmedLine.includes('ERRORES') ||
+        trimmedLine.includes('PREGUNTAS') ||
+        trimmedLine.includes('LECTURA') ||
+        trimmedLine.includes('REFLEXIÓN') ||
+        trimmedLine.includes('VERDAD') ||
+        trimmedLine.includes('DESAFÍO') ||
+        trimmedLine.includes('ORACIÓN') ||
+        trimmedLine.includes('VERSÍCULO') ||
+        trimmedLine.includes('OBSERVACIÓN') ||
+        trimmedLine.includes('INTRODUCCIÓN')
+      );
+
+      if (isMainHeader && headerMatch) {
+        elements.push(
+          <div key={currentIndex++} className="mt-6 mb-3 first:mt-0">
+            <div className="flex items-center gap-2 bg-gradient-to-r from-primary/10 to-transparent p-3 rounded-lg border-l-4 border-primary">
+              <span className="text-2xl">{headerMatch[1]}</span>
+              <h3 className="text-lg font-bold text-primary">
+                {headerMatch[2] || ''}{headerMatch[3]}
+              </h3>
+            </div>
+          </div>
+        );
+      }
+      // Detectar sub-encabezados (con emoji al inicio pero no mayúsculas completas)
+      else if (headerMatch && !isMainHeader) {
+        elements.push(
+          <div key={currentIndex++} className="mt-4 mb-2">
+            <h4 className="text-base font-semibold text-foreground flex items-center gap-2">
+              <span className="text-xl">{headerMatch[1]}</span>
+              {headerMatch[2] || ''}{headerMatch[3]}
+            </h4>
+          </div>
+        );
+      }
+      // Detectar listas con guiones o asteriscos
+      else if (trimmedLine.startsWith('-') || trimmedLine.startsWith('•') || trimmedLine.startsWith('*')) {
+        const listContent = trimmedLine.replace(/^[-•*]\s*/, '');
+        elements.push(
+          <div key={currentIndex++} className="flex gap-2 my-1.5 ml-2">
+            <span className="text-primary mt-1">•</span>
+            <span className="text-foreground/90 leading-relaxed">{listContent}</span>
+          </div>
+        );
+      }
+      // Detectar listas numeradas
+      else if (/^\d+[\.\)]\s/.test(trimmedLine)) {
+        const match = trimmedLine.match(/^(\d+)[\.\)]\s*(.+)$/);
+        if (match) {
+          elements.push(
+            <div key={currentIndex++} className="flex gap-3 my-2 ml-2">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 text-primary text-sm font-bold flex items-center justify-center">
+                {match[1]}
+              </span>
+              <span className="text-foreground/90 leading-relaxed flex-1">{match[2]}</span>
+            </div>
+          );
+        }
+      }
+      // Detectar citas bíblicas (texto entre comillas con referencia)
+      else if (trimmedLine.startsWith('"') || trimmedLine.startsWith('«')) {
+        elements.push(
+          <blockquote key={currentIndex++} className="my-3 pl-4 border-l-4 border-amber-500/50 bg-amber-50/50 dark:bg-amber-900/10 p-3 rounded-r-lg italic text-foreground/80">
+            {trimmedLine}
+          </blockquote>
+        );
+      }
+      // Detectar líneas vacías (espaciado)
+      else if (trimmedLine === '') {
+        elements.push(<div key={currentIndex++} className="h-2" />);
+      }
+      // Texto normal
+      else {
+        // Resaltar palabras en hebreo/griego (entre paréntesis con caracteres especiales)
+        const formattedLine = trimmedLine
+          .replace(/\(([^)]*(?:hebreo|griego|hebrea|griega)[^)]*)\)/gi, 
+            '<span class="bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 text-sm font-medium">($1)</span>')
+          .replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
+          .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+        
+        elements.push(
+          <p 
+            key={currentIndex++} 
+            className="my-2 text-foreground/90 leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: formattedLine }}
+          />
+        );
+      }
+    });
+
+    return elements;
+  };
+
+  return (
+    <div className="space-y-1">
+      {formatContent(content)}
+    </div>
+  );
 }
 
 interface StudyCenterProps {
@@ -66,6 +196,8 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
   const [planAudience, setPlanAudience] = useState<'individual' | 'family' | 'group'>('individual');
   const [stats, setStats] = useState({ totalChapters: 0, streak: 0, lastRead: null as Date | null });
   const [copied, setCopied] = useState(false);
+  const [activePlan, setActivePlan] = useState<ActivePlan | null>(null);
+  const [currentPlanData, setCurrentPlanData] = useState<ReadingPlan | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const passageText = passage?.verses?.map(v => v.text).join(' ') || '';
@@ -75,6 +207,13 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
     if (book && isOpen) {
       setNotes(getNotesForPassage(book.id, chapter));
       setStats(getReadingStats());
+      // Cargar plan activo
+      const plan = getActivePlan();
+      setActivePlan(plan);
+      if (plan) {
+        const planData = getPlanById(plan.planId);
+        setCurrentPlanData(planData || null);
+      }
     }
   }, [book, chapter, isOpen]);
 
@@ -238,6 +377,48 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleStartPlan = (planId: string) => {
+    const plan = startPlan(planId);
+    setActivePlan(plan);
+    const planData = getPlanById(planId);
+    setCurrentPlanData(planData || null);
+  };
+
+  const handleCompleteDayReading = (day: number) => {
+    const updated = updatePlanProgress(day, true);
+    setActivePlan(updated);
+  };
+
+  const handleCancelPlan = () => {
+    cancelPlan();
+    setActivePlan(null);
+    setCurrentPlanData(null);
+  };
+
+  // Obtener nombre del libro en español
+  const getBookNameSpanish = (bookId: string): string => {
+    const bookNames: Record<string, string> = {
+      'genesis': 'Génesis', 'exodus': 'Éxodo', 'leviticus': 'Levítico', 'numbers': 'Números',
+      'deuteronomy': 'Deuteronomio', 'joshua': 'Josué', 'judges': 'Jueces', 'ruth': 'Rut',
+      '1samuel': '1 Samuel', '2samuel': '2 Samuel', '1kings': '1 Reyes', '2kings': '2 Reyes',
+      '1chronicles': '1 Crónicas', '2chronicles': '2 Crónicas', 'ezra': 'Esdras', 'nehemiah': 'Nehemías',
+      'esther': 'Ester', 'job': 'Job', 'psalms': 'Salmos', 'proverbs': 'Proverbios',
+      'ecclesiastes': 'Eclesiastés', 'song of solomon': 'Cantares', 'isaiah': 'Isaías', 'jeremiah': 'Jeremías',
+      'lamentations': 'Lamentaciones', 'ezekiel': 'Ezequiel', 'daniel': 'Daniel', 'hosea': 'Oseas',
+      'joel': 'Joel', 'amos': 'Amós', 'obadiah': 'Abdías', 'jonah': 'Jonás', 'micah': 'Miqueas',
+      'nahum': 'Nahúm', 'habakkuk': 'Habacuc', 'zephaniah': 'Sofonías', 'haggai': 'Hageo',
+      'zechariah': 'Zacarías', 'malachi': 'Malaquías', 'matthew': 'Mateo', 'mark': 'Marcos',
+      'luke': 'Lucas', 'john': 'Juan', 'acts': 'Hechos', 'romans': 'Romanos',
+      '1corinthians': '1 Corintios', '2corinthians': '2 Corintios', 'galatians': 'Gálatas',
+      'ephesians': 'Efesios', 'philippians': 'Filipenses', 'colossians': 'Colosenses',
+      '1thessalonians': '1 Tesalonicenses', '2thessalonians': '2 Tesalonicenses',
+      '1timothy': '1 Timoteo', '2timothy': '2 Timoteo', 'titus': 'Tito', 'philemon': 'Filemón',
+      'hebrews': 'Hebreos', 'james': 'Santiago', '1peter': '1 Pedro', '2peter': '2 Pedro',
+      '1john': '1 Juan', '2john': '2 Juan', '3john': '3 Juan', 'jude': 'Judas', 'revelation': 'Apocalipsis'
+    };
+    return bookNames[bookId.toLowerCase()] || bookId;
   };
 
   if (!isOpen) return null;
@@ -433,25 +614,132 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
 
               {/* Reading Plans Tab */}
               <TabsContent value="plans" className="mt-0 space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  {READING_PLANS.map(plan => (
-                    <Card key={plan.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                      <CardHeader className="pb-2">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-base">{plan.name}</CardTitle>
-                          <Badge variant="outline">{plan.duration}</Badge>
-                        </div>
-                        <CardDescription>{plan.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Button variant="outline" size="sm" className="w-full">
-                          <ChevronRight className="h-4 w-4 mr-1" />
-                          Comenzar Plan
+                {/* Plan Activo */}
+                {activePlan && currentPlanData && (
+                  <Card className="border-2 border-primary bg-primary/5">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                          <Flame className="h-5 w-5 text-orange-500" />
+                          Plan Activo: {currentPlanData.name}
+                        </CardTitle>
+                        <Button variant="ghost" size="sm" onClick={handleCancelPlan} className="text-destructive hover:text-destructive">
+                          <X className="h-4 w-4 mr-1" />
+                          Cancelar
                         </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                      </div>
+                      <CardDescription>
+                        Día {activePlan.currentDay} de {currentPlanData.readings.length} • {activePlan.completedDays.length} días completados
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <Progress 
+                        value={(activePlan.completedDays.length / currentPlanData.readings.length) * 100} 
+                        className="h-3"
+                      />
+                      
+                      {/* Lectura del día actual */}
+                      {currentPlanData.readings[activePlan.currentDay - 1] && (
+                        <div className="bg-background p-4 rounded-lg border">
+                          <h4 className="font-semibold flex items-center gap-2 mb-3">
+                            <Calendar className="h-4 w-4 text-blue-500" />
+                            Lectura de Hoy (Día {activePlan.currentDay})
+                          </h4>
+                          <div className="space-y-2">
+                            {currentPlanData.readings[activePlan.currentDay - 1].passages.map((p, idx) => (
+                              <div key={idx} className="flex items-center gap-2 text-sm">
+                                <BookOpen className="h-4 w-4 text-muted-foreground" />
+                                <span className="font-medium">
+                                  {getBookNameSpanish(p.book)} {p.chapter}{p.verses ? `:${p.verses}` : ''}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                          {currentPlanData.readings[activePlan.currentDay - 1].reflection && (
+                            <p className="text-sm text-muted-foreground mt-3 italic">
+                              💭 {currentPlanData.readings[activePlan.currentDay - 1].reflection}
+                            </p>
+                          )}
+                          <Button 
+                            onClick={() => handleCompleteDayReading(activePlan.currentDay)}
+                            disabled={activePlan.completedDays.includes(activePlan.currentDay)}
+                            className="w-full mt-4 bg-green-600 hover:bg-green-700"
+                          >
+                            {activePlan.completedDays.includes(activePlan.currentDay) ? (
+                              <>
+                                <Check className="h-4 w-4 mr-2" />
+                                ¡Completado!
+                              </>
+                            ) : (
+                              <>
+                                <Check className="h-4 w-4 mr-2" />
+                                Marcar como Leído
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
+
+                      {/* Lista de días */}
+                      <div className="grid grid-cols-7 gap-1 mt-4">
+                        {currentPlanData.readings.map((_, idx) => {
+                          const dayNum = idx + 1;
+                          const isCompleted = activePlan.completedDays.includes(dayNum);
+                          const isCurrent = dayNum === activePlan.currentDay;
+                          return (
+                            <div
+                              key={dayNum}
+                              className={`
+                                aspect-square flex items-center justify-center text-xs rounded-md cursor-pointer
+                                ${isCompleted ? 'bg-green-500 text-white' : ''}
+                                ${isCurrent && !isCompleted ? 'bg-primary text-primary-foreground ring-2 ring-primary' : ''}
+                                ${!isCompleted && !isCurrent ? 'bg-muted hover:bg-muted/80' : ''}
+                              `}
+                              onClick={() => {
+                                if (!isCompleted && dayNum <= activePlan.currentDay) {
+                                  handleCompleteDayReading(dayNum);
+                                }
+                              }}
+                            >
+                              {isCompleted ? <Check className="h-3 w-3" /> : dayNum}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Lista de planes disponibles */}
+                {!activePlan && (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {READING_PLANS.map(plan => (
+                      <Card key={plan.id} className="hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-2">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-base">{plan.name}</CardTitle>
+                            <Badge variant="outline">{plan.duration}</Badge>
+                          </div>
+                          <CardDescription>{plan.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-xs text-muted-foreground mb-3">
+                            {plan.readings.length} lecturas programadas
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => handleStartPlan(plan.id)}
+                          >
+                            <ChevronRight className="h-4 w-4 mr-1" />
+                            Comenzar Plan
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
 
                 <Card>
                   <CardHeader>
@@ -626,9 +914,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
                     </div>
                   </CardHeader>
                   <CardContent className="pt-4">
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <div className="whitespace-pre-wrap">{response}</div>
-                    </div>
+                    <FormattedAIResponse content={response} />
                   </CardContent>
                 </Card>
               )}

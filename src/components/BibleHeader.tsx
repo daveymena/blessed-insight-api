@@ -1,4 +1,4 @@
-import { BookOpen, Menu, Sparkles, Search, Heart, Moon, Sun, Languages, GraduationCap, Palette, ChevronDown } from 'lucide-react';
+import { BookOpen, Menu, Sparkles, Search, Heart, Moon, Sun, Languages, GraduationCap, Palette, ChevronDown, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { VersionSelector } from './VersionSelector';
@@ -14,6 +14,7 @@ interface BibleHeaderProps {
   onFavoritesClick: () => void;
   onStudyClick?: () => void;
   onThemeClick?: () => void;
+  onHomeClick?: () => void;
   onVersionChange?: () => void;
   showSpanishEquivalent?: boolean;
   onSpanishToggle?: (value: boolean) => void;
@@ -32,6 +33,7 @@ export function BibleHeader({
   onFavoritesClick,
   onStudyClick,
   onThemeClick,
+  onHomeClick,
   onVersionChange,
   showSpanishEquivalent = false,
   onSpanishToggle,
@@ -89,6 +91,18 @@ export function BibleHeader({
           >
             <Menu className="h-5 w-5" />
           </Button>
+          
+          {/* Botón Home */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onHomeClick}
+            className="text-primary hover:bg-primary/10"
+            title="Inicio"
+          >
+            <Home className="h-5 w-5" />
+          </Button>
+
           <div className="flex items-center gap-2 cursor-pointer p-1 rounded-lg hover:bg-secondary/50 transition-colors" onClick={onTitleClick}>
             <div className="p-2 rounded-lg bg-primary/10">
               <BookOpen className="h-5 w-5 text-primary" />

@@ -3,8 +3,11 @@
 
 import { callAI, callAIFast, type AIResponse as ProviderResponse } from './aiProvider';
 
-// Contexto corto = más rápido
-const BIBLE_CONTEXT = `Eres un asistente de estudio bíblico. Responde en español, de forma clara y concisa.`;
+// Contexto de Experto Teológico - PROFESIONAL & ESTÉTICO
+const BIBLE_CONTEXT = `Eres un teólogo experto y mentor espiritual. 
+Tu lenguaje debe ser profundo, académico pero accesible, y SIEMPRE organizado.
+Usa emojis, negritas y separadores para que la información sea muy legible.
+Estructura tus respuestas con títulos claros y listas con viñetas.`;
 
 export interface AIResponse {
   success: boolean;
@@ -20,18 +23,29 @@ export async function analyzePassage(
 ): Promise<AIResponse> {
   const messages = [
     { role: 'system' as const, content: BIBLE_CONTEXT },
-    { role: 'user' as const, content: `Analiza ${bookName} ${chapter}:
+    {
+      role: 'user' as const, content: `Realiza una EXÉGESIS PROFUNDA de ${bookName} ${chapter}:
 "${passage.substring(0, 1000)}"
 
-Brevemente:
-1. Contexto histórico
-2. Mensaje principal
-3. Palabras clave
-4. Aplicación práctica` }
+Estructura tu respuesta exactamente así:
+---
+### 📜 1. CONTEXTO HISTÓRICO & CULTURAL
+[Añadir detalles sobre el autor, destinatarios y situación histórica]
+
+### 🔍 2. ANÁLISIS EXEGÉTICO (Originales)
+[Identificar palabras clave en hebreo/griego y su significado profundo]
+
+### 💡 3. VERDAD CENTRAL
+[Resumir el mensaje teológico principal en una frase potente]
+
+### 🛠️ 4. APLICACIÓN PASTORAL
+[Cómo este pasaje transforma la vida hoy con consejos prácticos]
+---
+Usa separadores visuales y mantén un tono profesional.` }
   ];
 
   const result = await callAI(messages, 600);
-  
+
   if (result.success) {
     return { success: true, content: result.content, source: 'AI' };
   }
@@ -49,7 +63,7 @@ export async function askBibleQuestion(
   ];
 
   const result = await callAIFast(messages);
-  
+
   if (result.success) {
     return { success: true, content: result.content, source: 'AI' };
   }
@@ -63,16 +77,23 @@ export async function generateStudyPlan(
 ): Promise<AIResponse> {
   const messages = [
     { role: 'system' as const, content: BIBLE_CONTEXT },
-    { role: 'user' as const, content: `Plan de estudio sobre "${topic}" para ${duration}.
+    {
+      role: 'user' as const, content: `Crea un PLAN DE ESTUDIO DE ALTO NIVEL sobre "${topic}" para ${duration}.
 
-Por día incluye:
-- Pasaje (libro cap:vers)
-- Pregunta de reflexión
-- Aplicación` }
+Estructura la información por días de forma estética:
+---
+## 📅 PLAN: ${topic.toUpperCase()}
+---
+### Día [X]: [Título del Día]
+*   **📖 Pasaje Key**: [Referencia]
+*   **🧠 Reflexión Teológica**: [Análisis corto]
+*   **🎯 Desafío Práctico**: [Acción para el día]
+
+[Añadir separadores entre días]` }
   ];
 
   const result = await callAI(messages, 800);
-  
+
   if (result.success) {
     return { success: true, content: result.content, source: 'AI' };
   }
@@ -82,7 +103,7 @@ Por día incluye:
 // Análisis offline cuando no hay API key
 function getOfflineAnalysis(bookName: string, chapter: number): AIResponse {
   const bookKey = bookName.toLowerCase().replace(/[0-9\s]/g, '');
-  
+
   const analyses: Record<string, { context: string; theme: string; application: string }> = {
     génesis: {
       context: 'Génesis es el libro de los orígenes, escrito por Moisés aproximadamente en el 1400 a.C.',
