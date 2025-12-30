@@ -1,9 +1,11 @@
-import { BookOpen, Menu, Sparkles, Search, Heart, Moon, Sun, Languages, GraduationCap, Palette } from 'lucide-react';
+import { BookOpen, Menu, Sparkles, Search, Heart, Moon, Sun, Languages, GraduationCap, Palette, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { VersionSelector } from './VersionSelector';
 import { Switch } from '@/components/ui/switch';
 import { useThemeSettings } from '@/hooks/useThemeSettings';
+
+import type { BibleBook } from '@/lib/bibleApi';
 
 interface BibleHeaderProps {
   onMenuClick: () => void;
@@ -16,6 +18,9 @@ interface BibleHeaderProps {
   showSpanishEquivalent?: boolean;
   onSpanishToggle?: (value: boolean) => void;
   isSpanishVersion?: boolean;
+  onTitleClick?: () => void;
+  selectedBook?: BibleBook | null;
+  selectedChapter?: number;
 }
 
 export function BibleHeader({
@@ -28,7 +33,10 @@ export function BibleHeader({
   onVersionChange,
   showSpanishEquivalent = false,
   onSpanishToggle,
-  isSpanishVersion = true
+  isSpanishVersion = true,
+  onTitleClick,
+  selectedBook,
+  selectedChapter
 }: BibleHeaderProps) {
   const { hasScenicBackground } = useThemeSettings();
   const [darkMode, setDarkMode] = useState(false);
@@ -77,13 +85,14 @@ export function BibleHeader({
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 cursor-pointer p-1 rounded-lg hover:bg-secondary/50 transition-colors" onClick={onTitleClick}>
             <div className="p-2 rounded-lg bg-primary/10">
               <BookOpen className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl font-serif font-semibold text-foreground">
-                Blessed Insight
+              <h1 className="text-xl font-serif font-semibold text-foreground flex items-center gap-2">
+                {selectedBook ? `${selectedBook.name} ${selectedChapter}` : 'Blessed Insight'}
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </h1>
               <p className="text-xs text-muted-foreground hidden sm:block">
                 Biblia de Estudio con IA

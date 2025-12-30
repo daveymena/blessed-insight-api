@@ -10,6 +10,7 @@ import { ThemeCustomizer } from '@/components/ThemeCustomizer';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { BackgroundLayer } from '@/components/BackgroundLayer';
 import { WelcomeCover } from '@/components/WelcomeCover';
+import { NavigationModal } from '@/components/NavigationModal';
 import { useBibleReader } from '@/hooks/useBibleReader';
 import type { BibleBook } from '@/lib/bibleApi';
 
@@ -20,6 +21,7 @@ const Index = () => {
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const [studyCenterOpen, setStudyCenterOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
+  const [navModalOpen, setNavModalOpen] = useState(false);
   const [showCover, setShowCover] = useState(true);
 
   // Inicializar tema y portada al cargar
@@ -79,6 +81,27 @@ const Index = () => {
     refetch();
   };
 
+  const handleNavigation = (book: BibleBook, chapter: number, verse?: number) => {
+    selectBook(book);
+    setTimeout(() => {
+      selectChapter(chapter);
+      if (verse) {
+        // Implementar scroll suave al versículo
+        // Damos un poco más de tiempo para que cargue el contenido
+        setTimeout(() => {
+          const element = document.getElementById(`verse-${verse}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Opcional: Resaltar temporalmente
+            element.classList.add('bg-primary/20');
+            setTimeout(() => element.classList.remove('bg-primary/20'), 2000);
+          }
+        }, 300);
+      }
+    }, 100);
+    setNavModalOpen(false);
+  };
+
   return (
     <div className="h-screen bg-background flex flex-col relative overflow-hidden">
       {/* Welcome Cover Layer */}
@@ -97,6 +120,9 @@ const Index = () => {
         showSpanishEquivalent={showSpanishEquivalent}
         onSpanishToggle={setShowSpanishEquivalent}
         isSpanishVersion={isSpanishVersion}
+        onTitleClick={() => setNavModalOpen(true)}
+        selectedBook={selectedBook}
+        selectedChapter={selectedChapter}
       />
 
       <div className="flex-1 flex overflow-hidden relative">
@@ -137,6 +163,15 @@ const Index = () => {
       />
 
       {/* Panels and Modals */}
+      <NavigationModal
+        isOpen={navModalOpen}
+        onClose={() => setNavModalOpen(false)}
+        selectedBook={selectedBook}
+        selectedChapter={selectedChapter}
+        chapters={chapters}
+        onNavigate={handleNavigation}
+      />
+
       <AIStudyPanel
         book={selectedBook}
         chapter={selectedChapter}
