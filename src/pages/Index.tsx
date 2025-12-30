@@ -136,8 +136,8 @@ const Index = () => {
           onClose={() => setSidebarOpen(false)}
         />
 
-        <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
-          <div className="flex-1 overflow-y-auto pb-20 md:pb-8">
+        <main className="flex-1 flex flex-col min-w-0 h-full relative">
+          <div className="flex-1 overflow-y-auto pb-24 md:pb-8 scroll-smooth overflow-x-hidden">
             <ScriptureReader
               book={selectedBook}
               chapter={selectedChapter}

@@ -64,8 +64,8 @@ export function NavigationModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="sm:max-w-md h-[80vh] p-0 gap-0 overflow-hidden bg-background">
-                <div className="flex flex-col h-full">
+            <DialogContent className="sm:max-w-md h-[85vh] p-0 gap-0 overflow-hidden bg-background">
+                <div className="flex flex-col h-full overflow-hidden">
                     {/* Header with Breadcrumbs */}
                     <div className="p-4 border-b border-border flex items-center justify-center bg-muted/20">
                         <div className="flex items-center gap-2 text-sm font-medium">
@@ -94,7 +94,7 @@ export function NavigationModal({
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-hidden relative">
+                    <div className="flex-1 overflow-y-auto relative bg-background">
                         {activeTab === 'book' && (
                             <BookSelector
                                 selectedBook={tempBook}
@@ -142,6 +142,7 @@ function VerseSelector({ count, onSelectVerse }: { count: number, onSelectVerse:
                     {Array.from({ length: 60 }, (_, i) => i + 1).map(v => (
                         <button
                             key={v}
+                            id={`nav-verse-${v}`}
                             onClick={() => onSelectVerse(v)}
                             className="aspect-square flex items-center justify-center rounded-lg bg-secondary/30 hover:bg-primary hover:text-primary-foreground transition-all duration-200 font-medium"
                         >

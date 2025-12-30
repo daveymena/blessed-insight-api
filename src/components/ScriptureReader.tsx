@@ -149,8 +149,9 @@ export function ScriptureReader({
             {passage.verses.map((verse, index) => (
               <div
                 key={`${verse.chapter}-${verse.verse}`}
-                className={`mb-4 transition-all duration-300 ${highlightedVerse === index
-                  ? 'bg-primary/20 rounded-lg px-3 py-2 -mx-3'
+                id={`verse-${verse.verse}`}
+                className={`mb-4 transition-all duration-300 scroll-mt-24 p-2 rounded-lg ${highlightedVerse === index
+                  ? 'bg-primary/20 -mx-2'
                   : ''
                   }`}
               >
