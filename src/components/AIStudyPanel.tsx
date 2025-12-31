@@ -150,6 +150,7 @@ interface AIStudyPanelProps {
 export function AIStudyPanel({ book, chapter, passage, isOpen, onClose }: AIStudyPanelProps) {
   const [activeTab, setActiveTab] = useState('analyze');
   const [question, setQuestion] = useState('');
+  const [customReference, setCustomReference] = useState(''); // Nueva: referencia personalizada
   const [studyTopic, setStudyTopic] = useState('');
   const [depth, setDepth] = useState<'basic' | 'pastoral' | 'academic'>('pastoral');
   const [response, setResponse] = useState<{ content: string; source: string } | null>(null);
@@ -171,7 +172,12 @@ export function AIStudyPanel({ book, chapter, passage, isOpen, onClose }: AIStud
     }
     setLoading(true);
     setResponse(null);
-    const result = await analyzePassage(passageText, book.name, chapter);
+
+    // Usar referencia personalizada si está disponible, sino usar el capítulo actual
+    const referenceToAnalyze = customReference.trim() || `${book.name} ${chapter}`;
+    const textToAnalyze = customReference.trim() ? customReference : passageText;
+
+    const result = await analyzePassage(textToAnalyze, book.name, chapter);
     setResponse({ content: result.content, source: result.source });
     setUsageCount(prev => prev + 1);
 
@@ -179,8 +185,8 @@ export function AIStudyPanel({ book, chapter, passage, isOpen, onClose }: AIStud
       const conv = await personalStudyService.saveMessage({
         conversationId,
         role: 'user',
-        content: `Analiza ${book.name} ${chapter}`,
-        title: `Estudio de ${book.name} ${chapter}`
+        content: `Analiza ${referenceToAnalyze}`,
+        title: `Estudio de ${referenceToAnalyze}`
       });
       if (conv) {
         setConversationId(conv.conversationId);
@@ -275,6 +281,21 @@ export function AIStudyPanel({ book, chapter, passage, isOpen, onClose }: AIStud
                     </p>
                   </div>
 
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                      Referencia a Analizar
+                    </label>
+                    <Input
+                      value={customReference}
+                      onChange={(e) => setCustomReference(e.target.value)}
+                      placeholder={`Ej: Juan 3:16, Salmo 23, etc. (Predeterminado: ${book?.name} ${chapter})`}
+                      className="bg-background/50"
+                    />
+                    <p className="text-[10px] text-muted-foreground italic">
+                      💡 Deja vacío para analizar el capítulo actual, o escribe cualquier referencia bíblica
+                    </p>
+                  </div>
+
                   <div className="space-y-3">
                     <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Profundidad</label>
                     <div className="flex gap-2 bg-muted p-1 rounded-lg">
@@ -293,7 +314,7 @@ export function AIStudyPanel({ book, chapter, passage, isOpen, onClose }: AIStud
 
                   <Button onClick={handleAnalyze} disabled={loading || !book} className="w-full h-12 bg-gradient-to-r from-indigo-600 to-purple-600">
                     {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Microscope className="h-5 w-5 mr-2" />}
-                    {loading ? 'Analizando...' : 'Realizar Exégesis'}
+                    {loading ? 'Analizando...' : customReference.trim() ? `Analizar "${customReference.trim()}"` : 'Realizar Exégesis'}
                   </Button>
                 </TabsContent>
 
