@@ -89,8 +89,12 @@ export function ScriptureReader({
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [analysisContent, setAnalysisContent] = useState<string | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
-  const versionInfo = getCurrentVersionInfo();
+  const [versionDisplay, setVersionDisplay] = useState(getCurrentVersionInfo());
   const currentVersionId = getVersion();
+
+  useEffect(() => {
+    setVersionDisplay(getCurrentVersionInfo());
+  }, [passage, chapter]);
 
   useEffect(() => {
     if (user && book) {
@@ -109,6 +113,7 @@ export function ScriptureReader({
   // HANDLERS
   const handleVersionSelect = (versionId: string) => {
     setVersion(versionId);
+    setVersionDisplay(getCurrentVersionInfo());
     if (onVersionChange) {
       onVersionChange();
       toast.success(`Versión cambiada a ${BIBLE_VERSIONS.find(v => v.id === versionId)?.shortName}`);
@@ -205,10 +210,11 @@ export function ScriptureReader({
       return (
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${book.id}-${chapter}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
+            key={`${book.id}-${chapter}-${currentVersionId}`}
+            initial={{ opacity: 0, y: 12, filter: "blur(4px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -12, filter: "blur(4px)" }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="min-h-[60vh]"
           >
             {showAudioPlayer && (
@@ -293,99 +299,64 @@ export function ScriptureReader({
         <div className="text-center flex-1 mx-2 min-w-0">
           <h2 className="text-lg md:text-xl font-bold truncate">{book.name}</h2>
           <p className={`text-[10px] md:text-xs ${hasScenicBackground ? 'text-white/70' : 'text-muted-foreground'}`}>
-            Capítulo {chapter} • <span className="opacity-80 font-semibold">{versionInfo.shortName}</span>
+            Capítulo {chapter} • <span className="opacity-80 font-semibold">{versionDisplay.shortName}</span>
           </p>
         </div>
 
         {/* DERECHA: Herramientas y Siguiente */}
-        <div className="flex items-center gap-1 md:gap-2">
+        <div className="flex items-center gap-1 md:gap-2 shrink-0">
 
-          {/* Escritorio: Botones visibles */}
-          <div className="hidden md:flex gap-2">
-            <Button
-              variant={hasScenicBackground ? "outline" : (showAudioPlayer ? "default" : "ghost")}
-              size="icon"
-              onClick={() => setShowAudioPlayer(!showAudioPlayer)}
-              className={`rounded-full h-9 w-9 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''}`}
-              title="Audio"
-            >
-              <Volume2 className="h-4 w-4" />
-            </Button>
+          {/* Audio Toggle */}
+          <Button
+            variant={hasScenicBackground ? "outline" : (showAudioPlayer ? "default" : "ghost")}
+            size="icon"
+            onClick={() => setShowAudioPlayer(!showAudioPlayer)}
+            className={`rounded-full h-8 w-8 md:h-9 md:w-9 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''}`}
+            title="Audio"
+          >
+            <Volume2 className="h-4 w-4" />
+          </Button>
 
-            {/* Dropdown de Versiones Desktop */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant={hasScenicBackground ? "outline" : "ghost"}
-                  size="icon"
-                  className={`rounded-full h-9 w-9 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''}`}
-                  title="Versiones"
-                >
-                  <Languages className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Seleccionar Versión</DropdownMenuLabel>
-                {BIBLE_VERSIONS.map((v) => (
-                  <DropdownMenuItem key={v.id} onClick={() => handleVersionSelect(v.id)}>
-                    <span className="flex-1">{v.name}</span>
-                    {v.id === currentVersionId && <Check className="ml-2 h-4 w-4" />}
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setIsComparatorOpen(true)}>
-                  <Columns className="mr-2 h-4 w-4" /> Comparar Versiones
+          {/* Selector de Versiones */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant={hasScenicBackground ? "outline" : "ghost"}
+                size="icon"
+                className={`rounded-full h-8 w-8 md:h-9 md:w-9 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''}`}
+                title="Versiones"
+              >
+                <Languages className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 max-h-[80vh] overflow-y-auto">
+              <DropdownMenuLabel>Seleccionar Versión</DropdownMenuLabel>
+              {BIBLE_VERSIONS.map((v) => (
+                <DropdownMenuItem key={v.id} onClick={() => handleVersionSelect(v.id)}>
+                  <span className="flex-1 font-medium">{v.shortName}</span>
+                  <span className="text-xs text-muted-foreground ml-2">{v.name}</span>
+                  {v.id === currentVersionId && <Check className="ml-2 h-4 w-4 text-primary" />}
                 </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setIsComparatorOpen(true)}>
+                <Columns className="mr-2 h-4 w-4" /> Comparar Versiones
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-          {/* Móvil: Menú Hamburguesa */}
-          <div className="md:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className={`rounded-full h-9 w-9 ${hasScenicBackground ? 'text-white hover:bg-white/10' : ''}`}>
-                  <MoreVertical className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={() => setShowAudioPlayer(!showAudioPlayer)}>
-                  <Volume2 className="h-4 w-4 mr-2" />
-                  {showAudioPlayer ? 'Ocultar Audio' : 'Escuchar Audio'}
-                </DropdownMenuItem>
-
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <Languages className="h-4 w-4 mr-2" /> Versión: {versionInfo.shortName}
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    {BIBLE_VERSIONS.map((v) => (
-                      <DropdownMenuItem key={v.id} onClick={() => handleVersionSelect(v.id)}>
-                        <span className={v.id === currentVersionId ? "font-bold" : ""}>{v.shortName}</span>
-                        <span className="text-xs text-muted-foreground ml-2">{v.name}</span>
-                        {v.id === currentVersionId && <Check className="ml-auto h-4 w-4" />}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-
-                <DropdownMenuItem onClick={() => setIsComparatorOpen(true)}>
-                  <Columns className="h-4 w-4 mr-2" /> Comparar Versiones
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Botón Siguiente */}
+          {/* Botón Siguiente (Móvil) */}
           <Button
             variant={hasScenicBackground ? "outline" : "ghost"}
             size="icon"
             onClick={onNext}
             disabled={!canGoNext || isLoading}
-            className={`md:hidden rounded-full h-9 w-9 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''}`}
+            className={`md:hidden rounded-full h-8 w-8 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''}`}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
+
+          {/* Botón Siguiente (Escritorio) */}
           <Button
             variant={hasScenicBackground ? "outline" : "ghost"}
             onClick={onNext}
