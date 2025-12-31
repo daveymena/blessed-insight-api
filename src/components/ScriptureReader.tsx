@@ -171,7 +171,7 @@ export function ScriptureReader({
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="flex flex-col items-center justify-center py-20">
+        <div className="flex flex-col items-center justify-center py-20 min-h-[60vh]">
           <Loader2 className="h-10 w-10 animate-spin mb-4 text-primary" />
           <p className="font-serif italic">Preparando las Escrituras...</p>
         </div>
@@ -179,7 +179,7 @@ export function ScriptureReader({
     }
     if (error) {
       return (
-        <div className="p-8 border border-destructive/20 bg-destructive/5 rounded-lg text-center">
+        <div className="p-8 border border-destructive/20 bg-destructive/5 rounded-lg text-center min-h-[60vh] flex flex-col items-center justify-center">
           <p className="font-bold text-destructive">Error al cargar</p>
         </div>
       );
@@ -187,7 +187,13 @@ export function ScriptureReader({
     if (passage && passage.verses.length > 0) {
       return (
         <AnimatePresence mode="wait">
-          <motion.div key={`${book.id}-${chapter}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }}>
+          <motion.div
+            key={`${book.id}-${chapter}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+            className="min-h-[60vh]"
+          >
             {showAudioPlayer && (
               <div className="mb-6 border rounded-xl overflow-hidden shadow-sm">
                 <AudioPlayer verses={passage.verses.map(v => v.text)} onVerseHighlight={setHighlightedVerse} />

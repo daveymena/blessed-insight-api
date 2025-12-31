@@ -20,16 +20,10 @@ const CSS_BACKGROUNDS: Record<string, string> = {
 export function BackgroundLayer({ className }: BackgroundLayerProps) {
     const { settings } = useThemeSettings();
     const activeBackground = settings.background;
-    const [isVisible, setIsVisible] = useState(false);
+    const shouldRender = activeBackground !== 'none' &&
+        (activeBackground in BACKGROUNDS || activeBackground in CSS_BACKGROUNDS);
 
-    useEffect(() => {
-        setIsVisible(
-            activeBackground !== 'none' &&
-            (activeBackground in BACKGROUNDS || activeBackground in CSS_BACKGROUNDS)
-        );
-    }, [activeBackground]);
-
-    if (!isVisible) return null;
+    if (!shouldRender) return null;
 
     if (activeBackground in CSS_BACKGROUNDS) {
         return (
