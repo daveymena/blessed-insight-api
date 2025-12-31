@@ -168,6 +168,7 @@ const Index = () => {
                 canGoPrevious={!!canGoPrevious}
                 onNext={goToNextChapter}
                 onPrevious={goToPreviousChapter}
+                onVersionChange={handleVersionChange}
               />
             )}
           </div>

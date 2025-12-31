@@ -1,15 +1,20 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Loader2, Volume2, Wifi, Heart, BookOpen, Languages, Sparkles, ChevronDown, ChevronUp, MoreVertical } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Volume2, Wifi, Heart, BookOpen, Languages, Sparkles, ChevronDown, ChevronUp, MoreVertical, Check, Columns } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { AudioPlayer } from '@/components/AudioPlayer';
-import { getCurrentVersionInfo } from '@/lib/bibleApi';
+import { getCurrentVersionInfo, BIBLE_VERSIONS, setVersion, getVersion } from '@/lib/bibleApi';
 import type { BibleBook, BiblePassage } from '@/lib/bibleApi';
 import { useThemeSettings } from '@/hooks/useThemeSettings';
 import { AdPlaceholder } from './AdPlaceholder';
@@ -29,6 +34,7 @@ interface ScriptureReaderProps {
   canGoPrevious: boolean;
   onNext: () => void;
   onPrevious: () => void;
+  onVersionChange?: () => void; // Optional para compatibilidad hacia atrás temporal
   user?: any;
 }
 
@@ -70,6 +76,7 @@ export function ScriptureReader({
   canGoPrevious,
   onNext,
   onPrevious,
+  onVersionChange,
   user,
 }: ScriptureReaderProps) {
   const { settings: themeSettings, hasScenicBackground } = useThemeSettings();
@@ -83,6 +90,7 @@ export function ScriptureReader({
   const [analysisContent, setAnalysisContent] = useState<string | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const versionInfo = getCurrentVersionInfo();
+  const currentVersionId = getVersion();
 
   useEffect(() => {
     if (user && book) {
@@ -97,6 +105,15 @@ export function ScriptureReader({
     setAnalysisContent(null);
     setShowAnalysis(false);
   }, [book?.id, chapter]);
+
+  // HANDLERS
+  const handleVersionSelect = (versionId: string) => {
+    setVersion(versionId);
+    if (onVersionChange) {
+      onVersionChange();
+      toast.success(`Versión cambiada a ${BIBLE_VERSIONS.find(v => v.id === versionId)?.shortName}`);
+    }
+  };
 
   const handleQuickAnalysis = async () => {
     if (!book || !passage?.verses) return;
@@ -275,7 +292,9 @@ export function ScriptureReader({
         {/* CENTRO: Título */}
         <div className="text-center flex-1 mx-2 min-w-0">
           <h2 className="text-lg md:text-xl font-bold truncate">{book.name}</h2>
-          <p className={`text-[10px] md:text-xs ${hasScenicBackground ? 'text-white/70' : 'text-muted-foreground'}`}>Capítulo {chapter}</p>
+          <p className={`text-[10px] md:text-xs ${hasScenicBackground ? 'text-white/70' : 'text-muted-foreground'}`}>
+            Capítulo {chapter} • <span className="opacity-80 font-semibold">{versionInfo.shortName}</span>
+          </p>
         </div>
 
         {/* DERECHA: Herramientas y Siguiente */}
@@ -283,20 +302,42 @@ export function ScriptureReader({
 
           {/* Escritorio: Botones visibles */}
           <div className="hidden md:flex gap-2">
-            {[
-              { icon: Volume2, action: () => setShowAudioPlayer(!showAudioPlayer), active: showAudioPlayer },
-              { icon: Languages, action: () => setIsComparatorOpen(true), active: false },
-            ].map((btn, i) => (
-              <Button
-                key={i}
-                variant={hasScenicBackground ? "outline" : (btn.active ? "default" : "ghost")}
-                size="icon"
-                onClick={btn.action}
-                className={`rounded-full h-9 w-9 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''} ${btn.active && !hasScenicBackground ? '' : ''}`}
-              >
-                <btn.icon className="h-4 w-4" />
-              </Button>
-            ))}
+            <Button
+              variant={hasScenicBackground ? "outline" : (showAudioPlayer ? "default" : "ghost")}
+              size="icon"
+              onClick={() => setShowAudioPlayer(!showAudioPlayer)}
+              className={`rounded-full h-9 w-9 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''}`}
+              title="Audio"
+            >
+              <Volume2 className="h-4 w-4" />
+            </Button>
+
+            {/* Dropdown de Versiones Desktop */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant={hasScenicBackground ? "outline" : "ghost"}
+                  size="icon"
+                  className={`rounded-full h-9 w-9 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''}`}
+                  title="Versiones"
+                >
+                  <Languages className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Seleccionar Versión</DropdownMenuLabel>
+                {BIBLE_VERSIONS.map((v) => (
+                  <DropdownMenuItem key={v.id} onClick={() => handleVersionSelect(v.id)}>
+                    <span className="flex-1">{v.name}</span>
+                    {v.id === currentVersionId && <Check className="ml-2 h-4 w-4" />}
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setIsComparatorOpen(true)}>
+                  <Columns className="mr-2 h-4 w-4" /> Comparar Versiones
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Móvil: Menú Hamburguesa */}
@@ -307,13 +348,29 @@ export function ScriptureReader({
                   <MoreVertical className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem onClick={() => setShowAudioPlayer(!showAudioPlayer)}>
                   <Volume2 className="h-4 w-4 mr-2" />
                   {showAudioPlayer ? 'Ocultar Audio' : 'Escuchar Audio'}
                 </DropdownMenuItem>
+
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Languages className="h-4 w-4 mr-2" /> Versión: {versionInfo.shortName}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    {BIBLE_VERSIONS.map((v) => (
+                      <DropdownMenuItem key={v.id} onClick={() => handleVersionSelect(v.id)}>
+                        <span className={v.id === currentVersionId ? "font-bold" : ""}>{v.shortName}</span>
+                        <span className="text-xs text-muted-foreground ml-2">{v.name}</span>
+                        {v.id === currentVersionId && <Check className="ml-auto h-4 w-4" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+
                 <DropdownMenuItem onClick={() => setIsComparatorOpen(true)}>
-                  <Languages className="h-4 w-4 mr-2" /> Comparar Versiones
+                  <Columns className="h-4 w-4 mr-2" /> Comparar Versiones
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
