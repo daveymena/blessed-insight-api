@@ -43,23 +43,34 @@ export function VersionComparator({ book, chapter, isOpen, onClose }: VersionCom
 
     if (!isOpen) return null;
 
+    const gridCols = {
+        1: 'md:grid-cols-1',
+        2: 'md:grid-cols-2',
+        3: 'md:grid-cols-3'
+    }[selectedVersions.length] || 'md:grid-cols-1';
+
     return (
-        <div className="fixed inset-0 z-[60] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-card border border-border w-full max-w-6xl h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[60] bg-background/80 backdrop-blur-sm flex items-center justify-center p-2 md:p-4">
+            <div className="bg-card border border-border w-full max-w-6xl h-full md:h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="p-4 border-b border-border flex items-center justify-between bg-muted/30">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-primary/10 p-2 rounded-lg text-primary">
-                            <Columns className="h-5 w-5" />
+                <div className="p-4 border-b border-border flex flex-col md:flex-row items-center justify-between bg-muted/30 gap-4">
+                    <div className="flex items-center gap-3 w-full md:w-auto justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-primary/10 p-2 rounded-lg text-primary">
+                                <Columns className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h2 className="text-lg md:text-xl font-serif font-bold">Comparador de Versiones</h2>
+                                <p className="text-xs text-muted-foreground">{book?.name} {chapter}</p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-xl font-serif font-bold">Comparador de Versiones</h2>
-                            <p className="text-xs text-muted-foreground">{book?.name} {chapter}</p>
-                        </div>
+                        <Button variant="ghost" size="icon" onClick={onClose} className="md:hidden">
+                            <X className="h-5 w-5" />
+                        </Button>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <div className="flex bg-muted p-1 rounded-lg mr-4">
+                    <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+                        <div className="flex bg-muted p-1 rounded-lg">
                             {BIBLE_VERSIONS.slice(0, 4).map(v => (
                                 <button
                                     key={v.id}
@@ -70,16 +81,16 @@ export function VersionComparator({ book, chapter, isOpen, onClose }: VersionCom
                                             if (selectedVersions.length < 3) setSelectedVersions(prev => [...prev, v.id]);
                                         }
                                     }}
-                                    className={`px-3 py-1 text-xs rounded-md transition-all ${selectedVersions.includes(v.id)
-                                            ? 'bg-background shadow-sm text-foreground font-semibold'
-                                            : 'text-muted-foreground hover:text-foreground'
+                                    className={`px-3 py-1.5 text-xs rounded-md transition-all ${selectedVersions.includes(v.id)
+                                        ? 'bg-background shadow-sm text-foreground font-semibold'
+                                        : 'text-muted-foreground hover:text-foreground'
                                         }`}
                                 >
                                     {v.shortName}
                                 </button>
                             ))}
                         </div>
-                        <Button variant="ghost" size="icon" onClick={onClose}>
+                        <Button variant="ghost" size="icon" onClick={onClose} className="hidden md:flex">
                             <X className="h-5 w-5" />
                         </Button>
                     </div>
@@ -95,9 +106,9 @@ export function VersionComparator({ book, chapter, isOpen, onClose }: VersionCom
                             </div>
                         </div>
                     ) : (
-                        <div className={`flex-1 grid grid-cols-1 md:grid-cols-${selectedVersions.length} divide-x divide-border overflow-hidden`}>
+                        <div className={`flex-1 grid grid-cols-1 ${gridCols} divide-y md:divide-y-0 md:divide-x divide-border overflow-hidden`}>
                             {selectedVersions.map(vId => (
-                                <div key={vId} className="flex flex-col h-full bg-card/50">
+                                <div key={vId} className="flex flex-col h-full bg-card/50 overflow-hidden">
                                     <div className="p-3 border-b border-border bg-muted/20 text-center">
                                         <span className="text-xs font-bold tracking-widest uppercase text-primary">
                                             {BIBLE_VERSIONS.find(v => v.id === vId)?.name}

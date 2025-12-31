@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Book, Hash, X } from 'lucide-react';
+import { Book, LayoutGrid, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BookSelector } from './BookSelector';
 import { ChapterSelector } from './ChapterSelector';
@@ -48,13 +48,17 @@ export function BibleSidebar({
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         )}
       >
-        {/* Mobile Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-secondary md:hidden"
-        >
-          <X className="h-5 w-5 text-muted-foreground" />
-        </button>
+        {/* Mobile Header with Close Button */}
+        <div className="flex items-center justify-between p-4 border-b border-border md:hidden">
+          <span className="font-bold text-lg">Navegación</span>
+          <button
+            onClick={onClose}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+          >
+            <span className="text-xs font-medium">Cerrar</span>
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+        </div>
 
         {/* Tabs */}
         <div className="flex border-b border-border">
@@ -79,7 +83,7 @@ export function BibleSidebar({
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            <Hash className="h-4 w-4" />
+            <LayoutGrid className="h-4 w-4" />
             Capítulos
           </button>
         </div>

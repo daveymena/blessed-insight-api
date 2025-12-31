@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Loader2, Volume2, Wifi, Heart, BookOpen, Languages, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Volume2, Wifi, Heart, BookOpen, Languages, Sparkles, ChevronDown, ChevronUp, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { getCurrentVersionInfo } from '@/lib/bibleApi';
 import type { BibleBook, BiblePassage } from '@/lib/bibleApi';
@@ -235,42 +241,93 @@ export function ScriptureReader({
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className={`flex items-center justify-between px-4 py-4 border-b transition-colors ${hasScenicBackground ? 'bg-black/20 border-white/10 text-white backdrop-blur-sm' : 'bg-card/50 backdrop-blur-sm'}`}>
-        <Button
-          variant={hasScenicBackground ? "outline" : "ghost"}
-          onClick={onPrevious}
-          disabled={!canGoPrevious || isLoading}
-          className={`gap-1 rounded-full px-4 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10 hover:text-white disabled:opacity-30' : ''}`}
-        >
-          <ChevronLeft className="h-4 w-4" /> Anterior
-        </Button>
+      <div className={`flex items-center justify-between px-3 py-3 border-b transition-colors ${hasScenicBackground ? 'bg-black/20 border-white/10 text-white backdrop-blur-sm' : 'bg-card/50 backdrop-blur-sm'}`}>
 
-        <div className="text-center">
-          <h2 className="text-xl font-bold">{book.name}</h2>
-          <p className={`text-xs ${hasScenicBackground ? 'text-white/70' : 'text-muted-foreground'}`}>Capítulo {chapter}</p>
+        {/* IZQUIERDA: Botón Anterior */}
+        <div className="flex items-center">
+          {/* Móvil: Solo icono */}
+          <Button
+            variant={hasScenicBackground ? "outline" : "ghost"}
+            size="icon"
+            onClick={onPrevious}
+            disabled={!canGoPrevious || isLoading}
+            className={`md:hidden rounded-full h-9 w-9 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''}`}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          {/* Escritorio: Texto completo */}
+          <Button
+            variant={hasScenicBackground ? "outline" : "ghost"}
+            onClick={onPrevious}
+            disabled={!canGoPrevious || isLoading}
+            className={`hidden md:flex gap-1 rounded-full px-4 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10 hover:text-white disabled:opacity-30' : ''}`}
+          >
+            <ChevronLeft className="h-4 w-4" /> Anterior
+          </Button>
         </div>
 
-        <div className="flex gap-2">
-          {[
-            { icon: Volume2, action: () => setShowAudioPlayer(!showAudioPlayer), active: showAudioPlayer },
-            { icon: Languages, action: () => setIsComparatorOpen(true), active: false },
-          ].map((btn, i) => (
-            <Button
-              key={i}
-              variant={hasScenicBackground ? "outline" : (btn.active ? "default" : "ghost")}
-              size="icon"
-              onClick={btn.action}
-              className={`rounded-full h-9 w-9 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''} ${btn.active && !hasScenicBackground ? '' : ''}`}
-            >
-              <btn.icon className="h-4 w-4" />
-            </Button>
-          ))}
+        {/* CENTRO: Título */}
+        <div className="text-center flex-1 mx-2 min-w-0">
+          <h2 className="text-lg md:text-xl font-bold truncate">{book.name}</h2>
+          <p className={`text-[10px] md:text-xs ${hasScenicBackground ? 'text-white/70' : 'text-muted-foreground'}`}>Capítulo {chapter}</p>
+        </div>
 
+        {/* DERECHA: Herramientas y Siguiente */}
+        <div className="flex items-center gap-1 md:gap-2">
+
+          {/* Escritorio: Botones visibles */}
+          <div className="hidden md:flex gap-2">
+            {[
+              { icon: Volume2, action: () => setShowAudioPlayer(!showAudioPlayer), active: showAudioPlayer },
+              { icon: Languages, action: () => setIsComparatorOpen(true), active: false },
+            ].map((btn, i) => (
+              <Button
+                key={i}
+                variant={hasScenicBackground ? "outline" : (btn.active ? "default" : "ghost")}
+                size="icon"
+                onClick={btn.action}
+                className={`rounded-full h-9 w-9 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''} ${btn.active && !hasScenicBackground ? '' : ''}`}
+              >
+                <btn.icon className="h-4 w-4" />
+              </Button>
+            ))}
+          </div>
+
+          {/* Móvil: Menú Hamburguesa */}
+          <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className={`rounded-full h-9 w-9 ${hasScenicBackground ? 'text-white hover:bg-white/10' : ''}`}>
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setShowAudioPlayer(!showAudioPlayer)}>
+                  <Volume2 className="h-4 w-4 mr-2" />
+                  {showAudioPlayer ? 'Ocultar Audio' : 'Escuchar Audio'}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsComparatorOpen(true)}>
+                  <Languages className="h-4 w-4 mr-2" /> Comparar Versiones
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Botón Siguiente */}
+          <Button
+            variant={hasScenicBackground ? "outline" : "ghost"}
+            size="icon"
+            onClick={onNext}
+            disabled={!canGoNext || isLoading}
+            className={`md:hidden rounded-full h-9 w-9 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''}`}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
           <Button
             variant={hasScenicBackground ? "outline" : "ghost"}
             onClick={onNext}
             disabled={!canGoNext || isLoading}
-            className={`gap-1 rounded-full px-4 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10 hover:text-white disabled:opacity-30' : ''}`}
+            className={`hidden md:flex gap-1 rounded-full px-4 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10 hover:text-white disabled:opacity-30' : ''}`}
           >
             Siguiente <ChevronRight className="h-4 w-4" />
           </Button>
