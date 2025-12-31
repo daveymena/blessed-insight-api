@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Send, BookOpen, Lightbulb, Calendar, Loader2, Crown, ScrollText, Microscope, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,19 @@ import { personalStudyService } from '@/lib/personalStudyService';
 import { toast } from 'sonner';
 
 // Componente para renderizar la respuesta de IA con formato bonito
+const parseInlineFormatting = (text: string) => {
+  const parts = text.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-bold text-primary">{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <em key={i} className="italic text-foreground/90">{part.slice(1, -1)}</em>;
+    }
+    return part;
+  });
+};
+
 function FormattedAIResponse({ content }: { content: string }) {
   const formatContent = (text: string) => {
     const lines = text.split('\n');
@@ -21,7 +35,31 @@ function FormattedAIResponse({ content }: { content: string }) {
 
     lines.forEach((line) => {
       const trimmedLine = line.trim();
-      
+      if (!trimmedLine) {
+        elements.push(<div key={currentIndex++} className="h-2" />);
+        return;
+      }
+
+      // 1. Markdown Headers (###)
+      const mdHeaderMatch = trimmedLine.match(/^(#{1,6})\s+(.+)$/);
+      if (mdHeaderMatch) {
+        const level = mdHeaderMatch[1].length;
+        const title = mdHeaderMatch[2];
+        const Icon = level <= 2 ? BookOpen : ScrollText;
+
+        elements.push(
+          <div key={currentIndex++} className={`flex items-center gap-2 mt-5 mb-3 ${level <= 2 ? 'border-b pb-2 border-border' : ''}`}>
+            <div className={`p-1.5 rounded-lg ${level <= 2 ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+              <Icon className={level <= 2 ? "h-5 w-5" : "h-4 w-4"} />
+            </div>
+            <h3 className={`${level <= 2 ? 'text-lg font-bold text-primary' : 'text-base font-semibold text-foreground'}`}>
+              {parseInlineFormatting(title)}
+            </h3>
+          </div>
+        );
+        return;
+      }
+
       // Detectar encabezados con emojis
       const headerMatch = trimmedLine.match(/^([\p{Emoji}]+)\s*(\d+\.?\s*)?(.+)$/u);
       const isMainHeader = headerMatch && (
@@ -192,98 +230,106 @@ export function AIStudyPanel({ book, chapter, passage, isOpen, onClose }: AIStud
     setLoading(false);
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-y-0 right-0 w-full sm:w-96 bg-card border-l border-border shadow-xl z-50 flex flex-col animate-slide-in-right">
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-white">
-          <Sparkles className="h-5 w-5" />
-          <span className="font-semibold">Estudio con IA</span>
-        </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20">
-          <X className="h-5 w-5" />
-        </Button>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-        <TabsList className="grid w-full grid-cols-3 rounded-none border-b h-14 bg-muted/20">
-          <TabsTrigger value="analyze" className="gap-2 text-xs h-full data-[state=active]:bg-background">
-            <Microscope className="h-4 w-4" />
-            <span className="font-semibold">Exégesis</span>
-          </TabsTrigger>
-          <TabsTrigger value="ask" className="gap-2 text-xs h-full data-[state=active]:bg-background">
-            <GraduationCap className="h-4 w-4" />
-            <span className="font-semibold">Sermones</span>
-          </TabsTrigger>
-          <TabsTrigger value="plan" className="gap-2 text-xs h-full data-[state=active]:bg-background">
-            <Calendar className="h-4 w-4" />
-            <span className="font-semibold">Planes</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <ScrollArea className="flex-1">
-          <div className="p-4 space-y-4">
-            <TabsContent value="analyze" className="mt-0 space-y-6">
-              <div className="bg-indigo-50 dark:bg-indigo-950/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/50">
-                <p className="text-sm font-serif italic text-indigo-900 dark:text-indigo-200">
-                  "Escudriñad las Escrituras; porque a vosotros os parece que en ellas tenéis la vida eterna..." - Juan 5:39
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Profundidad</label>
-                <div className="flex gap-2 bg-muted p-1 rounded-lg">
-                  {(['basic', 'pastoral', 'academic'] as const).map((d) => (
-                    <button
-                      key={d}
-                      onClick={() => setDepth(d)}
-                      className={`flex-1 py-1.5 text-[10px] font-bold uppercase rounded-md transition-all ${depth === d ? 'bg-background shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                    >
-                      {d === 'basic' ? 'Básico' : d === 'pastoral' ? 'Pastoral' : 'Académico'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <Button onClick={handleAnalyze} disabled={loading || !book} className="w-full h-12 bg-gradient-to-r from-indigo-600 to-purple-600">
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Microscope className="h-5 w-5 mr-2" />}
-                {loading ? 'Analizando...' : 'Realizar Exégesis'}
-              </Button>
-            </TabsContent>
-
-            <TabsContent value="ask" className="mt-0 space-y-4">
-              <div className="flex gap-2">
-                <Input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="¿Qué significa este pasaje?" />
-                <Button onClick={handleAskQuestion} disabled={loading || !question.trim()} size="icon">
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                </Button>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="plan" className="mt-0 space-y-4">
-              <Input value={studyTopic} onChange={(e) => setStudyTopic(e.target.value)} placeholder="Ej: La fe, El perdón..." />
-              <Button onClick={handleGeneratePlan} disabled={loading || !studyTopic.trim()} className="w-full">
-                Generar Plan de 7 Días
-              </Button>
-            </TabsContent>
-
-            {response && (
-              <div className="mt-6 p-4 bg-card rounded-2xl border border-border shadow-inner bg-gradient-to-b from-transparent to-muted/5">
-                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border/50">
-                  <Sparkles className="h-4 w-4 text-indigo-600" />
-                  <span className="text-xs font-black uppercase tracking-wider text-indigo-600">Resultados del Análisis</span>
-                </div>
-                <FormattedAIResponse content={response.content} />
-              </div>
-            )}
-
-            {isFreeTier && <PremiumBanner />}
-            <AdPlaceholder type="banner" />
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ x: '100%', opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: '100%', opacity: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="fixed inset-y-0 right-0 w-full sm:w-96 bg-card border-l border-border shadow-2xl z-50 flex flex-col"
+        >
+          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-white">
+              <Sparkles className="h-5 w-5" />
+              <span className="font-semibold">Estudio con IA</span>
+            </div>
+            <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20">
+              <X className="h-5 w-5" />
+            </Button>
           </div>
-        </ScrollArea>
-      </Tabs>
-    </div>
+
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+            <TabsList className="grid w-full grid-cols-3 rounded-none border-b h-14 bg-muted/20">
+              <TabsTrigger value="analyze" className="gap-2 text-xs h-full data-[state=active]:bg-background">
+                <Microscope className="h-4 w-4" />
+                <span className="font-semibold">Exégesis</span>
+              </TabsTrigger>
+              <TabsTrigger value="ask" className="gap-2 text-xs h-full data-[state=active]:bg-background">
+                <GraduationCap className="h-4 w-4" />
+                <span className="font-semibold">Sermones</span>
+              </TabsTrigger>
+              <TabsTrigger value="plan" className="gap-2 text-xs h-full data-[state=active]:bg-background">
+                <Calendar className="h-4 w-4" />
+                <span className="font-semibold">Planes</span>
+              </TabsTrigger>
+            </TabsList>
+
+            <ScrollArea className="flex-1">
+              <div className="p-4 space-y-4">
+                <TabsContent value="analyze" className="mt-0 space-y-6">
+                  <div className="bg-indigo-50 dark:bg-indigo-950/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/50">
+                    <p className="text-sm font-serif italic text-indigo-900 dark:text-indigo-200">
+                      "Escudriñad las Escrituras; porque a vosotros os parece que en ellas tenéis la vida eterna..." - Juan 5:39
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Profundidad</label>
+                    <div className="flex gap-2 bg-muted p-1 rounded-lg">
+                      {(['basic', 'pastoral', 'academic'] as const).map((d) => (
+                        <button
+                          key={d}
+                          onClick={() => setDepth(d)}
+                          className={`flex-1 py-1.5 text-[10px] font-bold uppercase rounded-md transition-all ${depth === d ? 'bg-background shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                        >
+                          {d === 'basic' ? 'Básico' : d === 'pastoral' ? 'Pastoral' : 'Académico'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Button onClick={handleAnalyze} disabled={loading || !book} className="w-full h-12 bg-gradient-to-r from-indigo-600 to-purple-600">
+                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Microscope className="h-5 w-5 mr-2" />}
+                    {loading ? 'Analizando...' : 'Realizar Exégesis'}
+                  </Button>
+                </TabsContent>
+
+                <TabsContent value="ask" className="mt-0 space-y-4">
+                  <div className="flex gap-2">
+                    <Input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="¿Qué significa este pasaje?" />
+                    <Button onClick={handleAskQuestion} disabled={loading || !question.trim()} size="icon">
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="plan" className="mt-0 space-y-4">
+                  <Input value={studyTopic} onChange={(e) => setStudyTopic(e.target.value)} placeholder="Ej: La fe, El perdón..." />
+                  <Button onClick={handleGeneratePlan} disabled={loading || !studyTopic.trim()} className="w-full">
+                    Generar Plan de 7 Días
+                  </Button>
+                </TabsContent>
+
+                {response && (
+                  <div className="mt-6 p-4 bg-card rounded-2xl border border-border shadow-inner bg-gradient-to-b from-transparent to-muted/5">
+                    <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border/50">
+                      <Sparkles className="h-4 w-4 text-indigo-600" />
+                      <span className="text-xs font-black uppercase tracking-wider text-indigo-600">Resultados del Análisis</span>
+                    </div>
+                    <FormattedAIResponse content={response.content} />
+                  </div>
+                )}
+
+                {isFreeTier && <PremiumBanner />}
+                <AdPlaceholder type="banner" />
+              </div>
+            </ScrollArea>
+          </Tabs>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

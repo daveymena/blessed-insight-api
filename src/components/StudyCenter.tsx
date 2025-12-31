@@ -1,7 +1,7 @@
 // Centro de Estudio Bíblico Profesional
 import { useState, useEffect, useRef } from 'react';
-import { 
-  X, BookOpen, GraduationCap, Calendar, Heart, MessageSquare, 
+import {
+  X, BookOpen, GraduationCap, Calendar, Heart, MessageSquare,
   Sparkles, Loader2, ChevronRight, Users, User, BookMarked,
   PenLine, Clock, Flame, Target, FileText, Zap, Copy, Check
 } from 'lucide-react';
@@ -13,9 +13,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  performExegesis, 
-  thematicStudy, 
+import {
+  performExegesis,
+  thematicStudy,
   generateReflectionQuestions,
   generateCustomReadingPlan,
   generateDailyDevotional,
@@ -52,124 +52,161 @@ function setCachedResponse(key: string, content: string): void {
 }
 
 // Componente para renderizar la respuesta de IA con formato bonito
-function FormattedAIResponse({ content }: { content: string }) {
-  // Función para procesar el texto y convertirlo en elementos formateados
-  const formatContent = (text: string) => {
-    const lines = text.split('\n');
-    const elements: JSX.Element[] = [];
-    let currentIndex = 0;
+// Componente mejorado para estados de carga educativos
+function StudyLoadingState({ time }: { time: number }) {
+  const [tipIndex, setTipIndex] = useState(0);
+  const tips = [
+    "La exégesis busca extraer el significado original del texto...",
+    "El contexto histórico es clave para una correcta interpretación...",
+    "Analizando palabras clave en los idiomas originales...",
+    "Conectando con otros pasajes bíblicos relacionados...",
+    "Preparando aplicaciones prácticas para tu vida...",
+    "Consultando comentarios eruditos y teológicos..."
+  ];
 
-    lines.forEach((line, index) => {
-      const trimmedLine = line.trim();
-      
-      // Detectar encabezados con emojis (📜 1. TÍTULO)
-      const headerMatch = trimmedLine.match(/^([\p{Emoji}]+)\s*(\d+\.?\s*)?(.+)$/u);
-      const isMainHeader = headerMatch && (
-        trimmedLine.includes('CONTEXTO') ||
-        trimmedLine.includes('ANÁLISIS') ||
-        trimmedLine.includes('INTERPRETACIÓN') ||
-        trimmedLine.includes('APLICACIÓN') ||
-        trimmedLine.includes('CONEXIONES') ||
-        trimmedLine.includes('SIGNIFICADO') ||
-        trimmedLine.includes('DEFINICIÓN') ||
-        trimmedLine.includes('DESARROLLO') ||
-        trimmedLine.includes('PERSPECTIVAS') ||
-        trimmedLine.includes('ERRORES') ||
-        trimmedLine.includes('PREGUNTAS') ||
-        trimmedLine.includes('LECTURA') ||
-        trimmedLine.includes('REFLEXIÓN') ||
-        trimmedLine.includes('VERDAD') ||
-        trimmedLine.includes('DESAFÍO') ||
-        trimmedLine.includes('ORACIÓN') ||
-        trimmedLine.includes('VERSÍCULO') ||
-        trimmedLine.includes('OBSERVACIÓN') ||
-        trimmedLine.includes('INTRODUCCIÓN')
-      );
-
-      if (isMainHeader && headerMatch) {
-        elements.push(
-          <div key={currentIndex++} className="mt-6 mb-3 first:mt-0">
-            <div className="flex items-center gap-2 bg-gradient-to-r from-primary/10 to-transparent p-3 rounded-lg border-l-4 border-primary">
-              <span className="text-2xl">{headerMatch[1]}</span>
-              <h3 className="text-lg font-bold text-primary">
-                {headerMatch[2] || ''}{headerMatch[3]}
-              </h3>
-            </div>
-          </div>
-        );
-      }
-      // Detectar sub-encabezados (con emoji al inicio pero no mayúsculas completas)
-      else if (headerMatch && !isMainHeader) {
-        elements.push(
-          <div key={currentIndex++} className="mt-4 mb-2">
-            <h4 className="text-base font-semibold text-foreground flex items-center gap-2">
-              <span className="text-xl">{headerMatch[1]}</span>
-              {headerMatch[2] || ''}{headerMatch[3]}
-            </h4>
-          </div>
-        );
-      }
-      // Detectar listas con guiones o asteriscos
-      else if (trimmedLine.startsWith('-') || trimmedLine.startsWith('•') || trimmedLine.startsWith('*')) {
-        const listContent = trimmedLine.replace(/^[-•*]\s*/, '');
-        elements.push(
-          <div key={currentIndex++} className="flex gap-2 my-1.5 ml-2">
-            <span className="text-primary mt-1">•</span>
-            <span className="text-foreground/90 leading-relaxed">{listContent}</span>
-          </div>
-        );
-      }
-      // Detectar listas numeradas
-      else if (/^\d+[\.\)]\s/.test(trimmedLine)) {
-        const match = trimmedLine.match(/^(\d+)[\.\)]\s*(.+)$/);
-        if (match) {
-          elements.push(
-            <div key={currentIndex++} className="flex gap-3 my-2 ml-2">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 text-primary text-sm font-bold flex items-center justify-center">
-                {match[1]}
-              </span>
-              <span className="text-foreground/90 leading-relaxed flex-1">{match[2]}</span>
-            </div>
-          );
-        }
-      }
-      // Detectar citas bíblicas (texto entre comillas con referencia)
-      else if (trimmedLine.startsWith('"') || trimmedLine.startsWith('«')) {
-        elements.push(
-          <blockquote key={currentIndex++} className="my-3 pl-4 border-l-4 border-amber-500/50 bg-amber-50/50 dark:bg-amber-900/10 p-3 rounded-r-lg italic text-foreground/80">
-            {trimmedLine}
-          </blockquote>
-        );
-      }
-      // Detectar líneas vacías (espaciado)
-      else if (trimmedLine === '') {
-        elements.push(<div key={currentIndex++} className="h-2" />);
-      }
-      // Texto normal
-      else {
-        // Resaltar palabras en hebreo/griego (entre paréntesis con caracteres especiales)
-        const formattedLine = trimmedLine
-          .replace(/\(([^)]*(?:hebreo|griego|hebrea|griega)[^)]*)\)/gi, 
-            '<span class="bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 text-sm font-medium">($1)</span>')
-          .replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
-          .replace(/\*([^*]+)\*/g, '<em>$1</em>');
-        
-        elements.push(
-          <p 
-            key={currentIndex++} 
-            className="my-2 text-foreground/90 leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: formattedLine }}
-          />
-        );
-      }
-    });
-
-    return elements;
-  };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTipIndex(i => (i + 1) % tips.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="space-y-1">
-      {formatContent(content)}
+    <div className="flex flex-col items-center justify-center p-12 text-center space-y-6 animate-fade-in">
+      <div className="relative">
+        <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+        <div className="relative bg-background p-4 rounded-full border-2 border-primary/20 shadow-lg">
+          <Loader2 className="h-12 w-12 text-primary animate-spin" />
+        </div>
+      </div>
+
+      <div className="space-y-2 max-w-md">
+        <h3 className="text-xl font-serif font-bold text-foreground">
+          Profundizando en las Escrituras
+        </h3>
+        <p className="text-sm text-muted-foreground animate-fade-in key={tipIndex}">
+          {tips[tipIndex]}
+        </p>
+      </div>
+
+      <div className="w-full max-w-xs space-y-1">
+        <Progress value={Math.min((time / 15000) * 100, 95)} className="h-2" />
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>Analizando...</span>
+          <span>{(time / 1000).toFixed(1)}s</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Componente para renderizar la respuesta de IA con formato profesional y espaciado
+function FormattedAIResponse({ content }: { content: string }) {
+  if (!content) return null;
+
+  // Dividir el contenido en secciones lógicas basadas en encabezados
+  const sections = content.split(/\n(?=[^\n]*[\p{Emoji}]+\s*[A-ZÁÉÍÓÚÑ]+)/u).filter(Boolean);
+
+  // Si no se detectan secciones claras, intentar formatear línea por línea pero mejorado
+  if (sections.length <= 1) {
+    return (
+      <div className="space-y-4 text-lg leading-relaxed text-foreground/90 font-serif">
+        {content.split('\n').map((line, i) => {
+          if (!line.trim()) return <div key={i} className="h-4" />;
+          return <p key={i} className="mb-2">{line}</p>;
+        })}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8 animate-slide-up">
+      {sections.map((section, idx) => {
+        const lines = section.split('\n');
+        const headerLine = lines[0];
+        const bodyLines = lines.slice(1);
+
+        // Extraer emoji y título
+        const headerMatch = headerLine.match(/^([\p{Emoji}]+)\s*(.+)$/u);
+        const icon = headerMatch ? headerMatch[1] : '📄';
+        const title = headerMatch ? headerMatch[2] : headerLine;
+
+        return (
+          <Card key={idx} className="overflow-hidden border-l-4 border-l-primary shadow-md hover:shadow-lg transition-shadow duration-300">
+            <div className="bg-gradient-to-r from-primary/5 to-transparent p-4 border-b border-primary/10">
+              <h3 className="text-xl font-bold text-primary flex items-center gap-3 font-serif">
+                <span className="text-3xl filter drop-shadow-sm">{icon}</span>
+                {title.replace(/\*\*/g, '')}
+              </h3>
+            </div>
+
+            <CardContent className="p-6 space-y-4 bg-card/50">
+              {bodyLines.map((line, i) => {
+                const trimmed = line.trim();
+                if (!trimmed) return null;
+
+                // Subtítulos
+                if (trimmed.startsWith('###') || (trimmed.match(/^[\p{Emoji}]+ /u) && trimmed.length < 50)) {
+                  return (
+                    <h4 key={i} className="text-lg font-semibold text-foreground/90 mt-4 mb-2 flex items-center gap-2">
+                      {trimmed.replace(/^[#\s]+/, '').replace(/\*\*/g, '')}
+                    </h4>
+                  );
+                }
+
+                // Listas con bullets
+                if (trimmed.startsWith('-') || trimmed.startsWith('•')) {
+                  return (
+                    <div key={i} className="flex gap-4 items-start ml-2 group">
+                      <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-primary/60 group-hover:bg-primary transition-colors shrink-0" />
+                      <p className="text-base leading-relaxed text-foreground/80 flex-1">
+                        {trimmed.replace(/^[-•]\s*/, '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
+                      </p>
+                    </div>
+                  );
+                }
+
+                // Listas numeradas
+                const numMatch = trimmed.match(/^(\d+)[\.\)]\s*(.+)$/);
+                if (numMatch) {
+                  return (
+                    <div key={i} className="flex gap-4 items-start ml-2 mb-3">
+                      <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-primary/10 text-primary font-bold flex items-center justify-center text-sm border border-primary/20">
+                        {numMatch[1]}
+                      </span>
+                      <p className="text-base leading-relaxed text-foreground/80 flex-1 pt-0.5"
+                        dangerouslySetInnerHTML={{
+                          __html: numMatch[2].replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground font-semibold">$1</strong>')
+                        }}
+                      />
+                    </div>
+                  );
+                }
+
+                // Citas bíblicas
+                if (trimmed.startsWith('"') || trimmed.startsWith('«')) {
+                  return (
+                    <blockquote key={i} className="my-6 pl-6 border-l-4 border-amber-500/50 bg-gradient-to-r from-amber-50 to-transparent dark:from-amber-950/30 p-4 rounded-r-xl italic text-lg text-foreground/80 font-serif shadow-sm">
+                      {trimmed.replace(/"/g, '')}
+                    </blockquote>
+                  );
+                }
+
+                // Párrafos normales con resaltado de negritas
+                return (
+                  <p key={i} className="text-base leading-8 text-foreground/80 font-normal tracking-wide text-balance mb-3"
+                    dangerouslySetInnerHTML={{
+                      __html: trimmed
+                        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary/90 font-bold">$1</strong>')
+                        .replace(/\(([^)]*(?:hebreo|griego)[^)]*)\)/gi, '<span class="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-md text-sm font-medium mx-1">$1</span>')
+                    }}
+                  />
+                );
+              })}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }
@@ -238,7 +275,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
     if (!book) return;
     const cacheKey = `exegesis_${book.id}_${chapter}`;
     const cached = getCachedResponse(cacheKey);
-    
+
     if (cached) {
       setResponse(cached);
       setFromCache(true);
@@ -250,9 +287,9 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
     setResponse(null);
     setFromCache(false);
     const startTime = Date.now();
-    
+
     const result = await performExegesis(passageText, book.name, chapter);
-    
+
     setResponseTime(Date.now() - startTime);
     setResponse(result.content);
     setCachedResponse(cacheKey, result.content);
@@ -263,7 +300,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
     if (!topic.trim()) return;
     const cacheKey = `thematic_${topic.toLowerCase()}`;
     const cached = getCachedResponse(cacheKey);
-    
+
     if (cached) {
       setResponse(cached);
       setFromCache(true);
@@ -275,9 +312,9 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
     setResponse(null);
     setFromCache(false);
     const startTime = Date.now();
-    
+
     const result = await thematicStudy(topic);
-    
+
     setResponseTime(Date.now() - startTime);
     setResponse(result.content);
     setCachedResponse(cacheKey, result.content);
@@ -288,7 +325,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
     if (!book) return;
     const cacheKey = `questions_${book.id}_${chapter}`;
     const cached = getCachedResponse(cacheKey);
-    
+
     if (cached) {
       setResponse(cached);
       setFromCache(true);
@@ -300,9 +337,9 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
     setResponse(null);
     setFromCache(false);
     const startTime = Date.now();
-    
+
     const result = await generateReflectionQuestions(passageText, book.name, chapter);
-    
+
     setResponseTime(Date.now() - startTime);
     setResponse(result.content);
     setCachedResponse(cacheKey, result.content);
@@ -313,7 +350,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
     if (!book) return;
     const cacheKey = `devotional_${book.id}_${chapter}`;
     const cached = getCachedResponse(cacheKey);
-    
+
     if (cached) {
       setResponse(cached);
       setFromCache(true);
@@ -325,9 +362,9 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
     setResponse(null);
     setFromCache(false);
     const startTime = Date.now();
-    
+
     const result = await generateDailyDevotional(passageText, book.name, chapter);
-    
+
     setResponseTime(Date.now() - startTime);
     setResponse(result.content);
     setCachedResponse(cacheKey, result.content);
@@ -338,7 +375,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
     if (!topic.trim()) return;
     const cacheKey = `plan_${topic.toLowerCase()}_${planDuration}_${planAudience}`;
     const cached = getCachedResponse(cacheKey);
-    
+
     if (cached) {
       setResponse(cached);
       setFromCache(true);
@@ -350,9 +387,9 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
     setResponse(null);
     setFromCache(false);
     const startTime = Date.now();
-    
+
     const result = await generateCustomReadingPlan(topic, planDuration, planAudience);
-    
+
     setResponseTime(Date.now() - startTime);
     setResponse(result.content);
     setCachedResponse(cacheKey, result.content);
@@ -425,16 +462,24 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
 
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-4 flex items-center justify-between shadow-lg">
-        <div className="flex items-center gap-3 text-white">
-          <GraduationCap className="h-6 w-6" />
+      {/* Header Mejorado */}
+      <header className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 p-5 flex items-center justify-between shadow-xl z-10 relative overflow-hidden">
+        <div className="absolute inset-0 bg-pattern-dots opacity-10 pointer-events-none" />
+        <div className="flex items-center gap-4 text-primary-foreground relative z-10">
+          <div className="bg-white/10 p-2.5 rounded-xl backdrop-blur-sm border border-white/20 shadow-inner">
+            <GraduationCap className="h-7 w-7" />
+          </div>
           <div>
-            <h1 className="text-xl font-bold">Centro de Estudio</h1>
-            <p className="text-xs text-white/80">Biblia de Estudio Profesional</p>
+            <h1 className="text-2xl font-bold font-serif tracking-wide">Centro de Estudio Profundo</h1>
+            <p className="text-xs text-primary-foreground/80 font-medium uppercase tracking-wider">Investigación Teológica y Exegética</p>
           </div>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="text-primary-foreground hover:bg-white/20 rounded-full h-10 w-10 transition-transform hover:scale-105 active:scale-95"
+        >
           <X className="h-6 w-6" />
         </Button>
       </header>
@@ -457,13 +502,10 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
         )}
       </div>
 
-      {/* Loading indicator */}
+      {/* Loading indicator Educativo */}
       {loading && (
-        <div className="bg-primary/10 px-4 py-2 flex items-center gap-3">
-          <Loader2 className="h-4 w-4 animate-spin text-primary" />
-          <span className="text-sm">Generando respuesta...</span>
-          <span className="text-xs text-muted-foreground">{(loadingTime / 1000).toFixed(1)}s</span>
-          <Progress value={Math.min((loadingTime / 10000) * 100, 95)} className="flex-1 h-2" />
+        <div className="absolute inset-0 z-40 bg-background/95 backdrop-blur-sm flex items-center justify-center">
+          <StudyLoadingState time={loadingTime} />
         </div>
       )}
 
@@ -479,8 +521,8 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
               { id: 'notes', icon: PenLine, label: 'Notas' },
               { id: 'questions', icon: MessageSquare, label: 'Reflexión' },
             ].map(tab => (
-              <TabsTrigger 
-                key={tab.id} 
+              <TabsTrigger
+                key={tab.id}
                 value={tab.id}
                 className="flex flex-col gap-1 py-3 rounded-none data-[state=active]:bg-primary/10"
               >
@@ -515,8 +557,8 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
                         </p>
                       )}
                     </div>
-                    <Button 
-                      onClick={handleExegesis} 
+                    <Button
+                      onClick={handleExegesis}
                       disabled={loading || !book}
                       className="w-full bg-indigo-600 hover:bg-indigo-700"
                     >
@@ -548,9 +590,9 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
                     />
                     <div className="flex flex-wrap gap-2">
                       {['La fe', 'El perdón', 'La oración', 'El Espíritu Santo', 'La salvación', 'El amor'].map(t => (
-                        <Badge 
-                          key={t} 
-                          variant="secondary" 
+                        <Badge
+                          key={t}
+                          variant="secondary"
                           className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
                           onClick={() => setTopic(t)}
                         >
@@ -558,8 +600,8 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
                         </Badge>
                       ))}
                     </div>
-                    <Button 
-                      onClick={handleThematicStudy} 
+                    <Button
+                      onClick={handleThematicStudy}
                       disabled={loading || !topic.trim()}
                       className="w-full bg-emerald-600 hover:bg-emerald-700"
                     >
@@ -600,8 +642,8 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button 
-                      onClick={handleDevotional} 
+                    <Button
+                      onClick={handleDevotional}
                       disabled={loading || !book}
                       className="w-full bg-rose-600 hover:bg-rose-700"
                     >
@@ -633,11 +675,11 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <Progress 
-                        value={(activePlan.completedDays.length / currentPlanData.readings.length) * 100} 
+                      <Progress
+                        value={(activePlan.completedDays.length / currentPlanData.readings.length) * 100}
                         className="h-3"
                       />
-                      
+
                       {/* Lectura del día actual */}
                       {currentPlanData.readings[activePlan.currentDay - 1] && (
                         <div className="bg-background p-4 rounded-lg border">
@@ -660,7 +702,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
                               💭 {currentPlanData.readings[activePlan.currentDay - 1].reflection}
                             </p>
                           )}
-                          <Button 
+                          <Button
                             onClick={() => handleCompleteDayReading(activePlan.currentDay)}
                             disabled={activePlan.completedDays.includes(activePlan.currentDay)}
                             className="w-full mt-4 bg-green-600 hover:bg-green-700"
@@ -726,9 +768,9 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
                           <div className="text-xs text-muted-foreground mb-3">
                             {plan.readings.length} lecturas programadas
                           </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="w-full"
                             onClick={() => handleStartPlan(plan.id)}
                           >
@@ -798,8 +840,8 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
                         Grupo
                       </Button>
                     </div>
-                    <Button 
-                      onClick={handleGeneratePlan} 
+                    <Button
+                      onClick={handleGeneratePlan}
                       disabled={loading || !topic.trim()}
                       className="w-full bg-blue-600 hover:bg-blue-700"
                     >
@@ -826,7 +868,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
                       placeholder="Escribe tus reflexiones, observaciones o preguntas..."
                       rows={4}
                     />
-                    <Button 
+                    <Button
                       onClick={handleSaveNote}
                       disabled={!noteContent.trim() || !book}
                       className="w-full bg-amber-600 hover:bg-amber-700"
@@ -871,8 +913,8 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
                         📖 {book?.name || 'Selecciona un pasaje'} {chapter}
                       </p>
                     </div>
-                    <Button 
-                      onClick={handleReflectionQuestions} 
+                    <Button
+                      onClick={handleReflectionQuestions}
                       disabled={loading || !book}
                       className="w-full bg-violet-600 hover:bg-violet-700"
                     >
@@ -915,6 +957,64 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
                   </CardHeader>
                   <CardContent className="pt-4">
                     <FormattedAIResponse content={response} />
+
+                    {/* Opciones de Profundización (Sacar de dudas) */}
+                    <div className="mt-8 pt-6 border-t border-border grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in delay-500">
+                      <div className="col-span-full mb-2">
+                        <h4 className="text-lg font-semibold flex items-center gap-2">
+                          <MessageSquare className="h-5 w-5 text-primary" />
+                          ¿Quieres profundizar más?
+                        </h4>
+                        <p className="text-sm text-muted-foreground">Selecciona una opción para continuar el estudio</p>
+                      </div>
+
+                      <Button variant="outline" className="h-auto py-4 justify-start text-left group hover:border-primary hover:bg-primary/5" onClick={handleReflectionQuestions}>
+                        <div className="bg-primary/10 p-2 rounded-lg mr-3 group-hover:bg-primary/20 transition-colors">
+                          <Target className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <div className="font-semibold">Aplicación Práctica</div>
+                          <div className="text-xs text-muted-foreground">¿Cómo aplico esto hoy?</div>
+                        </div>
+                      </Button>
+
+                      <Button variant="outline" className="h-auto py-4 justify-start text-left group hover:border-primary hover:bg-primary/5" onClick={() => {
+                        setTopic(`Teología de ${book?.name} ${chapter}`);
+                        setActiveTab('thematic');
+                      }}>
+                        <div className="bg-primary/10 p-2 rounded-lg mr-3 group-hover:bg-primary/20 transition-colors">
+                          <BookOpen className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <div className="font-semibold">Teología Profunda</div>
+                          <div className="text-xs text-muted-foreground">Analizar conceptos clave</div>
+                        </div>
+                      </Button>
+
+                      <Button variant="outline" className="h-auto py-4 justify-start text-left group hover:border-primary hover:bg-primary/5" onClick={handleDevotional}>
+                        <div className="bg-primary/10 p-2 rounded-lg mr-3 group-hover:bg-primary/20 transition-colors">
+                          <Heart className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <div className="font-semibold">Devocional</div>
+                          <div className="text-xs text-muted-foreground">Meditación espiritual</div>
+                        </div>
+                      </Button>
+
+                      <Button variant="outline" className="h-auto py-4 justify-start text-left group hover:border-primary hover:bg-primary/5" onClick={() => {
+                        // Simular "sacar de duda" haciendo una pregunta específica
+                        setTopic("Dudas comunes sobre este pasaje");
+                        handleThematicStudy();
+                      }}>
+                        <div className="bg-primary/10 p-2 rounded-lg mr-3 group-hover:bg-primary/20 transition-colors">
+                          <Sparkles className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <div className="font-semibold">Resolver Dudas</div>
+                          <div className="text-xs text-muted-foreground">Aclarar puntos difíciles</div>
+                        </div>
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               )}

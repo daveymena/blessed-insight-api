@@ -8,6 +8,7 @@ export interface ThemeSettings {
     font: string;
     darkMode: boolean;
     spanishEquivalent: boolean;
+    textColor: string;
 }
 
 const DEFAULT_SETTINGS: ThemeSettings = {
@@ -17,7 +18,8 @@ const DEFAULT_SETTINGS: ThemeSettings = {
     lineHeight: 2,
     font: "serif",
     darkMode: false,
-    spanishEquivalent: false
+    spanishEquivalent: false,
+    textColor: "auto"
 };
 
 export function useThemeSettings() {

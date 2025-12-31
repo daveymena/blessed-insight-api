@@ -31,10 +31,11 @@ export async function performExegesis(
   verses?: string
 ): Promise<AIResponse> {
   const reference = verses ? `${bookName} ${chapter}:${verses}` : `${bookName} ${chapter}`;
-  
+
   const messages = [
     { role: 'system' as const, content: BIBLE_SCHOLAR },
-    { role: 'user' as const, content: `Análisis exegético de ${reference}:
+    {
+      role: 'user' as const, content: `Análisis exegético de ${reference}:
 
 "${passage.substring(0, 1200)}"
 
@@ -83,7 +84,8 @@ IMPORTANTE: Completa TODAS las secciones. Basa todo en la Escritura.` }
 export async function thematicStudy(topic: string): Promise<AIResponse> {
   const messages = [
     { role: 'system' as const, content: BIBLE_SCHOLAR },
-    { role: 'user' as const, content: `Estudio bíblico sobre: "${topic}"
+    {
+      role: 'user' as const, content: `Estudio bíblico sobre: "${topic}"
 
 ESTRUCTURA (completa TODAS las secciones):
 
@@ -123,10 +125,11 @@ export async function comparePassages(
   passages: Array<{ reference: string; text: string }>
 ): Promise<AIResponse> {
   const passagesList = passages.map(p => `${p.reference}: "${p.text}"`).join('\n');
-  
+
   const messages = [
     { role: 'system' as const, content: BIBLE_SCHOLAR },
-    { role: 'user' as const, content: `Compara estos pasajes bíblicos de forma profunda:
+    {
+      role: 'user' as const, content: `Compara estos pasajes bíblicos de forma profunda:
 ${passagesList}
 
 Analiza:
@@ -149,7 +152,8 @@ export async function generateReflectionQuestions(
 ): Promise<AIResponse> {
   const messages = [
     { role: 'system' as const, content: BIBLE_EXPERT_SIMPLE },
-    { role: 'user' as const, content: `Genera preguntas de reflexión PROFUNDAS para ${bookName} ${chapter}:
+    {
+      role: 'user' as const, content: `Genera preguntas de reflexión PROFUNDAS para ${bookName} ${chapter}:
 "${passage.substring(0, 1000)}"
 
 Crea 10 preguntas organizadas así:
@@ -319,12 +323,13 @@ export async function generateCustomReadingPlan(
   duration: number,
   audience: 'individual' | 'family' | 'group'
 ): Promise<AIResponse> {
-  const audienceNote = audience === 'family' ? ' (incluir actividades para niños)' : 
-                       audience === 'group' ? ' (incluir preguntas de discusión)' : '';
+  const audienceNote = audience === 'family' ? ' (incluir actividades para niños)' :
+    audience === 'group' ? ' (incluir preguntas de discusión)' : '';
 
   const messages = [
     { role: 'system' as const, content: `Eres un pastor que crea planes de lectura bíblica. Responde en español.` },
-    { role: 'user' as const, content: `Plan de ${duration} días sobre "${topic}"${audienceNote}.
+    {
+      role: 'user' as const, content: `Plan de ${duration} días sobre "${topic}"${audienceNote}.
 
 Para cada día:
 - Lectura: Libro Cap:Vers
@@ -345,13 +350,15 @@ export async function generateDailyDevotional(
   verse?: number
 ): Promise<AIResponse> {
   const reference = verse ? `${bookName} ${chapter}:${verse}` : `${bookName} ${chapter}`;
-  
+
   const messages = [
-    { role: 'system' as const, content: `Eres un escritor devocional cristiano con profundidad teológica. 
+    {
+      role: 'system' as const, content: `Eres un escritor devocional cristiano con profundidad teológica. 
 Escribes de forma cálida, personal y espiritualmente nutritiva. 
 Combinas solidez bíblica con aplicación práctica que toca el corazón.
 Responde en español.` },
-    { role: 'user' as const, content: `Escribe un devocional COMPLETO y PROFUNDO basado en ${reference}:
+    {
+      role: 'user' as const, content: `Escribe un devocional COMPLETO y PROFUNDO basado en ${reference}:
 "${passage.substring(0, 800)}"
 
 ESTRUCTURA:
@@ -489,7 +496,7 @@ export function getReadingStats(): { totalChapters: number; streak: number; last
   let streak = 0;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   const readDates = [...new Set(history.map(h => {
     const d = new Date(h.readAt);
     d.setHours(0, 0, 0, 0);
@@ -540,13 +547,13 @@ export function getActivePlan(): ActivePlan | null {
 export function updatePlanProgress(day: number, completed: boolean): ActivePlan | null {
   const plan = getActivePlan();
   if (!plan) return null;
-  
+
   if (completed && !plan.completedDays.includes(day)) {
     plan.completedDays.push(day);
   } else if (!completed) {
     plan.completedDays = plan.completedDays.filter(d => d !== day);
   }
-  
+
   // Avanzar al siguiente día si completó el actual
   if (completed && day === plan.currentDay) {
     const planData = READING_PLANS.find(p => p.id === plan.planId);
@@ -554,7 +561,7 @@ export function updatePlanProgress(day: number, completed: boolean): ActivePlan 
       plan.currentDay = day + 1;
     }
   }
-  
+
   localStorage.setItem('bible_active_plan', JSON.stringify(plan));
   return plan;
 }
@@ -565,4 +572,109 @@ export function cancelPlan(): void {
 
 export function getPlanById(planId: string): ReadingPlan | undefined {
   return READING_PLANS.find(p => p.id === planId);
+}
+
+// ============ FEED DINÁMICO POR IA ============
+export interface DailyInsight {
+  id: string;
+  type: 'promise' | 'fact' | 'character' | 'tip';
+  title: string;
+  content: string;
+  reference?: string;
+  generatedAt: number;
+}
+
+const INSIGHTS_CACHE_KEY = 'bible_daily_insights_v2';
+const VERSES_CACHE_KEY = 'bible_daily_verses_v2';
+
+export async function generateDynamicVerse(): Promise<any | null> {
+  const messages = [
+    { role: 'system' as const, content: BIBLE_EXPERT_SIMPLE },
+    {
+      role: 'user' as const, content: `Genera un "Versículo del Día" inspirador.
+    Responde ÚNICAMENTE en JSON:
+    {
+      "book": "Nombre del Libro",
+      "chapter": 1,
+      "verse": 1,
+      "text": "El texto del versículo"
+    }` }
+  ];
+
+  try {
+    const response = await callAIFast(messages);
+    if (response.success) {
+      const jsonStr = response.content.replace(/```json|```/g, '').trim();
+      const raw = JSON.parse(jsonStr);
+      const newVerse = { ...raw, id: `verse_${Date.now()}` };
+
+      const cache = getStoredVerses();
+      cache.unshift(newVerse);
+      localStorage.setItem(VERSES_CACHE_KEY, JSON.stringify(cache.slice(0, 50)));
+      return newVerse;
+    }
+  } catch (e) { }
+  return null;
+}
+
+export function getStoredVerses(): any[] {
+  try {
+    const saved = localStorage.getItem(VERSES_CACHE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch { return []; }
+}
+
+export async function generateDynamicInsight(): Promise<DailyInsight | null> {
+  const types = ['promesa bíblica', 'curiosidad histórica de la Biblia', 'personaje bíblico poco común', 'tip de estudio teológico', 'lección de vida bíblica'];
+  const type = types[Math.floor(Math.random() * types.length)];
+  const internalLabel: DailyInsight['type'] = type.includes('promesa') ? 'promise' : type.includes('curiosidad') ? 'fact' : type.includes('personaje') ? 'character' : 'tip';
+
+  const messages = [
+    { role: 'system' as const, content: BIBLE_EXPERT_SIMPLE },
+    {
+      role: 'user' as const, content: `Genera una tarjeta de información bíblica de tipo: ${type}.
+    Responde ÚNICAMENTE en JSON:
+    {
+      "title": "Título llamativo",
+      "content": "Contenido profundo (80-120 palabras)",
+      "reference": "Referencia si aplica"
+    }` }
+  ];
+
+  try {
+    const response = await callAIFast(messages);
+    if (response.success) {
+      // Limpiar markdown si existe
+      const jsonStr = response.content.replace(/```json|```/g, '').trim();
+      const raw = JSON.parse(jsonStr);
+
+      const insight: DailyInsight = {
+        id: `insight_${Date.now()}`,
+        type: internalLabel,
+        title: raw.title,
+        content: raw.content,
+        reference: raw.reference,
+        generatedAt: Date.now()
+      };
+
+      // Guardar en cache
+      const cache = getStoredInsights();
+      cache.unshift(insight);
+      localStorage.setItem(INSIGHTS_CACHE_KEY, JSON.stringify(cache.slice(0, 50)));
+
+      return insight;
+    }
+  } catch (e) {
+    console.error('Error generating insight:', e);
+  }
+  return null;
+}
+
+export function getStoredInsights(): DailyInsight[] {
+  try {
+    const saved = localStorage.getItem(INSIGHTS_CACHE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
 }

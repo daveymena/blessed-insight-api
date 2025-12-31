@@ -1,65 +1,70 @@
-import { BookOpen, Search, Heart, Sparkles, GraduationCap } from 'lucide-react';
+import { BookOpen, Search, Heart, Sparkles, GraduationCap, Sun } from 'lucide-react';
 
 interface MobileBottomNavProps {
+  onHomeClick: () => void;
   onMenuClick: () => void;
   onSearchClick: () => void;
   onFavoritesClick: () => void;
   onAIClick: () => void;
   onStudyClick: () => void;
+  activeTab: 'home' | 'bible' | 'plans' | 'search' | 'favorites';
 }
 
 export function MobileBottomNav({
+  onHomeClick,
   onMenuClick,
   onSearchClick,
   onFavoritesClick,
   onAIClick,
   onStudyClick,
+  activeTab,
 }: MobileBottomNavProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border md:hidden safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border md:hidden safe-area-bottom shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
       <div className="flex items-center justify-around h-16 px-2">
-        {/* Libros */}
+        {/* Inicio */}
+        <button
+          onClick={onHomeClick}
+          className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg transition-all min-w-[60px] ${activeTab === 'home' ? 'text-primary' : 'text-muted-foreground'}`}
+        >
+          <Sun className={`h-5 w-5 ${activeTab === 'home' ? 'fill-current' : ''}`} />
+          <span className="text-[10px] font-bold uppercase tracking-tighter">Inicio</span>
+        </button>
+
+        {/* Biblia */}
         <button
           onClick={onMenuClick}
-          className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors min-w-[60px]"
+          className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg transition-all min-w-[60px] ${activeTab === 'bible' ? 'text-primary' : 'text-muted-foreground'}`}
         >
-          <BookOpen className="h-5 w-5 text-primary" />
-          <span className="text-[10px] text-muted-foreground">Libros</span>
+          <BookOpen className={`h-5 w-5 ${activeTab === 'bible' ? 'fill-current' : ''}`} />
+          <span className="text-[10px] font-bold uppercase tracking-tighter">Biblia</span>
+        </button>
+
+        {/* Planes / Centro de Estudio */}
+        <button
+          onClick={onStudyClick}
+          className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg transition-all min-w-[60px] ${activeTab === 'plans' ? 'text-primary' : 'text-muted-foreground'}`}
+        >
+          <GraduationCap className={`h-5 w-5 ${activeTab === 'plans' ? 'fill-current' : ''}`} />
+          <span className="text-[10px] font-bold uppercase tracking-tighter">Planes</span>
         </button>
 
         {/* Buscar */}
         <button
           onClick={onSearchClick}
-          className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors min-w-[60px]"
+          className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg transition-all min-w-[60px] ${activeTab === 'search' ? 'text-primary' : 'text-muted-foreground'}`}
         >
-          <Search className="h-5 w-5 text-muted-foreground" />
-          <span className="text-[10px] text-muted-foreground">Buscar</span>
+          <Search className="h-5 w-5" />
+          <span className="text-[10px] font-bold uppercase tracking-tighter">Buscar</span>
         </button>
 
-        {/* Centro de Estudio - Botón principal */}
-        <button
-          onClick={onStudyClick}
-          className="flex flex-col items-center justify-center gap-1 p-3 -mt-4 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg hover:shadow-xl active:scale-95 transition-all min-w-[64px]"
-        >
-          <GraduationCap className="h-6 w-6 text-white" />
-        </button>
-
-        {/* Favoritos */}
-        <button
-          onClick={onFavoritesClick}
-          className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors min-w-[60px]"
-        >
-          <Heart className="h-5 w-5 text-muted-foreground" />
-          <span className="text-[10px] text-muted-foreground">Favoritos</span>
-        </button>
-
-        {/* IA */}
+        {/* IA / Más */}
         <button
           onClick={onAIClick}
-          className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors min-w-[60px]"
+          className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg text-muted-foreground transition-all min-w-[60px]"
         >
-          <Sparkles className="h-5 w-5 text-purple-500" />
-          <span className="text-[10px] text-muted-foreground">IA</span>
+          <Sparkles className="h-5 w-5" />
+          <span className="text-[10px] font-bold uppercase tracking-tighter">IA</span>
         </button>
       </div>
     </nav>

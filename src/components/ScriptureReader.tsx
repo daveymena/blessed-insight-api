@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Loader2, Volume2, Wifi, Heart, BookOpen, Languages, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AudioPlayer } from '@/components/AudioPlayer';
@@ -25,18 +26,25 @@ interface ScriptureReaderProps {
   user?: any;
 }
 
-// Mapeo de fondos
 const BACKGROUND_CLASSES: Record<string, string> = {
-  'none': '',
-  'paper': 'bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950 dark:to-orange-950',
-  'parchment': 'bg-gradient-to-b from-yellow-50 via-amber-50 to-yellow-100 dark:from-yellow-950 dark:via-amber-950 dark:to-yellow-950',
-  'clouds': 'bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-blue-950 dark:via-slate-900 dark:to-blue-950',
-  'sunset-sky': 'bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 dark:from-orange-950 dark:via-pink-950 dark:to-purple-950',
-  'forest-mist': 'bg-gradient-to-br from-green-50 via-emerald-50 to-teal-100 dark:from-green-950 dark:via-emerald-950 dark:to-teal-950',
-  'ocean-depth': 'bg-gradient-to-br from-cyan-50 via-blue-100 to-indigo-100 dark:from-cyan-950 dark:via-blue-950 dark:to-indigo-950',
-  'lavender-field': 'bg-gradient-to-br from-purple-50 via-violet-100 to-fuchsia-50 dark:from-purple-950 dark:via-violet-950 dark:to-fuchsia-950',
-  'warm-sand': 'bg-gradient-to-br from-yellow-50 via-amber-100 to-orange-50 dark:from-yellow-950 dark:via-amber-950 dark:to-orange-950',
-  'night-sky': 'bg-gradient-to-br from-slate-800 via-indigo-900 to-slate-900',
+  'none': 'bg-background text-foreground', // Usa variable CSS global actualizada
+  'pure-white': 'bg-white text-slate-900',
+  'soft-cream': 'bg-slate-50 text-slate-900', // REDEFINIDO: Ahora es "Gris Suave", no crema amarillenta
+  'elegant-gray': 'bg-gray-50 text-gray-900',
+  'book-beige': 'bg-white text-slate-800', // REDEFINIDO: Forzado a blanco puro aunque se llame beige
+  'morning-blue': 'bg-blue-50/30 text-slate-900',
+  'mint-tea': 'bg-emerald-50/30 text-teal-950',
+  'paper': 'bg-[#fdf6e3] text-slate-900 border-l-8 border-l-[#dcb]', // Tono solarizado suave
+  'parchment': 'bg-gradient-to-br from-white via-slate-50 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950',
+  'clouds': 'bg-gradient-to-br from-blue-50/50 via-white to-blue-50/50',
+  'sunset-sky': 'bg-gradient-to-br from-indigo-50/30 via-white to-purple-50/30',
+  'forest-mist': 'bg-gradient-to-br from-emerald-50/30 via-white to-teal-50/30',
+  'ocean-depth': 'bg-gradient-to-br from-cyan-50/30 via-white to-blue-50/30',
+  'lavender-field': 'bg-gradient-to-br from-violet-50/30 via-white to-fuchsia-50/30',
+  'warm-sand': 'bg-white text-slate-900',
+  'night-sky': 'bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white',
+  'nature-sunset': 'bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-orange-900 via-purple-950 to-slate-950 text-white drop-shadow-md',
+  'deep-river': 'text-white drop-shadow-md',
 };
 
 const FONT_FAMILIES: Record<string, string> = {
@@ -70,17 +78,15 @@ export function ScriptureReader({
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const versionInfo = getCurrentVersionInfo();
 
-  // Cargar notas al montar o cambiar de capítulo
   useEffect(() => {
-    if (user) {
+    if (user && book) {
       personalStudyService.getNotes().then(allNotes => {
-        const chapterNotes = allNotes.filter(n => n.bookId === book?.id && n.chapter === chapter);
+        const chapterNotes = allNotes.filter(n => n.bookId === book.id && n.chapter === chapter);
         setNotes(chapterNotes);
       });
     }
   }, [book?.id, chapter, user]);
 
-  // Reset analysis when chapter changes
   useEffect(() => {
     setAnalysisContent(null);
     setShowAnalysis(false);
@@ -88,55 +94,29 @@ export function ScriptureReader({
 
   const handleQuickAnalysis = async () => {
     if (!book || !passage?.verses) return;
-    
-    // Check cache first
     const cacheKey = `quick_analysis_${book.id}_${chapter}`;
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       const { content, timestamp } = JSON.parse(cached);
-      if (Date.now() - timestamp < 30 * 60 * 1000) { // 30 min cache
+      if (Date.now() - timestamp < 30 * 60 * 1000) {
         setAnalysisContent(content);
         setShowAnalysis(true);
         return;
       }
     }
-
     setAnalysisLoading(true);
     setShowAnalysis(true);
-    
     const passageText = passage.verses.map(v => v.text).join(' ').substring(0, 1200);
-    
     const messages = [
-      { role: 'system' as const, content: `Eres un teólogo experto. Responde en español de forma clara y estructurada con emojis.` },
-      { role: 'user' as const, content: `Análisis rápido de ${book.name} ${chapter}:
-"${passageText}"
-
-Proporciona un análisis BREVE pero ÚTIL:
-
-📋 RESUMEN (2-3 oraciones sobre el contenido principal)
-
-🎯 TEMA CENTRAL (1 frase)
-
-👥 PERSONAJES CLAVE (si los hay)
-
-💎 VERSÍCULOS DESTACADOS (2-3 versículos importantes con breve explicación)
-
-🔑 PALABRAS CLAVE (3-4 términos importantes)
-
-💡 APLICACIÓN PRÁCTICA (1-2 puntos concretos para hoy)
-
-🙏 ORACIÓN SUGERIDA (1-2 oraciones basadas en el texto)
-
-Sé conciso pero profundo.` }
+      { role: 'system' as const, content: `Eres un teólogo experto. Responde en español con emojis.` },
+      { role: 'user' as const, content: `Análisis de ${book.name} ${chapter}:\n"${passageText}"` }
     ];
-
     try {
       const result = await callAIFast(messages);
       setAnalysisContent(result.content);
-      // Cache the result
       localStorage.setItem(cacheKey, JSON.stringify({ content: result.content, timestamp: Date.now() }));
     } catch (e) {
-      setAnalysisContent('Error al generar el análisis. Intenta nuevamente.');
+      setAnalysisContent('Error al generar el análisis.');
     }
     setAnalysisLoading(false);
   };
@@ -144,17 +124,11 @@ Sé conciso pero profundo.` }
   const handleHighlight = async (color: string) => {
     if (selectedVerseIndex < 0 || !passage?.verses[selectedVerseIndex]) return;
     const verseNum = passage.verses[selectedVerseIndex].verse;
-
     try {
       const existingNote = notes.find(n => n.verse === verseNum);
       await personalStudyService.saveNote({
-        bookId: book!.id,
-        chapter,
-        verse: verseNum,
-        content: existingNote ? existingNote.content : '',
-        color
+        bookId: book!.id, chapter, verse: verseNum, content: existingNote ? existingNote.content : '', color
       });
-      // Refresh notes
       const all = await personalStudyService.getNotes();
       setNotes(all.filter(n => n.bookId === book?.id && n.chapter === chapter));
       setSelectedVerseIndex(-1);
@@ -166,21 +140,24 @@ Sé conciso pero profundo.` }
   const backgroundClass = BACKGROUND_CLASSES[themeSettings.background] || '';
   const fontFamily = FONT_FAMILIES[themeSettings.font] || FONT_FAMILIES.serif;
 
-  // Welcome state when no book selected
+  // Calculamos el estilo dinámico para el texto
+  const textStyle = {
+    fontFamily,
+    fontSize: `${themeSettings.fontSize}px`,
+    lineHeight: themeSettings.lineHeight,
+    color: themeSettings.textColor !== 'auto' ? themeSettings.textColor : undefined
+  };
+
   if (!book) {
     return (
       <div className={`flex-1 flex items-center justify-center p-8 ${backgroundClass}`}>
-        <div className="text-center max-w-md animate-fade-in">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center max-w-md">
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
             <span className="text-4xl">📖</span>
           </div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground mb-2">
-            Bienvenido a Blessed Insight
-          </h2>
-          <p className="text-muted-foreground">
-            Selecciona un libro y capítulo para comenzar a leer las Escrituras en español.
-          </p>
-        </div>
+          <h2 className="text-2xl font-serif font-semibold mb-2">Bienvenido</h2>
+          <p className="text-muted-foreground">Selecciona un libro para comenzar.</p>
+        </motion.div>
       </div>
     );
   }
@@ -188,257 +165,123 @@ Sé conciso pero profundo.` }
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-3" />
-            <p className="text-muted-foreground">
-              {versionInfo.isOnline ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Wifi className="h-4 w-4 text-blue-500" />
-                  Descargando {versionInfo.shortName}...
-                </span>
-              ) : (
-                'Cargando escrituras...'
-              )}
-            </p>
-          </div>
+        <div className="flex flex-col items-center justify-center py-20">
+          <Loader2 className="h-10 w-10 animate-spin mb-4 text-primary" />
+          <p className="font-serif italic">Preparando las Escrituras...</p>
         </div>
       );
     }
-
     if (error) {
       return (
-        <div className="text-center py-20 animate-fade-in">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
-            <span className="text-2xl">⚠️</span>
-          </div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">
-            Error al cargar
-          </h3>
-          <p className="text-muted-foreground text-sm max-w-md mx-auto">
-            No se pudo cargar el capítulo. Por favor, intenta nuevamente.
-          </p>
+        <div className="p-8 border border-destructive/20 bg-destructive/5 rounded-lg text-center">
+          <p className="font-bold text-destructive">Error al cargar</p>
         </div>
       );
     }
-
-    if (passage?.verses && passage.verses.length > 0) {
+    if (passage && passage.verses.length > 0) {
       return (
-        <div className="animate-fade-in">
-          {/* Audio Player */}
-          {showAudioPlayer && (
-            <div className="mb-6">
-              <AudioPlayer
-                verses={passage.verses.map(v => v.text)}
-                onVerseHighlight={setHighlightedVerse}
-              />
-            </div>
-          )}
-
-          <article
-            className="scripture-text text-foreground"
-            style={{
-              fontFamily,
-              fontSize: `${themeSettings.fontSize}px`,
-              lineHeight: themeSettings.lineHeight,
-            }}
-          >
-            {passage.verses.map((verse, index) => (
-              <div
-                key={`${verse.chapter}-${verse.verse}`}
-                id={`verse-${verse.verse}`}
-                onClick={() => setSelectedVerseIndex(selectedVerseIndex === index ? -1 : index)}
-                className={`mb-4 transition-all duration-300 scroll-mt-24 p-2 rounded-lg cursor-pointer hover:bg-primary/5 active:scale-[0.98] ${highlightedVerse === index
-                  ? 'bg-primary/20 -mx-2'
-                  : selectedVerseIndex === index
-                    ? 'ring-2 ring-primary/50 shadow-md bg-primary/5 -mx-2'
-                    : notes.find(n => n.verse === verse.verse)?.color || ''
-                  }`}
-              >
-                <sup className="verse-number font-semibold text-primary/70 mr-2 text-sm">{verse.verse}</sup>
-                <span className="verse-content" dangerouslySetInnerHTML={{ __html: verse.text.trim() }} />
-
-                {/* Verse Actions Toolbar (appears when selected) */}
-                {selectedVerseIndex === index && (
-                  <div className="mt-2 p-2 bg-background border border-border rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-                    <div className="flex gap-1 mr-2 border-r border-border pr-2">
-                      <button onClick={(e) => { e.stopPropagation(); handleHighlight('bg-yellow-200/50'); }} className="w-6 h-6 rounded-full bg-yellow-200 hover:scale-110 transition-transform" />
-                      <button onClick={(e) => { e.stopPropagation(); handleHighlight('bg-green-200/50'); }} className="w-6 h-6 rounded-full bg-green-200 hover:scale-110 transition-transform" />
-                      <button onClick={(e) => { e.stopPropagation(); handleHighlight('bg-blue-200/50'); }} className="w-6 h-6 rounded-full bg-blue-200 hover:scale-110 transition-transform" />
-                      <button onClick={(e) => { e.stopPropagation(); handleHighlight('bg-pink-200/50'); }} className="w-6 h-6 rounded-full bg-pink-200 hover:scale-110 transition-transform" />
-                    </div>
-                    <Button variant="ghost" size="sm" className="h-8 text-xs gap-1">
-                      <Heart className="h-3 w-3" /> Favorito
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={(e) => {
-                      e.stopPropagation();
-                      setIsNoteDialogOpen(true);
-                    }}>
-                      <BookOpen className="h-3 w-3" /> Añadir Nota
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </article>
-
-          {/* Quick Analysis Panel */}
-          <div className="mt-8 border-t border-border/50 pt-6">
-            {!showAnalysis ? (
-              <Button 
-                onClick={handleQuickAnalysis}
-                variant="outline"
-                className="w-full h-14 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 border-indigo-200 dark:border-indigo-800 hover:from-indigo-100 hover:to-purple-100"
-              >
-                <Sparkles className="h-5 w-5 mr-2 text-indigo-600" />
-                <span className="font-medium text-indigo-700 dark:text-indigo-300">Obtener Análisis del Capítulo</span>
-              </Button>
-            ) : (
-              <div className="bg-gradient-to-br from-indigo-50/80 to-purple-50/80 dark:from-indigo-950/40 dark:to-purple-950/40 rounded-xl border border-indigo-200 dark:border-indigo-800 overflow-hidden">
-                <div 
-                  className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 cursor-pointer"
-                  onClick={() => setShowAnalysis(!showAnalysis)}
-                >
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-indigo-600" />
-                    <span className="font-semibold text-indigo-800 dark:text-indigo-200">Análisis de {book.name} {chapter}</span>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setShowAnalysis(false); }}>
-                    <ChevronUp className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                <div className="p-5">
-                  {analysisLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-6 w-6 animate-spin text-indigo-600 mr-3" />
-                      <span className="text-indigo-700 dark:text-indigo-300">Generando análisis...</span>
-                    </div>
-                  ) : analysisContent ? (
-                    <div className="space-y-1 text-sm">
-                      {analysisContent.split('\n').map((line, idx) => {
-                        const trimmed = line.trim();
-                        if (!trimmed) return <div key={idx} className="h-2" />;
-                        
-                        // Headers with emojis
-                        const headerMatch = trimmed.match(/^([\p{Emoji}]+)\s*(.+)$/u);
-                        if (headerMatch && (trimmed.includes('RESUMEN') || trimmed.includes('TEMA') || trimmed.includes('PERSONAJES') || trimmed.includes('VERSÍCULOS') || trimmed.includes('PALABRAS') || trimmed.includes('APLICACIÓN') || trimmed.includes('ORACIÓN'))) {
-                          return (
-                            <div key={idx} className="mt-4 mb-2 first:mt-0">
-                              <div className="flex items-center gap-2 bg-white/60 dark:bg-black/20 p-2 rounded-lg">
-                                <span className="text-lg">{headerMatch[1]}</span>
-                                <h4 className="font-bold text-indigo-800 dark:text-indigo-200 text-sm">{headerMatch[2]}</h4>
-                              </div>
-                            </div>
-                          );
-                        }
-                        
-                        // List items
-                        if (trimmed.startsWith('-') || trimmed.startsWith('•')) {
-                          return (
-                            <div key={idx} className="flex gap-2 ml-3 my-1">
-                              <span className="text-indigo-500">•</span>
-                              <span className="text-foreground/90">{trimmed.replace(/^[-•]\s*/, '')}</span>
-                            </div>
-                          );
-                        }
-                        
-                        // Regular text
-                        return <p key={idx} className="text-foreground/90 leading-relaxed my-1">{trimmed}</p>;
-                      })}
-                    </div>
-                  ) : null}
-                </div>
+        <AnimatePresence mode="wait">
+          <motion.div key={`${book.id}-${chapter}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }}>
+            {showAudioPlayer && (
+              <div className="mb-6 border rounded-xl overflow-hidden shadow-sm">
+                <AudioPlayer verses={passage.verses.map(v => v.text)} onVerseHighlight={setHighlightedVerse} />
               </div>
             )}
-          </div>
-
-          {/* Ad Placement: End of Chapter */}
-          <div className="my-10">
-            <AdPlaceholder type="banner" />
-          </div>
-
-          <div className="mt-12 pt-6 border-t border-border/50">
-            <p className="text-sm text-muted-foreground text-center">
-              {passage.translation_name || 'Reina Valera'}
-            </p>
-          </div>
-        </div>
+            <article
+              className={`bible-text prose prose-lg dark:prose-invert max-w-none ${themeSettings.textColor === 'auto' ? 'text-foreground' : ''}`}
+              style={textStyle}
+            >
+              {passage.verses.map((verse, index) => (
+                <div
+                  key={`${verse.chapter}-${verse.verse}`}
+                  id={`verse-${verse.verse}`}
+                  onClick={() => setSelectedVerseIndex(selectedVerseIndex === index ? -1 : index)}
+                  className={`mb-4 transition-all p-2 rounded-lg cursor-pointer ${highlightedVerse === index ? 'bg-primary/20' : selectedVerseIndex === index ? 'bg-primary/5 ring-1 ring-primary/30' : notes.find(n => n.verse === verse.verse)?.color || ''}`}
+                >
+                  <sup className={`verse-number font-bold mr-2 select-none ${hasScenicBackground ? '!text-amber-200/90 drop-shadow-sm' : '!text-primary/70'}`}>{verse.verse}</sup>
+                  <span dangerouslySetInnerHTML={{ __html: verse.text }} />
+                  {selectedVerseIndex === index && (
+                    <div className="mt-2 p-2 bg-card border rounded-lg flex gap-2">
+                      <button onClick={() => handleHighlight('bg-yellow-200/50')} className="w-6 h-6 rounded-full bg-yellow-200" />
+                      <button onClick={() => handleHighlight('bg-green-200/50')} className="w-6 h-6 rounded-full bg-green-200" />
+                      <Button variant="ghost" size="sm" onClick={() => setIsNoteDialogOpen(true)}>Nota</Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </article>
+            <div className="mt-8">
+              {!showAnalysis ? (
+                <Button onClick={handleQuickAnalysis} variant="outline" className="w-full h-14 bg-indigo-50/50">
+                  <Sparkles className="h-5 w-5 mr-2" /> Análisis rápido
+                </Button>
+              ) : (
+                <div className="p-5 bg-indigo-50/30 border rounded-xl">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="font-bold">Análisis</span>
+                    <Button variant="ghost" size="sm" onClick={() => setShowAnalysis(false)}>Cerrar</Button>
+                  </div>
+                  {analysisLoading ? <Loader2 className="animate-spin h-5 w-5 mx-auto" /> : <div className="whitespace-pre-wrap text-sm">{analysisContent}</div>}
+                </div>
+              )}
+            </div>
+            <div className="mt-12 text-center text-xs text-muted-foreground">{passage.translation_name}</div>
+          </motion.div>
+        </AnimatePresence>
       );
     }
-
-    return (
-      <div className="text-center py-20 text-muted-foreground">
-        No hay contenido disponible para este capítulo.
-      </div>
-    );
+    return <div className="text-center py-20">No disponible.</div>;
   };
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      {/* Chapter Header */}
-      <div className="flex items-center justify-between px-4 md:px-8 py-4 border-b border-border bg-card/50 backdrop-blur-sm">
+      <div className={`flex items-center justify-between px-4 py-4 border-b transition-colors ${hasScenicBackground ? 'bg-black/20 border-white/10 text-white backdrop-blur-sm' : 'bg-card/50 backdrop-blur-sm'}`}>
         <Button
-          variant="ghost"
-          size="sm"
+          variant={hasScenicBackground ? "outline" : "ghost"}
           onClick={onPrevious}
           disabled={!canGoPrevious || isLoading}
-          className="gap-1"
+          className={`gap-1 rounded-full px-4 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10 hover:text-white disabled:opacity-30' : ''}`}
         >
-          <ChevronLeft className="h-4 w-4" />
-          <span className="hidden sm:inline">Anterior</span>
+          <ChevronLeft className="h-4 w-4" /> Anterior
         </Button>
 
-        <div className="text-center flex items-center gap-2">
-          <div>
-            <h2 className="text-xl md:text-2xl font-serif font-semibold text-foreground">
-              {book.name}
-            </h2>
-            <p className="text-sm text-muted-foreground">Capítulo {chapter}</p>
-          </div>
-
-          {/* Botón de Audio */}
-          <Button
-            variant={showAudioPlayer ? "default" : "ghost"}
-            size="icon"
-            onClick={() => setShowAudioPlayer(!showAudioPlayer)}
-            className={`h-9 w-9 ${showAudioPlayer ? 'bg-primary' : ''}`}
-            title={showAudioPlayer ? "Ocultar reproductor" : "Escuchar capítulo"}
-          >
-            <Volume2 className="h-4 w-4" />
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsComparatorOpen(true)}
-            className="h-9 w-9"
-            title="Comparar Versiones"
-          >
-            <Languages className="h-4 w-4" />
-          </Button>
+        <div className="text-center">
+          <h2 className="text-xl font-bold">{book.name}</h2>
+          <p className={`text-xs ${hasScenicBackground ? 'text-white/70' : 'text-muted-foreground'}`}>Capítulo {chapter}</p>
         </div>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onNext}
-          disabled={!canGoNext || isLoading}
-          className="gap-1"
-        >
-          <span className="hidden sm:inline">Siguiente</span>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
+        <div className="flex gap-2">
+          {[
+            { icon: Volume2, action: () => setShowAudioPlayer(!showAudioPlayer), active: showAudioPlayer },
+            { icon: Languages, action: () => setIsComparatorOpen(true), active: false },
+          ].map((btn, i) => (
+            <Button
+              key={i}
+              variant={hasScenicBackground ? "outline" : (btn.active ? "default" : "ghost")}
+              size="icon"
+              onClick={btn.action}
+              className={`rounded-full h-9 w-9 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''} ${btn.active && !hasScenicBackground ? '' : ''}`}
+            >
+              <btn.icon className="h-4 w-4" />
+            </Button>
+          ))}
 
-      {/* Scripture Content with Background */}
-      <div className={`flex-1 overflow-auto ${!hasScenicBackground ? backgroundClass : ''} transition-colors duration-500`}>
-        <div className={`max-w-3xl mx-auto px-4 md:px-8 py-8 min-h-full transition-all duration-500 ${hasScenicBackground ? 'bg-glass/80 rounded-xl my-4 mx-4 shadow-xl backdrop-blur-md' : ''}`}>
+          <Button
+            variant={hasScenicBackground ? "outline" : "ghost"}
+            onClick={onNext}
+            disabled={!canGoNext || isLoading}
+            className={`gap-1 rounded-full px-4 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10 hover:text-white disabled:opacity-30' : ''}`}
+          >
+            Siguiente <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      <div className={`flex-1 overflow-auto ${!hasScenicBackground ? backgroundClass : ''}`}>
+        <div className={`max-w-3xl mx-auto px-4 py-8 ${hasScenicBackground ? 'bg-black/30 backdrop-blur-[2px] rounded-xl my-4 shadow-2xl border border-white/10' : ''}`}>
           {renderContent()}
         </div>
       </div>
-
-      {/* Note Dialog */}
+      <VersionComparator isOpen={isComparatorOpen} onClose={() => setIsComparatorOpen(false)} book={book} chapter={chapter} />
       {selectedVerseIndex >= 0 && passage?.verses[selectedVerseIndex] && (
         <NoteDialog
           isOpen={isNoteDialogOpen}
@@ -448,54 +291,9 @@ Sé conciso pero profundo.` }
           chapter={chapter}
           verse={passage.verses[selectedVerseIndex].verse}
           existingContent={notes.find(n => n.verse === passage.verses[selectedVerseIndex].verse)?.content}
-          onSave={() => {
-            // Re-fetch notes after save
-            personalStudyService.getNotes().then(setNotes);
-          }}
-        />
-      )}
-
-      {/* Bottom Navigation - Mobile */}
-      <div className="md:hidden border-t border-border p-4 flex items-center justify-between bg-card/50 backdrop-blur-sm">
-        <Button
-          variant="outline"
-          onClick={onPrevious}
-          disabled={!canGoPrevious || isLoading}
-          className="flex-1 mr-2"
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Anterior
-        </Button>
-        <Button
-          variant="outline"
-          onClick={onNext}
-          disabled={!canGoNext || isLoading}
-          className="flex-1 ml-2"
-        >
-          Siguiente
-          <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
-      </div>
-      {/* Version Comparator Modal */}
-      <VersionComparator
-        isOpen={isComparatorOpen}
-        onClose={() => setIsComparatorOpen(false)}
-        book={book}
-        chapter={chapter}
-      />
-
-      {selectedVerseIndex >= 0 && passage?.verses[selectedVerseIndex] && (
-        <NoteDialog
-          isOpen={isNoteDialogOpen}
-          onClose={() => setIsNoteDialogOpen(false)}
-          bookId={book!.id}
-          bookName={book!.name}
-          chapter={chapter}
-          verse={passage.verses[selectedVerseIndex].verse}
-          existingContent={notes.find(n => n.verse === passage.verses[selectedVerseIndex].verse)?.content || ''}
           onSave={async () => {
             const all = await personalStudyService.getNotes();
-            setNotes(all.filter(n => n.bookId === book?.id && n.chapter === chapter));
+            setNotes(all.filter(n => n.bookId === book.id && n.chapter === chapter));
             setSelectedVerseIndex(-1);
           }}
         />

@@ -10,7 +10,9 @@ import { ThemeCustomizer } from '@/components/ThemeCustomizer';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { BackgroundLayer } from '@/components/BackgroundLayer';
 import { HomeScreen } from '@/components/HomeScreen';
+import { WelcomeCover } from '@/components/WelcomeCover';
 import { NavigationModal } from '@/components/NavigationModal';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useBibleReader } from '@/hooks/useBibleReader';
 import type { BibleBook } from '@/lib/bibleApi';
 import { useAuth } from '@/context/AuthContext';
@@ -25,6 +27,7 @@ const Index = () => {
   const [themeOpen, setThemeOpen] = useState(false);
   const [navModalOpen, setNavModalOpen] = useState(false);
   const [showHome, setShowHome] = useState(true);
+  const [activeTab, setActiveTab] = useState<'home' | 'bible' | 'plans' | 'search' | 'favorites'>('home');
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -113,15 +116,6 @@ const Index = () => {
 
   return (
     <div className="h-screen bg-background flex flex-col relative overflow-hidden">
-      {/* Home Screen */}
-      {showHome && (
-        <HomeScreen 
-          onStartReading={handleStartReading}
-          onOpenSearch={() => { setShowHome(false); setSearchOpen(true); }}
-          onOpenStudyCenter={() => { setShowHome(false); setStudyCenterOpen(true); }}
-          onOpenFavorites={() => { setShowHome(false); setFavoritesOpen(true); }}
-        />
-      )}
 
       <BackgroundLayer />
 
@@ -132,7 +126,6 @@ const Index = () => {
         onFavoritesClick={() => setFavoritesOpen(true)}
         onStudyClick={() => setStudyCenterOpen(true)}
         onThemeClick={() => setThemeOpen(true)}
-        onHomeClick={handleGoHome}
         onVersionChange={handleVersionChange}
         showSpanishEquivalent={showSpanishEquivalent}
         onSpanishToggle={setShowSpanishEquivalent}
@@ -157,28 +150,39 @@ const Index = () => {
 
         <main className="flex-1 flex flex-col min-w-0 h-full relative">
           <div className="flex-1 overflow-y-auto pb-24 md:pb-8 scroll-smooth overflow-x-hidden">
-            <ScriptureReader
-              book={selectedBook}
-              chapter={selectedChapter}
-              passage={passage}
-              isLoading={isLoading}
-              error={error as Error | null}
-              canGoNext={!!canGoNext}
-              canGoPrevious={!!canGoPrevious}
-              onNext={goToNextChapter}
-              onPrevious={goToPreviousChapter}
-            />
+            {showHome ? (
+              <HomeScreen
+                onStartReading={handleStartReading}
+                onOpenSearch={() => setSearchOpen(true)}
+                onOpenStudyCenter={() => setStudyCenterOpen(true)}
+                onOpenFavorites={() => setFavoritesOpen(true)}
+              />
+            ) : (
+              <ScriptureReader
+                book={selectedBook}
+                chapter={selectedChapter}
+                passage={passage}
+                isLoading={isLoading}
+                error={error as Error | null}
+                canGoNext={!!canGoNext}
+                canGoPrevious={!!canGoPrevious}
+                onNext={goToNextChapter}
+                onPrevious={goToPreviousChapter}
+              />
+            )}
           </div>
         </main>
       </div>
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav
-        onMenuClick={() => setSidebarOpen(true)}
-        onSearchClick={() => setSearchOpen(true)}
-        onFavoritesClick={() => setFavoritesOpen(true)}
-        onAIClick={() => setAiPanelOpen(true)}
-        onStudyClick={() => setStudyCenterOpen(true)}
+        activeTab={activeTab}
+        onHomeClick={() => { setActiveTab('home'); setShowHome(true); }}
+        onMenuClick={() => { setActiveTab('bible'); setShowHome(false); setSidebarOpen(true); }}
+        onSearchClick={() => { setActiveTab('search'); setSearchOpen(true); }}
+        onFavoritesClick={() => { setActiveTab('favorites'); setFavoritesOpen(true); }}
+        onAIClick={() => { setAiPanelOpen(true); }}
+        onStudyClick={() => { setActiveTab('plans'); setStudyCenterOpen(true); }}
       />
 
       {/* Panels and Modals */}

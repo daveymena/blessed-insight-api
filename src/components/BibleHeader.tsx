@@ -80,39 +80,29 @@ export function BibleHeader({
   };
 
   return (
-    <header className={`sticky top-0 z-40 border-b border-border transition-all duration-500 ${hasScenicBackground ? 'bg-background/60 backdrop-blur-md shadow-sm' : 'bg-background/95 backdrop-blur-sm'}`}>
+
+    <header className={`sticky top-0 z-40 border-b transition-all duration-500 ${hasScenicBackground ? 'bg-black/40 backdrop-blur-md shadow-sm border-white/10 text-white' : 'bg-background/95 backdrop-blur-sm border-border'}`}>
       <div className="container flex items-center justify-between h-16 px-4 md:px-6">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className={`md:hidden ${hasScenicBackground ? 'hover:bg-white/10 text-white' : ''}`}
             onClick={onMenuClick}
           >
             <Menu className="h-5 w-5" />
           </Button>
-          
-          {/* Botón Home */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onHomeClick}
-            className="text-primary hover:bg-primary/10"
-            title="Inicio"
-          >
-            <Home className="h-5 w-5" />
-          </Button>
 
-          <div className="flex items-center gap-2 cursor-pointer p-1 rounded-lg hover:bg-secondary/50 transition-colors" onClick={onTitleClick}>
-            <div className="p-2 rounded-lg bg-primary/10">
-              <BookOpen className="h-5 w-5 text-primary" />
+          <div className={`flex items-center gap-2 cursor-pointer p-1 rounded-lg transition-colors ${hasScenicBackground ? 'hover:bg-white/10' : 'hover:bg-secondary/50'}`} onClick={onTitleClick}>
+            <div className={`p-2 rounded-lg ${hasScenicBackground ? 'bg-white/20' : 'bg-primary/10'}`}>
+              <BookOpen className={`h-5 w-5 ${hasScenicBackground ? 'text-white' : 'text-primary'}`} />
             </div>
             <div>
-              <h1 className="text-xl font-serif font-semibold text-foreground flex items-center gap-2">
+              <h1 className={`text-xl font-serif font-semibold flex items-center gap-2 ${hasScenicBackground ? 'text-white' : 'text-foreground'}`}>
                 {selectedBook ? `${selectedBook.abbrev} ${selectedChapter}` : 'Blessed Insight'}
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                <ChevronDown className={`h-4 w-4 ${hasScenicBackground ? 'text-white/70' : 'text-muted-foreground'}`} />
               </h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">
+              <p className={`text-xs hidden sm:block ${hasScenicBackground ? 'text-white/70' : 'text-muted-foreground'}`}>
                 Biblia de Estudio con IA
               </p>
             </div>
@@ -123,7 +113,7 @@ export function BibleHeader({
           {/* User Auth Status */}
           {user ? (
             <div className="hidden sm:flex items-center gap-2 mr-2">
-              <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold border border-primary/30">
+              <div className={`h-8 w-8 rounded-full flex items-center justify-center font-bold border ${hasScenicBackground ? 'bg-white/20 border-white/30 text-white' : 'bg-primary/20 border-primary/30 text-primary'}`}>
                 {user.name ? user.name[0].toUpperCase() : 'U'}
               </div>
             </div>
@@ -132,7 +122,7 @@ export function BibleHeader({
               variant="outline"
               size="sm"
               onClick={onLoginClick}
-              className="mr-2 hidden sm:flex border-primary/20 text-primary hover:bg-primary/5"
+              className={`mr-2 hidden sm:flex ${hasScenicBackground ? 'border-white/30 text-white hover:bg-white/10' : 'border-primary/20 text-primary hover:bg-primary/5'}`}
             >
               Acceder
             </Button>
@@ -146,7 +136,7 @@ export function BibleHeader({
             variant="default"
             size="sm"
             onClick={onAIClick}
-            className="hidden sm:flex bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 gap-1 shadow-md"
+            className="hidden sm:flex bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 gap-1 shadow-md text-white border-0"
           >
             <Sparkles className="h-4 w-4" />
             <span className="hidden md:inline">IA</span>
@@ -156,13 +146,13 @@ export function BibleHeader({
             variant="ghost"
             size="icon"
             onClick={onAIClick}
-            className="sm:hidden text-purple-600 dark:text-purple-400"
+            className={`sm:hidden ${hasScenicBackground ? 'text-purple-300' : 'text-purple-600 dark:text-purple-400'}`}
             title="Asistente IA"
           >
             <Sparkles className="h-5 w-5" />
           </Button>
 
-          <div className="w-[1px] h-6 bg-border mx-1" />
+          <div className={`w-[1px] h-6 mx-1 ${hasScenicBackground ? 'bg-white/20' : 'bg-border'}`} />
 
           {/* MÓVIL: Botón de Ajustes Unificado */}
           <Button
@@ -170,7 +160,7 @@ export function BibleHeader({
             size="icon"
             onClick={onThemeClick}
             title="Ajustes de Lectura"
-            className="flex sm:hidden border-primary/20 bg-primary/5 text-primary"
+            className={`flex sm:hidden ${hasScenicBackground ? 'border-white/20 bg-white/10 text-white' : 'border-primary/20 bg-primary/5 text-primary'}`}
           >
             <Palette className="h-5 w-5" />
           </Button>
@@ -178,11 +168,11 @@ export function BibleHeader({
           {/* ESCRITORIO: Controles Individuales */}
           <div className="hidden sm:flex items-center gap-2">
             {/* Zoom en escritorio */}
-            <div className="flex items-center border border-border rounded-lg bg-muted/30 p-1">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleFontSizeChange(-2)}>
+            <div className={`flex items-center border rounded-lg p-1 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white' : 'border-border bg-muted/30'}`}>
+              <Button variant="ghost" size="icon" className={`h-7 w-7 ${hasScenicBackground ? 'hover:bg-white/10 text-white' : ''}`} onClick={() => handleFontSizeChange(-2)}>
                 <span className="text-xs font-bold">A-</span>
               </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleFontSizeChange(2)}>
+              <Button variant="ghost" size="icon" className={`h-7 w-7 ${hasScenicBackground ? 'hover:bg-white/10 text-white' : ''}`} onClick={() => handleFontSizeChange(2)}>
                 <span className="text-xs font-bold">A+</span>
               </Button>
             </div>
@@ -192,7 +182,7 @@ export function BibleHeader({
               variant="ghost"
               size="icon"
               onClick={onThemeClick}
-              className="text-muted-foreground"
+              className={hasScenicBackground ? 'text-white hover:bg-white/10' : 'text-muted-foreground'}
             >
               <Palette className="h-5 w-5" />
             </Button>
@@ -201,7 +191,7 @@ export function BibleHeader({
               variant="ghost"
               size="icon"
               onClick={() => setDarkMode(!darkMode)}
-              className="text-muted-foreground"
+              className={hasScenicBackground ? 'text-white hover:bg-white/10' : 'text-muted-foreground'}
             >
               {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>

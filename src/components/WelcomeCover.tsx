@@ -1,89 +1,131 @@
-import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Sparkles, ChevronRight } from 'lucide-react';
+import { BookOpen, Sparkles, ChevronRight, Bookmark, ScrollText } from 'lucide-react';
 
 interface WelcomeCoverProps {
     onEnter: () => void;
 }
 
 export function WelcomeCover({ onEnter }: WelcomeCoverProps) {
-    const [isVisible, setIsVisible] = useState(false);
-    const [isExiting, setIsExiting] = useState(false);
-
-    useEffect(() => {
-        // Pequeño delay para que la transición de entrada se note
-        const timer = setTimeout(() => setIsVisible(true), 100);
-        return () => clearTimeout(timer);
-    }, []);
-
-    const handleStart = () => {
-        setIsExiting(true);
-        // Esperar a que la animación de salida termine
-        setTimeout(onEnter, 800);
-    };
-
     return (
-        <div
-            className={`fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden transition-all duration-1000 ease-in-out ${isExiting ? 'opacity-0 scale-110 pointer-events-none' : 'opacity-100'
-                }`}
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 1.05 }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden bg-black"
         >
-            {/* Fondo con imagen Hero */}
-            <div
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-[10000ms] ease-linear scale-110"
+            {/* Cinematic Background with Zoom Effect */}
+            <motion.div
+                initial={{ scale: 1.2, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 20, ease: "linear" }}
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform ease-linear scale-110"
                 style={{
                     backgroundImage: "url('/welcome-hero.png')",
-                    transform: isVisible && !isExiting ? 'scale(1)' : 'scale(1.1)'
+                    transitionDuration: '10000ms'
                 }}
             >
-                {/* Overlays para profundidad y legibilidad */}
-                <div className="absolute inset-0 bg-black/40" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-            </div>
+                {/* Layered Overlays for Luxury Feel */}
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
+            </motion.div>
 
-            {/* Contenido Central */}
-            <div
-                className={`relative z-10 text-center px-6 max-w-3xl transition-all duration-1000 delay-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-                    }`}
+            {/* Decorative Elements */}
+            <motion.div
+                initial={{ opacity: 0, rotate: -10 }}
+                animate={{ opacity: 0.1, rotate: 0 }}
+                transition={{ delay: 1, duration: 2 }}
+                className="absolute top-10 left-10 text-white"
             >
-                <div className="flex justify-center mb-6">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/20 border border-primary/30 backdrop-blur-md text-primary-foreground text-sm font-medium mb-4 animate-pulse">
-                        <Sparkles className="h-4 w-4" />
-                        <span>Blessed Insight AI</span>
+                <ScrollText size={180} />
+            </motion.div>
+
+            {/* Main Content Card */}
+            <div className="relative z-10 w-full max-w-4xl px-8 flex flex-col items-center">
+
+                {/* Badge */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 0.8 }}
+                    className="mb-8"
+                >
+                    <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl text-primary-foreground shadow-2xl">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-bold tracking-[0.3em] uppercase bg-gradient-to-r from-white to-white/50 bg-clip-text text-transparent">
+                            Blessed Insight Premium
+                        </span>
                     </div>
-                </div>
+                </motion.div>
 
-                <h1 className="text-5xl md:text-7xl font-serif text-white mb-6 drop-shadow-2xl">
-                    Biblia de Estudio
-                </h1>
+                {/* Main Title */}
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7, duration: 1 }}
+                    className="text-center mb-8"
+                >
+                    <h1 className="text-6xl md:text-8xl font-serif font-black text-white leading-tight drop-shadow-2xl">
+                        EXPLORA LA <br />
+                        <span className="bg-gradient-to-b from-white to-gray-500 bg-clip-text text-transparent">VERDAD ETERNA</span>
+                    </h1>
+                </motion.div>
 
-                <p className="text-xl md:text-2xl text-white/90 font-serif italic mb-10 leading-relaxed max-w-2xl mx-auto">
-                    "Tu palabra es una lámpara a mis pies y una luz en mi camino."
-                    <span className="block not-italic text-sm mt-2 opacity-70">— Salmos 119:105</span>
-                </p>
+                {/* Subtitle / Verse */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.2, duration: 1.5 }}
+                    className="max-w-2xl text-center mb-12"
+                >
+                    <div className="h-px w-24 bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto mb-8" />
+                    <p className="text-xl md:text-2xl text-white/80 font-serif italic leading-relaxed">
+                        "En el principio era el Verbo, y el Verbo era con Dios, y el Verbo era Dios."
+                    </p>
+                    <span className="block mt-4 text-xs font-bold tracking-widest text-primary uppercase">Juan 1:1</span>
+                </motion.div>
 
-                <div className="flex flex-col items-center gap-4">
+                {/* Call to Action */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.5, duration: 0.8 }}
+                    className="flex flex-col items-center gap-6"
+                >
                     <Button
                         size="lg"
-                        onClick={handleStart}
-                        className="group relative h-16 px-10 text-xl bg-white text-black hover:bg-white/90 transition-all duration-300 rounded-full overflow-hidden shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                        onClick={onEnter}
+                        className="group relative h-20 px-12 text-2xl bg-white text-black hover:bg-white/95 transition-all duration-500 rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:-translate-y-1 hover:shadow-[0_25px_50px_rgba(0,0,0,0.5)]"
                     >
-                        <span className="relative z-10 flex items-center gap-3">
-                            Comenzar Experiencia
-                            <ChevronRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
+                        <span className="relative z-10 flex items-center gap-4 font-black">
+                            INICIAR ESTUDIO
+                            <ChevronRight className="h-8 w-8 transition-transform group-hover:translate-x-2" />
                         </span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     </Button>
 
-                    <p className="text-white/40 text-xs font-sans tracking-widest uppercase mt-4">
-                        Explora las escrituras con Inteligencia Artificial
-                    </p>
-                </div>
+                    <div className="flex items-center gap-8 text-white/40">
+                        <div className="flex items-center gap-2">
+                            <Microscope className="h-4 w-4" />
+                            <span className="text-[10px] uppercase font-black tracking-widest">Exégesis IA</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Languages className="h-4 w-4" />
+                            <span className="text-[10px] uppercase font-black tracking-widest">Multi-Versión</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Volume2 className="h-4 w-4" />
+                            <span className="text-[10px] uppercase font-black tracking-widest">Audio Humano</span>
+                        </div>
+                    </div>
+                </motion.div>
             </div>
 
-            {/* Ornamentos visuales */}
-            <div className="absolute bottom-10 left-10 hidden md:block">
-                <BookOpen className="text-white/10 h-32 w-32" />
-            </div>
-        </div>
+            {/* Subtle Vignette */}
+            <div className="absolute inset-0 pointer-events-none ring-[100px] ring-inset ring-black/40" />
+        </motion.div>
     );
 }
+
+import { Microscope, Languages, Volume2 } from 'lucide-react';

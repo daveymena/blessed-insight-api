@@ -29,11 +29,15 @@ const THEMES = [
 
 const BACKGROUNDS = [
     { id: "none", name: "Liso" },
-    { id: "dots", name: "Puntos" },
-    { id: "paper", name: "Sutil" },
-    { id: "misty-mountains", name: "Cumbres" },
+    { id: "pure-white", name: "Blanco Puro" },
+    { id: "misty-mountains", name: "Montañas" },
     { id: "calm-ocean", name: "Océano" },
-    { id: "warm-clouds", name: "Celestial" },
+    { id: "warm-clouds", name: "Cielos" },
+    { id: "nature-sunset", name: "Atardecer" },
+    { id: "deep-river", name: "Río Profundo" }, // Nuevo
+    { id: "paper", name: "Papel" },
+    { id: "soft-cream", name: "Crema" },
+    { id: "elegant-gray", name: "Gris Soft" },
 ];
 
 export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
@@ -44,7 +48,8 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
         lineHeight: 2,
         font: "serif",
         darkMode: false,
-        spanishEquivalent: false
+        spanishEquivalent: false,
+        textColor: "auto"
     });
 
     useEffect(() => {
@@ -238,22 +243,58 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
                             </div>
                         </div>
 
-                        {/* Opciones Avanzadas */}
+                        {/* Color de Texto Personalizado */}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2">
+                                <Palette className="w-5 h-5 text-primary" />
+                                <Label className="text-lg font-serif">Color de Letra</Label>
+                            </div>
+                            <div className="grid grid-cols-4 gap-2">
+                                {[
+                                    { id: "auto", name: "Auto", class: "bg-gradient-to-tr from-slate-200 to-slate-800 border" },
+                                    { id: "#000000", name: "Negro", class: "bg-black" },
+                                    { id: "#334155", name: "Gris", class: "bg-slate-700" },
+                                    { id: "#ffffff", name: "Blanco", class: "bg-white border" },
+                                    { id: "#713f12", name: "Oro", class: "bg-yellow-900" },
+                                    { id: "#1e3a8a", name: "Azul", class: "bg-blue-900" },
+                                    { id: "#4c0519", name: "Vino", class: "bg-rose-950" },
+                                    { id: "#14532d", name: "Verde", class: "bg-green-900" },
+                                ].map((color) => (
+                                    <div
+                                        key={color.id}
+                                        onClick={() => updateSetting("textColor", color.id)}
+                                        className={`
+                                            cursor-pointer rounded-lg p-2 flex flex-col items-center gap-2 border-2 transition-all
+                                            ${settings.textColor === color.id ? "border-primary bg-primary/5" : "border-transparent hover:border-muted"}
+                                        `}
+                                    >
+                                        <div className={`w-8 h-8 rounded-full shadow-sm ${color.class}`} />
+                                        <span className="text-[10px] font-medium text-center">{color.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Opciones Avanzadas - Fondos Escénicos */}
                         <div className="space-y-4">
                             <div className="flex items-center gap-2">
                                 <ImageIcon className="w-5 h-5 text-primary" />
-                                <Label className="text-lg font-serif">Textura de Fondo</Label>
+                                <Label className="text-lg font-serif">Paisajes y Texturas</Label>
                             </div>
-                            <div className="grid grid-cols-3 gap-2">
+                            <p className="text-xs text-muted-foreground mb-2">Selecciona un fondo vivo para tu lectura.</p>
+                            <div className="grid grid-cols-2 gap-2">
                                 {BACKGROUNDS.map((bg) => (
                                     <Button
                                         key={bg.id}
                                         variant={settings.background === bg.id ? "default" : "outline"}
                                         size="sm"
                                         onClick={() => updateSetting("background", bg.id)}
-                                        className="h-9 rounded-lg"
+                                        className="h-auto py-2 flex flex-col items-start gap-1 text-left whitespace-normal h-full"
                                     >
-                                        {bg.name}
+                                        <span className="font-semibold">{bg.name}</span>
+                                        {["misty-mountains", "calm-ocean", "nature-sunset", "warm-clouds"].includes(bg.id) && (
+                                            <span className="text-[10px] opacity-70">Paisaje Natural</span>
+                                        )}
                                     </Button>
                                 ))}
                             </div>
@@ -261,7 +302,7 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
 
                     </div>
                 </ScrollArea>
-            </DialogContent>
-        </Dialog>
+            </DialogContent >
+        </Dialog >
     );
 }
