@@ -227,6 +227,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
   const [responseTime, setResponseTime] = useState<number | null>(null);
   const [fromCache, setFromCache] = useState(false);
   const [topic, setTopic] = useState('');
+  const [customReference, setCustomReference] = useState(''); // Nueva: referencia personalizada para exégesis
   const [noteContent, setNoteContent] = useState('');
   const [notes, setNotes] = useState<StudyNote[]>([]);
   const [planDuration, setPlanDuration] = useState(7);
@@ -273,7 +274,12 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
 
   const handleExegesis = async () => {
     if (!book) return;
-    const cacheKey = `exegesis_${book.id}_${chapter}`;
+
+    // Usar referencia personalizada si está disponible
+    const referenceToAnalyze = customReference.trim() || `${book.name} ${chapter}`;
+    const textToAnalyze = customReference.trim() ? customReference : passageText;
+    const cacheKey = `exegesis_${customReference.trim() || `${book.id}_${chapter}`}`;
+
     const cached = getCachedResponse(cacheKey);
 
     if (cached) {
@@ -288,7 +294,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
     setFromCache(false);
     const startTime = Date.now();
 
-    const result = await performExegesis(passageText, book.name, chapter);
+    const result = await performExegesis(textToAnalyze, book.name, chapter);
 
     setResponseTime(Date.now() - startTime);
     setResponse(result.content);
@@ -546,7 +552,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
                       Estudio profundo del texto bíblico con contexto histórico, análisis lingüístico y aplicación
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-6">
                     <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg">
                       <p className="font-medium text-indigo-800 dark:text-indigo-200">
                         📖 Pasaje actual: {book?.name || 'Ninguno'} {chapter}
@@ -557,13 +563,29 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
                         </p>
                       )}
                     </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                        Pasaje o pregunta específica
+                      </label>
+                      <Input
+                        value={customReference}
+                        onChange={(e) => setCustomReference(e.target.value)}
+                        placeholder={`Ej: Juan 3:16, o pregunta sobre ${book?.name || 'este pasaje'}...`}
+                        className="bg-background/50 h-11 border-indigo-200 dark:border-indigo-800"
+                      />
+                      <p className="text-[10px] text-muted-foreground italic">
+                        💡 Puedes analizar cualquier versículo o hacer una pregunta específica del texto.
+                      </p>
+                    </div>
+
                     <Button
                       onClick={handleExegesis}
                       disabled={loading || !book}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700"
+                      className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 shadow-md transition-all font-semibold"
                     >
                       {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                      Realizar Exégesis Completa
+                      {loading ? 'Analizando...' : customReference.trim() ? `Analizar "${customReference.trim()}"` : 'Realizar Exégesis Completa'}
                     </Button>
                   </CardContent>
                 </Card>
