@@ -1,15 +1,5 @@
-// Servicio de Estudio Personal Sincronizado (Cloud)
-// Lógica para Notas, Historial y Conversaciones persistentes
-
-const API_BASE_URL = '/api';
-
-async function getHeaders() {
-    const token = localStorage.getItem('auth_token');
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-    };
-}
+// Servicio de Estudio Personal Sincronizado (Local Fallback)
+// Lógica para Notas, Historial y Conversaciones persistentes usando LocalStorage
 
 export interface Note {
     id: string;
@@ -34,82 +24,108 @@ export interface Message {
     content: string;
 }
 
+const STORAGE_KEYS = {
+    NOTES: 'bible_study_notes_v2',
+    CONVERSATIONS: 'bible_conversations_v1',
+    MESSAGES: 'bible_messages_v1',
+};
+
 export const personalStudyService = {
     // === NOTAS ===
     async getNotes(): Promise<Note[]> {
         try {
-            const response = await fetch(`${API_BASE_URL}/notes`, {
-                headers: await getHeaders()
-            });
-            if (!response.ok) return [];
-            return response.json();
+            const saved = localStorage.getItem(STORAGE_KEYS.NOTES);
+            return saved ? JSON.parse(saved) : [];
         } catch (e) {
-            console.error('Error fetching cloud notes:', e);
+            console.error('Error fetching notes:', e);
             return [];
         }
     },
 
     async saveNote(note: Omit<Note, 'id' | 'updatedAt'>): Promise<Note | null> {
         try {
-            const response = await fetch(`${API_BASE_URL}/notes`, {
-                method: 'POST',
-                headers: await getHeaders(),
-                body: JSON.stringify(note)
-            });
-            if (!response.ok) return null;
-            return response.json();
+            const notes = await this.getNotes();
+
+            // Buscar si ya existe una nota para este versículo
+            const existingIndex = notes.findIndex(n =>
+                n.bookId === note.bookId &&
+                n.chapter === note.chapter &&
+                n.verse === note.verse
+            );
+
+            const updatedNote: Note = {
+                ...note,
+                id: existingIndex >= 0 ? notes[existingIndex].id : `note_${Date.now()}`,
+                updatedAt: new Date().toISOString()
+            };
+
+            if (existingIndex >= 0) {
+                notes[existingIndex] = updatedNote;
+            } else {
+                notes.push(updatedNote);
+            }
+
+            localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
+            return updatedNote;
         } catch (e) {
-            console.error('Error saving cloud note:', e);
+            console.error('Error saving note:', e);
             return null;
         }
     },
 
     async deleteNote(id: string): Promise<boolean> {
         try {
-            const response = await fetch(`${API_BASE_URL}/notes/${id}`, {
-                method: 'DELETE',
-                headers: await getHeaders()
-            });
-            return response.ok;
+            const notes = await this.getNotes();
+            const filtered = notes.filter(n => n.id !== id);
+            localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(filtered));
+            return true;
         } catch (e) {
             return false;
         }
     },
 
-    // === CONVERSACIONES (IA MEMORY) ===
+    // === CONVERSACIONES ===
     async getConversations(): Promise<Conversation[]> {
-        try {
-            const response = await fetch(`${API_BASE_URL}/conversations`, {
-                headers: await getHeaders()
-            });
-            if (!response.ok) return [];
-            return response.json();
-        } catch (e) {
-            return [];
-        }
+        const saved = localStorage.getItem(STORAGE_KEYS.CONVERSATIONS);
+        return saved ? JSON.parse(saved) : [];
     },
 
     async getMessages(conversationId: string): Promise<Message[]> {
-        try {
-            const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}/messages`, {
-                headers: await getHeaders()
-            });
-            if (!response.ok) return [];
-            return response.json();
-        } catch (e) {
-            return [];
-        }
+        const saved = localStorage.getItem(STORAGE_KEYS.MESSAGES);
+        const allMessages: Message[] = saved ? JSON.parse(saved) : [];
+        return allMessages.filter(m => m.conversationId === conversationId);
     },
 
     async saveMessage(data: { conversationId?: string; role: string; content: string; title?: string }): Promise<{ conversationId: string; message: Message } | null> {
         try {
-            const response = await fetch(`${API_BASE_URL}/conversations`, {
-                method: 'POST',
-                headers: await getHeaders(),
-                body: JSON.stringify(data)
-            });
-            if (!response.ok) return null;
-            return response.json();
+            const convId = data.conversationId || `conv_${Date.now()}`;
+
+            // Guardar/Actualizar Conversación
+            const conversations = await this.getConversations();
+            if (!conversations.find(c => c.id === convId)) {
+                conversations.push({
+                    id: convId,
+                    title: data.title || (data.content.substring(0, 30) + '...'),
+                    updatedAt: new Date().toISOString()
+                });
+                localStorage.setItem(STORAGE_KEYS.CONVERSATIONS, JSON.stringify(conversations));
+            }
+
+            // Guardar Mensaje
+            const messages = await this.getMessages(convId);
+            const newMessage: Message = {
+                id: `msg_${Date.now()}`,
+                conversationId: convId,
+                role: data.role as 'user' | 'assistant',
+                content: data.content
+            };
+
+            const savedMessages = localStorage.getItem(STORAGE_KEYS.MESSAGES);
+            const allMessages: Message[] = savedMessages ? JSON.parse(savedMessages) : [];
+            allMessages.push(newMessage);
+            localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(allMessages));
+
+            return { conversationId: convId, message: newMessage };
         } catch (e) {
             return null;
         }

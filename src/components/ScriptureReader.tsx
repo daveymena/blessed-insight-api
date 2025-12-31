@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Loader2, Volume2, Wifi, Heart, BookOpen, Languages, Sparkles, ChevronDown, ChevronUp, MoreVertical, Check, Columns } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Volume2, Wifi, Heart, BookOpen, Languages, Sparkles, ChevronDown, ChevronUp, MoreVertical, Check, Columns, Trash2, FileEdit } from 'lucide-react';
+import { cn } from "@/lib/utils";
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -93,10 +94,6 @@ export function ScriptureReader({
   const currentVersionId = getVersion();
 
   useEffect(() => {
-    setVersionDisplay(getCurrentVersionInfo());
-  }, [passage, chapter]);
-
-  useEffect(() => {
     if (user && book) {
       personalStudyService.getNotes().then(allNotes => {
         const chapterNotes = allNotes.filter(n => n.bookId === book.id && n.chapter === chapter);
@@ -149,19 +146,42 @@ export function ScriptureReader({
     setAnalysisLoading(false);
   };
 
-  const handleHighlight = async (color: string) => {
+  const HIGHLIGHT_COLORS = [
+    { id: 'yellow', bg: 'bg-yellow-200/40 dark:bg-yellow-900/40', border: 'border-l-yellow-400', dot: 'bg-yellow-400' },
+    { id: 'green', bg: 'bg-green-200/40 dark:bg-green-900/40', border: 'border-l-green-400', dot: 'bg-green-400' },
+    { id: 'blue', bg: 'bg-blue-200/40 dark:bg-blue-900/40', border: 'border-l-blue-400', dot: 'bg-blue-400' },
+    { id: 'red', bg: 'bg-red-200/40 dark:bg-red-900/40', border: 'border-l-red-400', dot: 'bg-red-400' },
+    { id: 'purple', bg: 'bg-purple-200/40 dark:bg-purple-900/40', border: 'border-l-purple-400', dot: 'bg-purple-400' },
+  ];
+
+  const handleHighlight = async (colorClasses: string) => {
     if (selectedVerseIndex < 0 || !passage?.verses[selectedVerseIndex]) return;
     const verseNum = passage.verses[selectedVerseIndex].verse;
+
     try {
       const existingNote = notes.find(n => n.verse === verseNum);
-      await personalStudyService.saveNote({
-        bookId: book!.id, chapter, verse: verseNum, content: existingNote ? existingNote.content : '', color
-      });
+
+      if (!colorClasses) {
+        // Si no hay color, estamos "borrando" el resaltado
+        if (existingNote && existingNote.id) {
+          await personalStudyService.deleteNote(existingNote.id);
+        }
+      } else {
+        await personalStudyService.saveNote({
+          bookId: book!.id,
+          chapter,
+          verse: verseNum,
+          content: existingNote ? existingNote.content : '',
+          color: colorClasses
+        });
+      }
+
       const all = await personalStudyService.getNotes();
       setNotes(all.filter(n => n.bookId === book?.id && n.chapter === chapter));
       setSelectedVerseIndex(-1);
+      toast.success(colorClasses ? 'Resaltado guardado' : 'Resaltado eliminado');
     } catch (e) {
-      toast.error('Error al resaltar');
+      toast.error('Error al actualizar resaltado');
     }
   };
 
@@ -210,11 +230,11 @@ export function ScriptureReader({
       return (
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${book.id}-${chapter}-${currentVersionId}`}
-            initial={{ opacity: 0, y: 12, filter: "blur(4px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -12, filter: "blur(4px)" }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            key={`${book.id}-${chapter}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             className="min-h-[60vh]"
           >
             {showAudioPlayer && (
@@ -231,17 +251,68 @@ export function ScriptureReader({
                   key={`${verse.chapter}-${verse.verse}`}
                   id={`verse-${verse.verse}`}
                   onClick={() => setSelectedVerseIndex(selectedVerseIndex === index ? -1 : index)}
-                  className={`mb-4 transition-all p-2 rounded-lg cursor-pointer ${highlightedVerse === index ? 'bg-primary/20' : selectedVerseIndex === index ? 'bg-primary/5 ring-1 ring-primary/30' : notes.find(n => n.verse === verse.verse)?.color || ''}`}
-                >
-                  <sup className={`verse-number font-bold mr-2 select-none ${hasScenicBackground ? '!text-amber-200/90 drop-shadow-sm' : '!text-primary/70'}`}>{verse.verse}</sup>
-                  <span dangerouslySetInnerHTML={{ __html: verse.text }} />
-                  {selectedVerseIndex === index && (
-                    <div className="mt-2 p-2 bg-card border rounded-lg flex gap-2">
-                      <button onClick={() => handleHighlight('bg-yellow-200/50')} className="w-6 h-6 rounded-full bg-yellow-200" />
-                      <button onClick={() => handleHighlight('bg-green-200/50')} className="w-6 h-6 rounded-full bg-green-200" />
-                      <Button variant="ghost" size="sm" onClick={() => setIsNoteDialogOpen(true)}>Nota</Button>
-                    </div>
+                  className={cn(
+                    "mb-2 transition-all p-3 rounded-lg cursor-pointer border-l-4 border-transparent hover:bg-muted/30",
+                    highlightedVerse === index && "bg-primary/20",
+                    selectedVerseIndex === index && "bg-primary/5 ring-1 ring-primary/30",
+                    notes.find(n => n.verse === verse.verse)?.color
                   )}
+                >
+                  <sup className={cn(
+                    "verse-number font-bold mr-2 select-none",
+                    hasScenicBackground ? "text-amber-200/90 drop-shadow-sm" : "text-primary/60"
+                  )}>{verse.verse}</sup>
+                  <span dangerouslySetInnerHTML={{ __html: verse.text }} />
+
+                  <AnimatePresence>
+                    {selectedVerseIndex === index && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                        className="mt-3 p-2 bg-popover border border-border shadow-xl rounded-xl flex items-center gap-2 w-fit"
+                      >
+                        {HIGHLIGHT_COLORS.map((c) => (
+                          <button
+                            key={c.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleHighlight(`${c.bg} ${c.border}`);
+                            }}
+                            className={cn(
+                              "w-8 h-8 rounded-full border-2 border-transparent transition-transform hover:scale-110",
+                              c.dot,
+                              notes.find(n => n.verse === verse.verse)?.color?.includes(c.id) && "ring-2 ring-primary ring-offset-2"
+                            )}
+                          />
+                        ))}
+                        <div className="w-px h-6 bg-border mx-1" />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="w-8 h-8 rounded-full text-destructive hover:bg-destructive/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleHighlight('');
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 gap-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsNoteDialogOpen(true);
+                          }}
+                        >
+                          <FileEdit className="h-3.5 w-3.5" />
+                          <span>Nota</span>
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               ))}
             </article>
