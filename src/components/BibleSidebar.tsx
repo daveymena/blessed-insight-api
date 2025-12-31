@@ -105,8 +105,12 @@ export function BibleSidebar({
               chapters={chapters}
               selectedChapter={selectedChapter}
               onSelectChapter={(chapter) => {
-                onSelectChapter(chapter);
                 onClose();
+                // Pequeño delay para permitir que el sidebar se cierre suavemente antes de cargar
+                // esto evita el "jank" o inestabilidad en móviles
+                setTimeout(() => {
+                  onSelectChapter(chapter);
+                }, 350);
               }}
             />
           )}
