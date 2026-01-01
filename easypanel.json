@@ -29,19 +29,19 @@
         },
         {
           "name": "VITE_GROQ_API_KEY",
-          "value": "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"
+          "value": ""
         },
         {
           "name": "VITE_GROQ_API_KEY_2",
-          "value": "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"
+          "value": ""
         },
         {
           "name": "VITE_GROQ_API_KEY_3",
-          "value": "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"
+          "value": ""
         },
         {
           "name": "VITE_GROQ_API_KEY_4",
-          "value": "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"
+          "value": ""
         }
       ],
       "domains": [
