@@ -83,33 +83,9 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
   // Timeout dinámico basado en tokens solicitados
   const timeout = Math.max(60000, maxTokens * 20); // Mínimo 60s, más para respuestas largas
 
-  // 1. Intentar via proxy backend (desarrollo local)
-  if (API_BASE_URL) {
-    try {
-      console.log(`📡 Ollama via proxy: ${API_BASE_URL}/api/ai/ollama/generate`);
-      const response = await withTimeout(
-        fetch(`${API_BASE_URL}/api/ai/ollama/generate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: userPrompt, system: systemPrompt, maxTokens }),
-        }),
-        timeout
-      );
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.content) {
-          console.log(`✅ Ollama (proxy) respondió en ${Date.now() - startTime}ms`);
-          return { success: true, content: data.content, provider: 'ollama', timeMs: Date.now() - startTime };
-        }
-      }
-    } catch (error) {
-      console.warn(`⚠️ Proxy falló: ${error instanceof Error ? error.message : 'Error'}`);
-    }
-  }
-
-  // 2. Intentar proxy Nginx interno (producción EasyPanel)
+  // Intentar via Proxy (Nginx en Prod / Vite en Dev)
   try {
-    console.log(`📡 Solicitando exégesis via Nginx... (/api/ollama/api/generate)`);
+    console.log(`📡 Consultando a Biblo (Ollama)...`);
     const response = await withTimeout(
       fetch('/api/ollama/api/generate', {
         method: 'POST',
@@ -127,15 +103,14 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
     if (response.ok) {
       const data = await response.json();
       if (data.response) {
-        console.log(`✅ Ollama respondió con éxito (${Date.now() - startTime}ms)`);
+        console.log(`✅ Respuesta recibida con éxito (${Date.now() - startTime}ms)`);
         return { success: true, content: data.response, provider: 'ollama', timeMs: Date.now() - startTime };
       }
     } else {
-      console.warn(`🛑 Proxy Nginx devolvió error: ${response.status} ${response.statusText}`);
+      console.warn(`🛑 El servidor de IA respondió con error: ${response.status}`);
     }
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-    console.error(`❌ Fallo crítico en Proxy Nginx: ${errorMsg}`);
+    console.error(`❌ Error de conexión con Biblo: ${error instanceof Error ? error.message : 'Error de red'}`);
   }
 
   // 3. Fallback: URL externa directa (puede tener CORS)
