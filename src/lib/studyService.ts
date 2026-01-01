@@ -11,6 +11,7 @@ Responde en español con profundidad académica pero lenguaje accesible.`;
 const BIBLE_EXPERT_SIMPLE = `Eres un guía bíblico experto. Responde en español con profundidad teológica.`;
 
 // ============ EXÉGESIS ============
+// ============ EXÉGESIS (VERSIÓN LIGERA) ============
 export async function performExegesis(
   passage: string,
   bookName: string,
@@ -20,43 +21,26 @@ export async function performExegesis(
   const reference = customReference || `${bookName} ${chapter}`;
 
   const messages = [
-    { role: 'system' as const, content: BIBLE_SCHOLAR },
+    { role: 'system' as const, content: BIBLE_EXPERT_SIMPLE },
     {
-      role: 'user' as const, content: `ANÁLISIS EXEGÉTICO DE ${reference}:
-${passage ? `"${passage.substring(0, 1000)}"` : ''}
+      role: 'user' as const, content: `ANÁLISIS BÍBLICO ESENCIAL DE ${reference}:
+${passage ? `"${passage.substring(0, 800)}"` : ''}
 
-📜 CONTEXTO HISTÓRICO-CULTURAL
-- Autor, fecha de composición, audiencia original
-- Situación histórica del pueblo en ese momento
-- Costumbres o eventos relevantes para entender el texto
+1. 📜 CONTEXTO ESENCIAL
+- Breve resumen de qué está pasando aquí.
 
-📖 ANÁLISIS LITERARIO
-- Género literario (narrativa, poesía, profecía, epístola)
-- Estructura del pasaje y conexión con el contexto
+2. 🔍 SIGNIFICADO CLAVE
+- ¿Cuál es el mensaje principal de este texto?
+- Explicación sencilla de conceptos difíciles si los hay.
 
-🔤 TEXTO ORIGINAL
-- Palabras clave en hebreo/griego con significado raíz
-- Matices importantes que se pierden en traducción
-- Figuras retóricas o expresiones idiomáticas
+3. 💡 ENSEÑANZAS PRÁCTICAS
+- 3 aplicaciones claras para la vida diaria del creyente hoy.
 
-⛪ PERSPECTIVAS TEOLÓGICAS
-- Qué revela sobre el carácter de Dios
-- Interpretación reformada vs arminiana si aplica
-- Qué dice CLARAMENTE el texto sin añadir tradiciones
-
-🔗 REFERENCIAS CRUZADAS
-- Pasajes paralelos que iluminan este texto
-- Conexiones AT-NT
-
-💡 APLICACIÓN
-- Significado para la audiencia original
-- Principios eternos para hoy
-- Preguntas de reflexión
-
-🙏 ORACIÓN basada en el texto` }
+4. 🙏 ORACIÓN DE RESPUESTA
+- Una oración corta basada en lo aprendido.` }
   ];
 
-  return callAI(messages, 2000);
+  return callAI(messages, 1500);
 }
 
 // ============ ESTUDIO TEMÁTICO ============
