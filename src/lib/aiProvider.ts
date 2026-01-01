@@ -3,7 +3,6 @@
 
 const OLLAMA_BASE_URL = import.meta.env.VITE_OLLAMA_BASE_URL || 'https://ollama-ollama.ginee6.easypanel.host';
 const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'gemma2:2b';
-const USE_OLLAMA = import.meta.env.VITE_USE_OLLAMA === 'true';
 const GROQ_MODEL = import.meta.env.VITE_GROQ_MODEL || 'llama-3.1-8b-instant';
 
 // Recolectar todas las API keys de Groq
@@ -71,11 +70,19 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 // Llamar a Ollama (optimizado)
 async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIResponse> {
   const startTime = Date.now();
-  if (!USE_OLLAMA) return { success: false, content: '', provider: 'ollama' };
+  
+  // Siempre intentar Ollama si hay URL configurada
+  if (!OLLAMA_BASE_URL) {
+    console.warn('🛑 Ollama: No hay URL configurada');
+    return { success: false, content: '', provider: 'ollama' };
+  }
+  
   try {
     const systemPrompt = messages.find(m => m.role === 'system')?.content || '';
     const userPrompt = messages.filter(m => m.role !== 'system').map(m => m.content).join('\n');
 
+    console.log(`📡 Llamando a Ollama: ${OLLAMA_BASE_URL}/api/generate`);
+    
     const response = await withTimeout(
       fetch(`${OLLAMA_BASE_URL}/api/generate`, {
         method: 'POST',
@@ -96,6 +103,7 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
     if (response.ok) {
       const data = await response.json();
       if (data.response) {
+        console.log(`✅ Ollama respondió en ${Date.now() - startTime}ms`);
         return {
           success: true,
           content: data.response,
@@ -147,10 +155,19 @@ async function callGroq(messages: AIMessage[], maxTokens: number): Promise<AIRes
           timeMs: Date.now() - startTime
         };
       }
+    } else if (response.status === 401) {
+      // API Key inválida - marcar y NO reintentar infinitamente
+      console.warn(`🛑 Groq API Key inválida (key #${currentKeyIndex + 1})`);
+      markKeyAsFailed(apiKey);
+      // Solo reintentar si hay más keys disponibles
+      if (failedKeys.size < GROQ_API_KEYS.length) {
+        return callGroq(messages, maxTokens);
+      }
     } else if (response.status === 429 || response.status === 503) {
       markKeyAsFailed(apiKey);
-      // Reintentar con otra key
-      return callGroq(messages, maxTokens);
+      if (failedKeys.size < GROQ_API_KEYS.length) {
+        return callGroq(messages, maxTokens);
+      }
     }
   } catch (error) {
     console.warn(`🛑 Groq error: ${error instanceof Error ? error.message : 'Unknown error'}`);
