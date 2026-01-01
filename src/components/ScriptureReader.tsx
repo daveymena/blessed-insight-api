@@ -126,20 +126,38 @@ export function ScriptureReader({
     }
     setAnalysisLoading(true);
     setShowAnalysis(true);
-    const passageText = passage.verses.map(v => v.text).join(' ').substring(0, 600);
+    const passageText = passage.verses.map(v => v.text).join(' ').substring(0, 800);
     const messages = [
-      { role: 'system' as const, content: `Eres un teólogo bíblico experto. Responde en español de forma clara y concisa.` },
-      { role: 'user' as const, content: `Análisis de ${book.name} ${chapter}:
+      { role: 'system' as const, content: `Eres un teólogo bíblico experto. Principio: Sola Scriptura. Responde en español con profundidad académica.` },
+      { role: 'user' as const, content: `ANÁLISIS DE ${book.name} ${chapter}:
 "${passageText}"
 
-📖 RESUMEN: De qué trata el capítulo
-🔑 TEMAS: Ideas principales
-💎 VERSÍCULOS CLAVE: 2-3 versículos importantes
-💡 APLICACIÓN: Cómo aplicar hoy
-🙏 ORACIÓN: Breve oración` }
+📖 RESUMEN Y CONTEXTO
+- De qué trata este capítulo en el flujo del libro
+- Contexto histórico relevante
+
+🔑 TEMAS CENTRALES
+- Ideas principales que el autor comunica
+- Conexión con el mensaje global de las Escrituras
+
+💎 VERSÍCULOS CLAVE
+- 3 versículos más importantes y por qué
+
+🔤 PALABRAS SIGNIFICATIVAS
+- Términos hebreos/griegos importantes
+
+⛪ TEOLOGÍA
+- Qué revela sobre Dios
+- Qué enseña sobre la humanidad
+
+💡 APLICACIÓN
+- Cómo debe impactar nuestra vida hoy
+- Una pregunta para reflexionar
+
+🙏 ORACIÓN breve basada en el texto` }
     ];
     try {
-      const result = await callAI(messages, 1000);
+      const result = await callAI(messages, 1500);
       setAnalysisContent(result.content);
       localStorage.setItem(cacheKey, JSON.stringify({ content: result.content, timestamp: Date.now() }));
     } catch (e) {
