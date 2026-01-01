@@ -16,6 +16,14 @@ const GROQ_API_KEYS: string[] = [
   import.meta.env.VITE_GROQ_API_KEY_4,
 ].filter(Boolean) as string[];
 
+// Debug: mostrar configuración al cargar
+console.log('🔧 AI Provider Config:', {
+  OLLAMA_BASE_URL,
+  OLLAMA_MODEL,
+  API_BASE_URL,
+  GROQ_KEYS: GROQ_API_KEYS.length
+});
+
 // Estado de rotación de keys
 let currentKeyIndex = 0;
 let failedKeys: Set<number> = new Set();
@@ -73,7 +81,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 // Llamar a Ollama (via proxy si está disponible, directo si no)
 async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIResponse> {
   const startTime = Date.now();
-  
+
   const systemPrompt = messages.find(m => m.role === 'system')?.content || '';
   const userPrompt = messages.filter(m => m.role !== 'system').map(m => m.content).join('\n');
 
@@ -81,7 +89,7 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
   if (API_BASE_URL) {
     try {
       console.log(`📡 Llamando a Ollama via proxy: ${API_BASE_URL}/api/ai/ollama/generate`);
-      
+
       const response = await withTimeout(
         fetch(`${API_BASE_URL}/api/ai/ollama/generate`, {
           method: 'POST',
@@ -92,7 +100,7 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
             maxTokens,
           }),
         }),
-        60000
+        15000
       );
 
       if (response.ok) {
@@ -117,10 +125,10 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
     console.warn('🛑 Ollama: No hay URL configurada');
     return { success: false, content: '', provider: 'ollama' };
   }
-  
+
   try {
     console.log(`📡 Llamando a Ollama directo: ${OLLAMA_BASE_URL}/api/generate`);
-    
+
     const response = await withTimeout(
       fetch(`${OLLAMA_BASE_URL}/api/generate`, {
         method: 'POST',
@@ -135,7 +143,7 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
           },
         }),
       }),
-      60000
+      15000
     );
 
     if (response.ok) {
@@ -179,7 +187,7 @@ async function callGroq(messages: AIMessage[], maxTokens: number): Promise<AIRes
           max_tokens: maxTokens,
         }),
       }),
-      45000 // 45 segundos timeout
+      25000 // 25 segundos timeout
     );
 
     if (response.ok) {
@@ -214,70 +222,44 @@ async function callGroq(messages: AIMessage[], maxTokens: number): Promise<AIRes
   return { success: false, content: '', provider: 'groq' };
 }
 
-// FUNCIÓN PRINCIPAL: Llamadas PARALELAS - devuelve la primera respuesta EXITOSA
+// FUNCIÓN PRINCIPAL: Prioridad OLLAMA -> Fallback GROQ
 export async function callAI(messages: AIMessage[], maxTokens: number = 2000): Promise<AIResponse> {
   const startTime = Date.now();
 
-  // Lanzar ambas llamadas en paralelo
-  const ollamaPromise = callOllama(messages, maxTokens);
-  const groqPromise = callGroq(messages, maxTokens);
+  // 1. Intentar PRIMERO con Ollama (Principal)
+  console.log('🚀 Iniciando consulta con IA Principal (Ollama)...');
+  const ollamaResult = await callOllama(messages, maxTokens);
 
-  return new Promise((resolve) => {
-    let finishedCount = 0;
-    let resolved = false;
+  if (ollamaResult.success) {
+    return ollamaResult;
+  }
 
-    const handleResult = (result: AIResponse) => {
-      finishedCount++;
+  console.warn('⚠️ Ollama falló o no respondió. Activando respaldo (Groq)...');
 
-      // Si el proveedor tuvo éxito y no hemos respondido aún, resolvemos de inmediato
-      if (result.success && !resolved) {
-        resolved = true;
-        console.log(`✓ IA: Respuesta recibida de ${result.provider.toUpperCase()} en ${result.timeMs}ms`);
-        resolve(result);
-        return;
-      }
+  // 2. Si Ollama falla, intentar con Groq (Respaldo)
+  const groqResult = await callGroq(messages, maxTokens);
 
-      // Si ambos fallaron y nadie ha respondido (porque ambos fueron success: false)
-      if (finishedCount === 2 && !resolved) {
-        resolved = true;
-        console.warn('❌ IA: Ambos proveedores de primer nivel fallaron.');
+  if (groqResult.success) {
+    return groqResult;
+  }
 
-        resolve({
-          success: false,
-          content: 'No se pudo conectar con ningún servicio de Biblo (IA). Revisa tu conexión o las claves en la configuración.',
-          provider: 'error',
-          timeMs: Date.now() - startTime
-        });
-      }
-    };
-
-    // Escuchar a ambos sin bloquear el uno al otro
-    ollamaPromise.then(handleResult).catch(() => handleResult({ success: false, content: '', provider: 'ollama' }));
-    groqPromise.then(handleResult).catch(() => handleResult({ success: false, content: '', provider: 'groq' }));
-
-    // Safety timeout total de la función por si algo queda en el limbo
-    setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        resolve({
-          success: false,
-          content: 'Tiempo de espera agotado. Revisa tu conexión o intenta más tarde.',
-          provider: 'error',
-          timeMs: Date.now() - startTime
-        });
-      }
-    }, 50000); // 50s total safety
-  });
+  // 3. Si ambos fallan
+  return {
+    success: false,
+    content: 'No se pudo conectar con Biblo. Por favor verifica que el servidor de IA esté activo.',
+    provider: 'error',
+    timeMs: Date.now() - startTime
+  };
 }
 
 // Versión RÁPIDA para respuestas cortas (preguntas simples)
 export async function callAIFast(messages: AIMessage[]): Promise<AIResponse> {
-  return callAI(messages, 1000);
+  return callAI(messages, 1200);
 }
 
-// Versión para respuestas largas (exégesis, planes)
+// Versión para respuestas largas (exégesis profunda, estudios teológicos)
 export async function callAIDetailed(messages: AIMessage[]): Promise<AIResponse> {
-  return callAI(messages, 3000);
+  return callAI(messages, 4500);
 }
 
 // Info del estado

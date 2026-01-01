@@ -4,11 +4,20 @@
 import { callAI, callAIFast, callAIDetailed, type AIResponse } from './aiProvider';
 
 // ============ CONTEXTO DEL SISTEMA PARA EXÉGESIS PROFUNDA ============
-const BIBLE_SCHOLAR = `Eres un mentor bíblico erudito y guía espiritual. 
-Tu misión es explicar las Escrituras de forma clara, profunda y crítica, enfocándote en lo que el texto dice realmente.
-Evita enfatizar debates doctrinales complejos (como trinitarismo o unicitismo) a menos que sea esencial para el texto. 
-Prioriza la realidad del texto bíblico y lo que pensadores serios han postulado de forma objetiva.
-Usa un lenguaje sencillo que cualquier persona, incluso si no conoce nada de la Biblia, pueda comprender perfectamente, manteniendo el rigor bíblico.`;
+const BIBLE_SCHOLAR = `Eres un teólogo bíblico con formación en seminario, especializado en exégesis y hermenéutica.
+PRINCIPIO FUNDAMENTAL: Sola Scriptura - La Biblia interpreta a la Biblia. El texto bíblico es la autoridad final.
+
+Tu enfoque:
+- Análisis riguroso del texto original (hebreo/griego)
+- Contexto histórico-cultural verificable
+- Múltiples perspectivas cristianas (reformada, pentecostal, arminiana, etc.)
+- Aplicación práctica fundamentada en el texto
+- Lenguaje accesible pero académicamente sólido
+
+NO hagas:
+- Imponer tradiciones humanas sobre el texto
+- Dar interpretaciones dogmáticas sin base textual
+- Ignorar pasajes difíciles o controversiales`;
 
 const BIBLE_EXPERT_SIMPLE = `Eres un guía bíblico experto y mentor espiritual.
 Principio: La Biblia es la autoridad final. Responde de forma clara y profunda.`;
@@ -23,12 +32,68 @@ export async function performExegesis(
   const reference = customReference || `${bookName} ${chapter}`;
 
   const messages = [
-    { role: 'system' as const, content: `${BIBLE_SCHOLAR} Responde de forma relajada y fluida, evita la fragmentación excesiva.` },
+    { role: 'system' as const, content: BIBLE_SCHOLAR },
     {
-      role: 'user' as const, content: `Realiza un estudio exegético de ${reference}. 
-${passage ? `Refiriéndote a: "${passage.substring(0, 1000)}"` : ''}
+      role: 'user' as const, content: `ANÁLISIS EXEGÉTICO PROFUNDO DE ${reference.toUpperCase()}
 
-Presenta la información de forma coherente y natural, integrando el contexto histórico, el análisis de originales y la aplicación práctica en un texto fluido y profundo.` }
+${passage ? `TEXTO A ANALIZAR:\n"${passage.substring(0, 1500)}"\n` : ''}
+
+Desarrolla un estudio exegético COMPLETO siguiendo esta metodología:
+
+📜 1. CONTEXTO HISTÓRICO-CULTURAL
+- ¿Quién escribió este libro y cuándo? (fecha aproximada, evidencias)
+- ¿Cuál era la situación histórica del pueblo en ese momento?
+- ¿A quién se dirigía originalmente este mensaje?
+- Costumbres, geografía o eventos relevantes para entender el texto
+
+📖 2. CONTEXTO LITERARIO
+- ¿Qué tipo de literatura es? (narrativa, poesía, profecía, epístola, apocalíptica)
+- ¿Cómo se conecta con los capítulos anteriores y posteriores?
+- ¿Cuál es el argumento o flujo del libro completo?
+- Estructura del pasaje (divisiones naturales del texto)
+
+🔤 3. ANÁLISIS DEL TEXTO ORIGINAL
+- Palabras clave en hebreo/griego con su significado raíz
+- Matices que se pierden en la traducción al español
+- Tiempos verbales significativos
+- Figuras retóricas o expresiones idiomáticas
+
+🔗 4. REFERENCIAS CRUZADAS ESENCIALES
+- Pasajes paralelos que iluminan este texto
+- Cómo otros autores bíblicos tratan el mismo tema
+- Conexiones Antiguo-Nuevo Testamento
+- Citas o alusiones a otros textos bíblicos
+
+⛪ 5. PERSPECTIVAS TEOLÓGICAS CRISTIANAS
+Presenta cómo diferentes tradiciones cristianas interpretan este pasaje:
+- Perspectiva REFORMADA (Calvino, teología de la gracia)
+- Perspectiva ARMINIANA (libre albedrío, gracia resistible)
+- Perspectiva PENTECOSTAL (énfasis en el Espíritu, dones)
+- Perspectiva ANABAPTISTA (discipulado radical, no violencia)
+- ¿Qué dice CLARAMENTE el texto sin añadir interpretaciones?
+
+⚠️ 6. DIFICULTADES Y CONTROVERSIAS
+- Pasajes difíciles de interpretar y por qué
+- Diferentes lecturas textuales si las hay
+- Preguntas que el texto deja abiertas
+- Errores comunes de interpretación
+
+💎 7. TESOROS TEOLÓGICOS
+- Verdades centrales sobre Dios reveladas aquí
+- Verdades sobre la humanidad
+- Verdades sobre la salvación/redención
+- Verdades sobre la vida cristiana
+
+💡 8. APLICACIÓN PRÁCTICA
+- ¿Qué significaba para la audiencia original?
+- ¿Qué principios eternos podemos extraer?
+- ¿Cómo debe cambiar nuestra vida hoy?
+- Preguntas de reflexión personal
+
+🙏 9. ORACIÓN BASADA EN EL TEXTO
+Una oración que responda a las verdades descubiertas.
+
+IMPORTANTE: Sé profundo, crítico y honesto. No simplifiques en exceso. Cita versículos específicos.` }
   ];
 
   return callAIDetailed(messages);
