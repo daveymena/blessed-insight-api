@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
+import { FormattedAIResponse } from './FormattedAIResponse';
 import {
   performExegesis,
   thematicStudy,
@@ -100,116 +102,7 @@ function StudyLoadingState({ time }: { time: number }) {
   );
 }
 
-// Componente para renderizar la respuesta de IA con formato profesional y espaciado
-function FormattedAIResponse({ content }: { content: string }) {
-  if (!content) return null;
-
-  // Dividir el contenido en secciones lógicas basadas en encabezados
-  const sections = content.split(/\n(?=[^\n]*[\p{Emoji}]+\s*[A-ZÁÉÍÓÚÑ]+)/u).filter(Boolean);
-
-  // Si no se detectan secciones claras, intentar formatear línea por línea pero mejorado
-  if (sections.length <= 1) {
-    return (
-      <div className="space-y-4 text-lg leading-relaxed text-foreground/90 font-serif">
-        {content.split('\n').map((line, i) => {
-          if (!line.trim()) return <div key={i} className="h-4" />;
-          return <p key={i} className="mb-2">{line}</p>;
-        })}
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-8 animate-slide-up">
-      {sections.map((section, idx) => {
-        const lines = section.split('\n');
-        const headerLine = lines[0];
-        const bodyLines = lines.slice(1);
-
-        // Extraer emoji y título
-        const headerMatch = headerLine.match(/^([\p{Emoji}]+)\s*(.+)$/u);
-        const icon = headerMatch ? headerMatch[1] : '📄';
-        const title = headerMatch ? headerMatch[2] : headerLine;
-
-        return (
-          <Card key={idx} className="overflow-hidden border-l-4 border-l-primary shadow-md hover:shadow-lg transition-shadow duration-300">
-            <div className="bg-gradient-to-r from-primary/5 to-transparent p-4 border-b border-primary/10">
-              <h3 className="text-xl font-bold text-primary flex items-center gap-3 font-serif">
-                <span className="text-3xl filter drop-shadow-sm">{icon}</span>
-                {title.replace(/\*\*/g, '')}
-              </h3>
-            </div>
-
-            <CardContent className="p-6 space-y-4 bg-card/50">
-              {bodyLines.map((line, i) => {
-                const trimmed = line.trim();
-                if (!trimmed) return null;
-
-                // Subtítulos
-                if (trimmed.startsWith('###') || (trimmed.match(/^[\p{Emoji}]+ /u) && trimmed.length < 50)) {
-                  return (
-                    <h4 key={i} className="text-lg font-semibold text-foreground/90 mt-4 mb-2 flex items-center gap-2">
-                      {trimmed.replace(/^[#\s]+/, '').replace(/\*\*/g, '')}
-                    </h4>
-                  );
-                }
-
-                // Listas con bullets
-                if (trimmed.startsWith('-') || trimmed.startsWith('•')) {
-                  return (
-                    <div key={i} className="flex gap-4 items-start ml-2 group">
-                      <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-primary/60 group-hover:bg-primary transition-colors shrink-0" />
-                      <p className="text-base leading-relaxed text-foreground/80 flex-1">
-                        {trimmed.replace(/^[-•]\s*/, '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
-                      </p>
-                    </div>
-                  );
-                }
-
-                // Listas numeradas
-                const numMatch = trimmed.match(/^(\d+)[\.\)]\s*(.+)$/);
-                if (numMatch) {
-                  return (
-                    <div key={i} className="flex gap-4 items-start ml-2 mb-3">
-                      <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-primary/10 text-primary font-bold flex items-center justify-center text-sm border border-primary/20">
-                        {numMatch[1]}
-                      </span>
-                      <p className="text-base leading-relaxed text-foreground/80 flex-1 pt-0.5"
-                        dangerouslySetInnerHTML={{
-                          __html: numMatch[2].replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground font-semibold">$1</strong>')
-                        }}
-                      />
-                    </div>
-                  );
-                }
-
-                // Citas bíblicas
-                if (trimmed.startsWith('"') || trimmed.startsWith('«')) {
-                  return (
-                    <blockquote key={i} className="my-6 pl-6 border-l-4 border-amber-500/50 bg-gradient-to-r from-amber-50 to-transparent dark:from-amber-950/30 p-4 rounded-r-xl italic text-lg text-foreground/80 font-serif shadow-sm">
-                      {trimmed.replace(/"/g, '')}
-                    </blockquote>
-                  );
-                }
-
-                // Párrafos normales con resaltado de negritas
-                return (
-                  <p key={i} className="text-base leading-8 text-foreground/80 font-normal tracking-wide text-balance mb-3"
-                    dangerouslySetInnerHTML={{
-                      __html: trimmed
-                        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary/90 font-bold">$1</strong>')
-                        .replace(/\(([^)]*(?:hebreo|griego)[^)]*)\)/gi, '<span class="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-md text-sm font-medium mx-1">$1</span>')
-                    }}
-                  />
-                );
-              })}
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  );
-}
+// El componente FormattedAIResponse ahora se importa externamente
 
 interface StudyCenterProps {
   book: BibleBook | null;
@@ -217,9 +110,10 @@ interface StudyCenterProps {
   passage: BiblePassage | undefined;
   isOpen: boolean;
   onClose: () => void;
+  isSidebar?: boolean;
 }
 
-export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCenterProps) {
+export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar }: StudyCenterProps) {
   const [activeTab, setActiveTab] = useState('exegesis');
   const [loading, setLoading] = useState(false);
   const [loadingTime, setLoadingTime] = useState(0);
@@ -466,44 +360,53 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-background z-50 flex flex-col">
+  const panelContent = (
+    <div className={cn("flex flex-col h-full bg-background overflow-hidden", isSidebar && "border-none")}>
       {/* Header Mejorado */}
-      <header className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 p-5 flex items-center justify-between shadow-xl z-10 relative overflow-hidden">
+      <header className={cn(
+        "bg-gradient-to-r from-primary via-primary/90 to-primary/80 flex items-center justify-between shadow-xl z-10 relative overflow-hidden",
+        isSidebar ? "p-3" : "p-5"
+      )}>
         <div className="absolute inset-0 bg-pattern-dots opacity-10 pointer-events-none" />
-        <div className="flex items-center gap-4 text-primary-foreground relative z-10">
-          <div className="bg-white/10 p-2.5 rounded-xl backdrop-blur-sm border border-white/20 shadow-inner">
-            <GraduationCap className="h-7 w-7" />
+        <div className="flex items-center gap-3 text-primary-foreground relative z-10">
+          <div className={cn("bg-white/10 rounded-xl backdrop-blur-sm border border-white/20 shadow-inner", isSidebar ? "p-1.5" : "p-2.5")}>
+            <GraduationCap className={cn(isSidebar ? "h-5 w-5" : "h-7 w-7")} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold font-serif tracking-wide">Centro de Estudio Profundo</h1>
-            <p className="text-xs text-primary-foreground/80 font-medium uppercase tracking-wider">Investigación Teológica y Exegética</p>
+            <h1 className={cn("font-bold font-serif tracking-wide", isSidebar ? "text-lg" : "text-2xl")}>
+              {isSidebar ? "Estudio" : "Centro de Estudio Profundo"}
+            </h1>
+            {!isSidebar && (
+              <p className="text-xs text-primary-foreground/80 font-medium uppercase tracking-wider">Investigación Teológica y Exegética</p>
+            )}
           </div>
         </div>
         <Button
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="text-primary-foreground hover:bg-white/20 rounded-full h-10 w-10 transition-transform hover:scale-105 active:scale-95"
+          className="text-primary-foreground hover:bg-white/20 rounded-full h-8 w-8 sm:h-10 sm:w-10 transition-transform hover:scale-105 active:scale-95"
         >
-          <X className="h-6 w-6" />
+          <X className="h-5 w-5 sm:h-6 sm:w-6" />
         </Button>
       </header>
 
-      {/* Stats Bar */}
-      <div className="bg-muted/50 border-b px-4 py-2 flex items-center gap-6 text-sm">
-        <div className="flex items-center gap-2">
-          <Flame className="h-4 w-4 text-orange-500" />
-          <span><strong>{stats.streak}</strong> días seguidos</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-4 w-4 text-blue-500" />
-          <span><strong>{stats.totalChapters}</strong> capítulos leídos</span>
+      {/* Stats Bar (Simple en Sidebar) */}
+      <div className="bg-muted/50 border-b px-3 py-1.5 flex items-center justify-between text-[10px] sm:text-xs">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <Flame className="h-3 w-3 text-orange-500" />
+            <span><strong>{stats.streak}</strong> días</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <BookOpen className="h-3 w-3 text-blue-500" />
+            <span><strong>{stats.totalChapters}</strong> cap.</span>
+          </div>
         </div>
         {book && (
-          <div className="flex items-center gap-2 ml-auto">
-            <BookMarked className="h-4 w-4 text-purple-500" />
-            <span>{book.name} {chapter}</span>
+          <div className="flex items-center gap-1 font-semibold text-primary/80">
+            <BookMarked className="h-3 w-3" />
+            <span>{book.abbrev} {chapter}</span>
           </div>
         )}
       </div>
@@ -516,9 +419,12 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <TabsList className="grid grid-cols-6 rounded-none border-b h-auto p-0">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+          <TabsList className={cn(
+            "grid rounded-none border-b h-auto p-0 flex-shrink-0",
+            isSidebar ? "grid-cols-3" : "grid-cols-6"
+          )}>
             {[
               { id: 'exegesis', icon: GraduationCap, label: 'Exégesis' },
               { id: 'thematic', icon: Target, label: 'Temático' },
@@ -530,16 +436,19 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
               <TabsTrigger
                 key={tab.id}
                 value={tab.id}
-                className="flex flex-col gap-1 py-3 rounded-none data-[state=active]:bg-primary/10"
+                className={cn(
+                  "flex flex-col gap-1 py-2 sm:py-3 rounded-none data-[state=active]:bg-primary/10",
+                  isSidebar && "text-[10px]"
+                )}
               >
-                <tab.icon className="h-4 w-4" />
-                <span className="text-xs">{tab.label}</span>
+                <tab.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className={cn(isSidebar ? "truncate px-1" : "text-xs")}>{tab.label}</span>
               </TabsTrigger>
             ))}
           </TabsList>
 
           <ScrollArea className="flex-1">
-            <div className="p-6 max-w-4xl mx-auto">
+            <div className={cn("p-4 sm:p-6 mx-auto", isSidebar ? "w-full" : "max-w-4xl")}>
               {/* Exégesis Tab */}
               <TabsContent value="exegesis" className="mt-0 space-y-6">
                 <Card>
@@ -1043,7 +952,21 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose }: StudyCe
             </div>
           </ScrollArea>
         </Tabs>
+        {/* Loading indicator Educativo */}
+        {loading && (
+          <div className="absolute inset-0 z-40 bg-background/95 backdrop-blur-sm flex items-center justify-center">
+            <StudyLoadingState time={loadingTime} />
+          </div>
+        )}
       </div>
+    </div>
+  );
+
+  if (isSidebar) return panelContent;
+
+  return (
+    <div className="fixed inset-0 bg-background z-50 flex flex-col items-stretch overflow-hidden">
+      {panelContent}
     </div>
   );
 }

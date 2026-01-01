@@ -27,9 +27,20 @@ interface HomeScreenProps {
   onOpenSearch: () => void;
   onOpenStudyCenter: () => void;
   onOpenFavorites: () => void;
+  onOpenAI: () => void; // Nuevo
+  onOpenPlans: () => void; // Nuevo
+  onOpenTheme: () => void; // Nuevo
 }
 
-export function HomeScreen({ onStartReading, onOpenSearch, onOpenStudyCenter, onOpenFavorites }: HomeScreenProps) {
+export function HomeScreen({
+  onStartReading,
+  onOpenSearch,
+  onOpenStudyCenter,
+  onOpenFavorites,
+  onOpenAI,
+  onOpenPlans,
+  onOpenTheme
+}: HomeScreenProps) {
   const [greeting, setGreeting] = useState('');
   const [currentVerse, setCurrentVerse] = useState<any>(null);
   const [dynamicInsights, setDynamicInsights] = useState<DailyInsight[]>([]);
@@ -127,28 +138,75 @@ export function HomeScreen({ onStartReading, onOpenSearch, onOpenStudyCenter, on
         className="px-5 py-6 space-y-8 max-w-2xl mx-auto"
       >
         {/* Bienvenida */}
-        <motion.div variants={item} className="mb-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/70 mb-1">{greeting}, bendecido día</p>
-          <h2 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter leading-none italic">Tu Pan de Cada Día</h2>
-        </motion.div>
+        {/* Panel de Control Estilo Bento (Más profesional y ubicado) */}
+        <motion.div variants={item} className="grid grid-cols-4 gap-3">
+          {/* Acción Principal: Biblia */}
+          <button
+            onClick={onStartReading}
+            className="col-span-4 sm:col-span-2 group relative overflow-hidden h-40 bg-zinc-900 rounded-[2.5rem] p-8 text-left transition-all hover:scale-[0.99] active:scale-[0.97] shadow-xl"
+          >
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
+              <BookOpen size={120} />
+            </div>
+            <div className="relative z-10 h-full flex flex-col justify-between">
+              <div className="bg-white/10 w-10 h-10 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/20">
+                <BookOpen className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-white text-2xl font-black italic uppercase tracking-tighter leading-none">Sagrada Escritura</h3>
+                <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-2">Continuar Lectura</p>
+              </div>
+            </div>
+          </button>
 
-        {/* Racha y Nivel */}
-        <motion.div variants={item} className="flex gap-4">
-          <div className="flex-1 bg-white dark:bg-zinc-900 p-4 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col items-center justify-center gap-1">
-            <Flame className="h-6 w-6 text-orange-500 mb-1" />
-            <span className="text-xl font-black">{stats.streak}</span>
-            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Racha Días</span>
-          </div>
-          <div className="flex-1 bg-white dark:bg-zinc-900 p-4 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col items-center justify-center gap-1">
-            <Star className="h-6 w-6 text-yellow-500 mb-1" />
-            <span className="text-xl font-black">NIVEL 4</span>
-            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Progreso</span>
-          </div>
-          <div className="flex-1 bg-primary text-white p-4 rounded-3xl shadow-lg flex flex-col items-center justify-center gap-1">
-            <Check className="h-6 w-6 mb-1" />
-            <span className="text-sm font-black uppercase tracking-tighter text-center leading-none">Al Día</span>
-            <span className="text-[8px] font-bold opacity-70 uppercase">Plan de Lectura</span>
-          </div>
+          {/* Acción Secundaria: IA */}
+          <button
+            onClick={onOpenAI}
+            className="col-span-2 sm:col-span-1 group h-40 bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 p-6 flex flex-col justify-between transition-all hover:shadow-lg"
+          >
+            <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-2xl flex items-center justify-center group-hover:rotate-12 transition-transform">
+              <Sparkles className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-tighter">Asistente</p>
+              <h4 className="text-lg font-black italic uppercase italic tracking-tighter text-purple-600">IA</h4>
+            </div>
+          </button>
+
+          {/* Acción Secundaria: Estudio */}
+          <button
+            onClick={onOpenStudyCenter}
+            className="col-span-2 sm:col-span-1 group h-40 bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 p-6 flex flex-col justify-between transition-all hover:shadow-lg"
+          >
+            <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center group-hover:rotate-12 transition-transform">
+              <GraduationCap className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-tighter">Centro de</p>
+              <h4 className="text-lg font-black italic uppercase italic tracking-tighter text-blue-600">Estudio</h4>
+            </div>
+          </button>
+
+          {/* Fila Inferior de Iconos Compactos */}
+          <button onClick={onOpenSearch} className="flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-zinc-900 rounded-[2.2rem] border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 transition-colors">
+            <Search className="h-5 w-5 text-zinc-400" />
+            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Buscar</span>
+          </button>
+
+          <button onClick={onOpenFavorites} className="flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-zinc-900 rounded-[2.2rem] border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 transition-colors">
+            <Heart className="h-5 w-5 text-rose-500" />
+            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Favoritos</span>
+          </button>
+
+          <button onClick={onOpenPlans} className="flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-zinc-900 rounded-[2.2rem] border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 transition-colors">
+            <Check className="h-5 w-5 text-emerald-500" />
+            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Planes</span>
+          </button>
+
+          <button onClick={onOpenTheme} className="flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-zinc-900 rounded-[2.2rem] border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 transition-colors">
+            <Settings className="h-5 w-5 text-amber-500" />
+            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Ajustes</span>
+          </button>
         </motion.div>
 
         {/* Versículo del Día (Pool Dinámico) */}

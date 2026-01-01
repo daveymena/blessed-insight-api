@@ -20,16 +20,26 @@ import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [aiPanelOpen, setAiPanelOpen] = useState(false);
+  const [rightPanelOpen, setRightPanelOpen] = useState(false); // Nuevo: control de panel derecho
+  const [rightPanelType, setRightPanelType] = useState<'ai' | 'study' | 'none'>('none');
   const [searchOpen, setSearchOpen] = useState(false);
   const [favoritesOpen, setFavoritesOpen] = useState(false);
-  const [studyCenterOpen, setStudyCenterOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const [navModalOpen, setNavModalOpen] = useState(false);
   const [showHome, setShowHome] = useState(true);
   const [activeTab, setActiveTab] = useState<'home' | 'bible' | 'plans' | 'search' | 'favorites'>('home');
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const toggleRightPanel = (type: 'ai' | 'study') => {
+    if (rightPanelOpen && rightPanelType === type) {
+      setRightPanelOpen(false);
+      setRightPanelType('none');
+    } else {
+      setRightPanelOpen(true);
+      setRightPanelType(type);
+    }
+  };
 
   // Inicializar tema al cargar
   useEffect(() => {
@@ -121,11 +131,12 @@ const Index = () => {
 
       <BibleHeader
         onMenuClick={() => setSidebarOpen(true)}
-        onAIClick={() => setAiPanelOpen(true)}
+        onAIClick={() => toggleRightPanel('ai')}
         onSearchClick={() => setSearchOpen(true)}
         onFavoritesClick={() => setFavoritesOpen(true)}
-        onStudyClick={() => setStudyCenterOpen(true)}
+        onStudyClick={() => toggleRightPanel('study')}
         onThemeClick={() => setThemeOpen(true)}
+        onHomeClick={handleGoHome}
         onVersionChange={handleVersionChange}
         showSpanishEquivalent={showSpanishEquivalent}
         onSpanishToggle={setShowSpanishEquivalent}
@@ -148,14 +159,17 @@ const Index = () => {
           onClose={() => setSidebarOpen(false)}
         />
 
-        <main className="flex-1 flex flex-col min-w-0 h-full relative">
+        <main className="flex-1 flex min-w-0 h-full relative overflow-hidden">
           <div className="flex-1 overflow-y-auto pb-24 md:pb-8 scroll-smooth overflow-x-hidden">
             {showHome ? (
               <HomeScreen
                 onStartReading={handleStartReading}
                 onOpenSearch={() => setSearchOpen(true)}
-                onOpenStudyCenter={() => setStudyCenterOpen(true)}
+                onOpenStudyCenter={() => toggleRightPanel('study')}
                 onOpenFavorites={() => setFavoritesOpen(true)}
+                onOpenAI={() => toggleRightPanel('ai')}
+                onOpenPlans={() => toggleRightPanel('study')} // O un modal específico si existe
+                onOpenTheme={() => setThemeOpen(true)}
               />
             ) : (
               <ScriptureReader
@@ -172,6 +186,39 @@ const Index = () => {
               />
             )}
           </div>
+
+          {/* Panel Derecho Persistente (Estilo Logos/Premium) */}
+          <AnimatePresence>
+            {rightPanelOpen && (
+              <motion.div
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="hidden lg:block w-[450px] border-l bg-card/80 backdrop-blur-xl z-30 shadow-2xl overflow-hidden"
+              >
+                {rightPanelType === 'ai' ? (
+                  <AIStudyPanel
+                    book={selectedBook}
+                    chapter={selectedChapter}
+                    passage={passage}
+                    isOpen={true}
+                    onClose={() => setRightPanelOpen(false)}
+                    isSidebar={true}
+                  />
+                ) : (
+                  <StudyCenter
+                    book={selectedBook}
+                    chapter={selectedChapter}
+                    passage={passage}
+                    isOpen={true}
+                    onClose={() => setRightPanelOpen(false)}
+                    isSidebar={true}
+                  />
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </main>
       </div>
 
@@ -182,8 +229,8 @@ const Index = () => {
         onMenuClick={() => { setActiveTab('bible'); setShowHome(false); setSidebarOpen(true); }}
         onSearchClick={() => { setActiveTab('search'); setSearchOpen(true); }}
         onFavoritesClick={() => { setActiveTab('favorites'); setFavoritesOpen(true); }}
-        onAIClick={() => { setAiPanelOpen(true); }}
-        onStudyClick={() => { setActiveTab('plans'); setStudyCenterOpen(true); }}
+        onAIClick={() => toggleRightPanel('ai')}
+        onStudyClick={() => toggleRightPanel('study')}
       />
 
       {/* Panels and Modals */}
@@ -196,32 +243,24 @@ const Index = () => {
         onNavigate={handleNavigation}
       />
 
-      <AIStudyPanel
-        book={selectedBook}
-        chapter={selectedChapter}
-        passage={passage}
-        isOpen={aiPanelOpen}
-        onClose={() => setAiPanelOpen(false)}
-      />
+      {/* Modales para Móvil (Mismo contenido, diferente presentación) */}
+      <div className="lg:hidden">
+        <AIStudyPanel
+          book={selectedBook}
+          chapter={selectedChapter}
+          passage={passage}
+          isOpen={rightPanelOpen && rightPanelType === 'ai'}
+          onClose={() => setRightPanelOpen(false)}
+        />
 
-      <SearchModal
-        isOpen={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        onSelectBook={handleSearchSelect}
-      />
-
-      <FavoritesPanel
-        isOpen={favoritesOpen}
-        onClose={() => setFavoritesOpen(false)}
-      />
-
-      <StudyCenter
-        book={selectedBook}
-        chapter={selectedChapter}
-        passage={passage}
-        isOpen={studyCenterOpen}
-        onClose={() => setStudyCenterOpen(false)}
-      />
+        <StudyCenter
+          book={selectedBook}
+          chapter={selectedChapter}
+          passage={passage}
+          isOpen={rightPanelOpen && rightPanelType === 'study'}
+          onClose={() => setRightPanelOpen(false)}
+        />
+      </div>
 
       <ThemeCustomizer
         isOpen={themeOpen}
