@@ -79,7 +79,7 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
   const startTime = Date.now();
   const systemPrompt = messages.find(m => m.role === 'system')?.content || '';
   const userPrompt = messages.filter(m => m.role !== 'system').map(m => m.content).join('\n');
-  
+
   // Timeout dinámico basado en tokens solicitados
   const timeout = Math.max(60000, maxTokens * 20); // Mínimo 60s, más para respuestas largas
 
@@ -109,7 +109,7 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
 
   // 2. Intentar proxy Nginx interno (producción EasyPanel)
   try {
-    console.log(`📡 Ollama via Nginx: /api/ollama/api/generate`);
+    console.log(`📡 Solicitando exégesis via Nginx... (/api/ollama/api/generate)`);
     const response = await withTimeout(
       fetch('/api/ollama/api/generate', {
         method: 'POST',
@@ -123,15 +123,19 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
       }),
       timeout
     );
+
     if (response.ok) {
       const data = await response.json();
       if (data.response) {
-        console.log(`✅ Ollama (Nginx) respondió en ${Date.now() - startTime}ms`);
+        console.log(`✅ Ollama respondió con éxito (${Date.now() - startTime}ms)`);
         return { success: true, content: data.response, provider: 'ollama', timeMs: Date.now() - startTime };
       }
+    } else {
+      console.warn(`🛑 Proxy Nginx devolvió error: ${response.status} ${response.statusText}`);
     }
   } catch (error) {
-    console.warn(`⚠️ Nginx proxy falló: ${error instanceof Error ? error.message : 'Error'}`);
+    const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
+    console.error(`❌ Fallo crítico en Proxy Nginx: ${errorMsg}`);
   }
 
   // 3. Fallback: URL externa directa (puede tener CORS)
@@ -216,7 +220,7 @@ export async function callAI(messages: AIMessage[], maxTokens: number = 2000): P
   const startTime = Date.now();
 
   console.log('🚀 Iniciando consulta IA...');
-  
+
   // 1. Intentar con Ollama
   const ollamaResult = await callOllama(messages, maxTokens);
   if (ollamaResult.success) return ollamaResult;
