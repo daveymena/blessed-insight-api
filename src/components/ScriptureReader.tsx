@@ -126,47 +126,20 @@ export function ScriptureReader({
     }
     setAnalysisLoading(true);
     setShowAnalysis(true);
-    const passageText = passage.verses.map(v => v.text).join(' ').substring(0, 2000);
+    const passageText = passage.verses.map(v => v.text).join(' ').substring(0, 600);
     const messages = [
-      { role: 'system' as const, content: `Eres un teólogo bíblico con formación en seminario. Analizas las Escrituras con profundidad académica pero lenguaje accesible. Principio: Sola Scriptura - la Biblia es la autoridad final.` },
-      { role: 'user' as const, content: `ANÁLISIS PROFUNDO DE ${book.name} ${chapter}
-
-TEXTO:
+      { role: 'system' as const, content: `Eres un teólogo bíblico experto. Responde en español de forma clara y concisa.` },
+      { role: 'user' as const, content: `Análisis de ${book.name} ${chapter}:
 "${passageText}"
 
-Desarrolla un análisis completo:
-
-📖 RESUMEN Y CONTEXTO
-- ¿De qué trata este capítulo en el flujo del libro?
-- Contexto histórico relevante
-
-🔑 TEMAS CENTRALES
-- Ideas principales que el autor comunica
-- Conexión con el mensaje global de las Escrituras
-
-💎 VERSÍCULOS CLAVE
-- 3-4 versículos más importantes y por qué
-
-🔤 PALABRAS SIGNIFICATIVAS
-- Términos hebreos/griegos importantes
-- Matices que enriquecen la comprensión
-
-⛪ PERSPECTIVAS TEOLÓGICAS
-- ¿Qué revela sobre Dios?
-- ¿Qué enseña sobre la humanidad?
-- Diferentes énfasis dentro del cristianismo
-
-💡 APLICACIÓN PRÁCTICA
-- ¿Cómo debe impactar nuestra vida hoy?
-- Preguntas para reflexionar
-
-🙏 ORACIÓN
-Una oración breve basada en el texto.
-
-Sé profundo pero conciso. Cita versículos específicos.` }
+📖 RESUMEN: De qué trata el capítulo
+🔑 TEMAS: Ideas principales
+💎 VERSÍCULOS CLAVE: 2-3 versículos importantes
+💡 APLICACIÓN: Cómo aplicar hoy
+🙏 ORACIÓN: Breve oración` }
     ];
     try {
-      const result = await callAI(messages, 2000);
+      const result = await callAI(messages, 1000);
       setAnalysisContent(result.content);
       localStorage.setItem(cacheKey, JSON.stringify({ content: result.content, timestamp: Date.now() }));
     } catch (e) {

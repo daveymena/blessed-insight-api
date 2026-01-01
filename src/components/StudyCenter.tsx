@@ -117,9 +117,14 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
   const [activeTab, setActiveTab] = useState('exegesis');
   const [loading, setLoading] = useState(false);
   const [loadingTime, setLoadingTime] = useState(0);
-  const [response, setResponse] = useState<string | null>(null);
-  const [responseTime, setResponseTime] = useState<number | null>(null);
-  const [fromCache, setFromCache] = useState(false);
+  
+  // Respuestas separadas por cada tipo de estudio
+  const [exegesisResponse, setExegesisResponse] = useState<{ content: string | null; time: number | null; fromCache: boolean }>({ content: null, time: null, fromCache: false });
+  const [thematicResponse, setThematicResponse] = useState<{ content: string | null; time: number | null; fromCache: boolean }>({ content: null, time: null, fromCache: false });
+  const [devotionalResponse, setDevotionalResponse] = useState<{ content: string | null; time: number | null; fromCache: boolean }>({ content: null, time: null, fromCache: false });
+  const [questionsResponse, setQuestionsResponse] = useState<{ content: string | null; time: number | null; fromCache: boolean }>({ content: null, time: null, fromCache: false });
+  const [planResponse, setPlanResponse] = useState<{ content: string | null; time: number | null; fromCache: boolean }>({ content: null, time: null, fromCache: false });
+  
   const [topic, setTopic] = useState('');
   const [customReference, setCustomReference] = useState(''); // Nueva: referencia personalizada para exégesis
   const [noteContent, setNoteContent] = useState('');
@@ -170,28 +175,23 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
     if (!book) return;
 
     // Usar referencia personalizada si está disponible
-    const referenceToAnalyze = customReference.trim() || `${book.name} ${chapter}`;
     const textToAnalyze = customReference.trim() ? customReference : passageText;
     const cacheKey = `exegesis_${customReference.trim() || `${book.id}_${chapter}`}`;
 
     const cached = getCachedResponse(cacheKey);
 
     if (cached) {
-      setResponse(cached);
-      setFromCache(true);
-      setResponseTime(0);
+      setExegesisResponse({ content: cached, time: 0, fromCache: true });
       return;
     }
 
     setLoading(true);
-    setResponse(null);
-    setFromCache(false);
+    setExegesisResponse({ content: null, time: null, fromCache: false });
     const startTime = Date.now();
 
     const result = await performExegesis(textToAnalyze, book.name, chapter, customReference.trim());
 
-    setResponseTime(Date.now() - startTime);
-    setResponse(result.content);
+    setExegesisResponse({ content: result.content, time: Date.now() - startTime, fromCache: false });
     setCachedResponse(cacheKey, result.content);
     setLoading(false);
   };
@@ -202,21 +202,17 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
     const cached = getCachedResponse(cacheKey);
 
     if (cached) {
-      setResponse(cached);
-      setFromCache(true);
-      setResponseTime(0);
+      setThematicResponse({ content: cached, time: 0, fromCache: true });
       return;
     }
 
     setLoading(true);
-    setResponse(null);
-    setFromCache(false);
+    setThematicResponse({ content: null, time: null, fromCache: false });
     const startTime = Date.now();
 
     const result = await thematicStudy(topic);
 
-    setResponseTime(Date.now() - startTime);
-    setResponse(result.content);
+    setThematicResponse({ content: result.content, time: Date.now() - startTime, fromCache: false });
     setCachedResponse(cacheKey, result.content);
     setLoading(false);
   };
@@ -227,21 +223,17 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
     const cached = getCachedResponse(cacheKey);
 
     if (cached) {
-      setResponse(cached);
-      setFromCache(true);
-      setResponseTime(0);
+      setQuestionsResponse({ content: cached, time: 0, fromCache: true });
       return;
     }
 
     setLoading(true);
-    setResponse(null);
-    setFromCache(false);
+    setQuestionsResponse({ content: null, time: null, fromCache: false });
     const startTime = Date.now();
 
     const result = await generateReflectionQuestions(passageText, book.name, chapter);
 
-    setResponseTime(Date.now() - startTime);
-    setResponse(result.content);
+    setQuestionsResponse({ content: result.content, time: Date.now() - startTime, fromCache: false });
     setCachedResponse(cacheKey, result.content);
     setLoading(false);
   };
@@ -252,21 +244,17 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
     const cached = getCachedResponse(cacheKey);
 
     if (cached) {
-      setResponse(cached);
-      setFromCache(true);
-      setResponseTime(0);
+      setDevotionalResponse({ content: cached, time: 0, fromCache: true });
       return;
     }
 
     setLoading(true);
-    setResponse(null);
-    setFromCache(false);
+    setDevotionalResponse({ content: null, time: null, fromCache: false });
     const startTime = Date.now();
 
     const result = await generateDailyDevotional(passageText, book.name, chapter);
 
-    setResponseTime(Date.now() - startTime);
-    setResponse(result.content);
+    setDevotionalResponse({ content: result.content, time: Date.now() - startTime, fromCache: false });
     setCachedResponse(cacheKey, result.content);
     setLoading(false);
   };
@@ -277,21 +265,17 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
     const cached = getCachedResponse(cacheKey);
 
     if (cached) {
-      setResponse(cached);
-      setFromCache(true);
-      setResponseTime(0);
+      setPlanResponse({ content: cached, time: 0, fromCache: true });
       return;
     }
 
     setLoading(true);
-    setResponse(null);
-    setFromCache(false);
+    setPlanResponse({ content: null, time: null, fromCache: false });
     const startTime = Date.now();
 
     const result = await generateCustomReadingPlan(topic, planDuration, planAudience);
 
-    setResponseTime(Date.now() - startTime);
-    setResponse(result.content);
+    setPlanResponse({ content: result.content, time: Date.now() - startTime, fromCache: false });
     setCachedResponse(cacheKey, result.content);
     setLoading(false);
   };
@@ -308,12 +292,10 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
     setNoteContent('');
   };
 
-  const handleCopyResponse = () => {
-    if (response) {
-      navigator.clipboard.writeText(response);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+  const handleCopyResponse = (content: string) => {
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleStartPlan = (planId: string) => {
@@ -498,6 +480,28 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
                     </Button>
                   </CardContent>
                 </Card>
+
+                {/* Respuesta de Exégesis */}
+                {exegesisResponse.content && (
+                  <Card className="border-2 border-indigo-200 dark:border-indigo-800">
+                    <CardHeader className="bg-indigo-50 dark:bg-indigo-900/20 flex flex-row items-center justify-between py-3">
+                      <CardTitle className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 text-base">
+                        <GraduationCap className="h-4 w-4" />
+                        Análisis Exegético
+                        {exegesisResponse.fromCache && <Badge variant="secondary" className="ml-2 text-xs"><Zap className="h-3 w-3 mr-1" />Cache</Badge>}
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        {exegesisResponse.time !== null && <span className="text-xs text-muted-foreground">{exegesisResponse.fromCache ? 'Instantáneo' : `${(exegesisResponse.time / 1000).toFixed(1)}s`}</span>}
+                        <Button variant="ghost" size="sm" onClick={() => handleCopyResponse(exegesisResponse.content!)} className="h-7">
+                          {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <FormattedAIResponse content={exegesisResponse.content} />
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               {/* Thematic Study Tab */}
@@ -541,6 +545,28 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
                     </Button>
                   </CardContent>
                 </Card>
+
+                {/* Respuesta de Estudio Temático */}
+                {thematicResponse.content && (
+                  <Card className="border-2 border-emerald-200 dark:border-emerald-800">
+                    <CardHeader className="bg-emerald-50 dark:bg-emerald-900/20 flex flex-row items-center justify-between py-3">
+                      <CardTitle className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 text-base">
+                        <Target className="h-4 w-4" />
+                        Estudio Temático: {topic}
+                        {thematicResponse.fromCache && <Badge variant="secondary" className="ml-2 text-xs"><Zap className="h-3 w-3 mr-1" />Cache</Badge>}
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        {thematicResponse.time !== null && <span className="text-xs text-muted-foreground">{thematicResponse.fromCache ? 'Instantáneo' : `${(thematicResponse.time / 1000).toFixed(1)}s`}</span>}
+                        <Button variant="ghost" size="sm" onClick={() => handleCopyResponse(thematicResponse.content!)} className="h-7">
+                          {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <FormattedAIResponse content={thematicResponse.content} />
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               {/* Devotional Tab */}
@@ -583,6 +609,28 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
                     </Button>
                   </CardContent>
                 </Card>
+
+                {/* Respuesta de Devocional */}
+                {devotionalResponse.content && (
+                  <Card className="border-2 border-rose-200 dark:border-rose-800">
+                    <CardHeader className="bg-rose-50 dark:bg-rose-900/20 flex flex-row items-center justify-between py-3">
+                      <CardTitle className="flex items-center gap-2 text-rose-700 dark:text-rose-300 text-base">
+                        <Heart className="h-4 w-4" />
+                        Devocional
+                        {devotionalResponse.fromCache && <Badge variant="secondary" className="ml-2 text-xs"><Zap className="h-3 w-3 mr-1" />Cache</Badge>}
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        {devotionalResponse.time !== null && <span className="text-xs text-muted-foreground">{devotionalResponse.fromCache ? 'Instantáneo' : `${(devotionalResponse.time / 1000).toFixed(1)}s`}</span>}
+                        <Button variant="ghost" size="sm" onClick={() => handleCopyResponse(devotionalResponse.content!)} className="h-7">
+                          {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <FormattedAIResponse content={devotionalResponse.content} />
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               {/* Reading Plans Tab */}
@@ -779,6 +827,28 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
                       {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
                       Generar Plan con IA
                     </Button>
+
+                    {/* Respuesta de Plan Personalizado */}
+                    {planResponse.content && (
+                      <Card className="mt-4 border-2 border-blue-200 dark:border-blue-800">
+                        <CardHeader className="bg-blue-50 dark:bg-blue-900/20 flex flex-row items-center justify-between py-3">
+                          <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-300 text-base">
+                            <Calendar className="h-4 w-4" />
+                            Plan Generado
+                            {planResponse.fromCache && <Badge variant="secondary" className="ml-2 text-xs"><Zap className="h-3 w-3 mr-1" />Cache</Badge>}
+                          </CardTitle>
+                          <div className="flex items-center gap-2">
+                            {planResponse.time !== null && <span className="text-xs text-muted-foreground">{planResponse.fromCache ? 'Instantáneo' : `${(planResponse.time / 1000).toFixed(1)}s`}</span>}
+                            <Button variant="ghost" size="sm" onClick={() => handleCopyResponse(planResponse.content!)} className="h-7">
+                              {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pt-4">
+                          <FormattedAIResponse content={planResponse.content} />
+                        </CardContent>
+                      </Card>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -854,101 +924,29 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
                     </Button>
                   </CardContent>
                 </Card>
-              </TabsContent>
 
-              {/* Response Display */}
-              {response && (
-                <Card className="mt-6 border-2 border-primary/20">
-                  <CardHeader className="bg-primary/5 flex flex-row items-center justify-between">
-                    <CardTitle className="flex items-center gap-2 text-primary">
-                      <Sparkles className="h-5 w-5" />
-                      Resultado del Estudio
-                      {fromCache && (
-                        <Badge variant="secondary" className="ml-2">
-                          <Zap className="h-3 w-3 mr-1" />
-                          Cache
-                        </Badge>
-                      )}
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      {responseTime !== null && (
-                        <span className="text-xs text-muted-foreground">
-                          {fromCache ? 'Instantáneo' : `${(responseTime / 1000).toFixed(1)}s`}
-                        </span>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleCopyResponse}
-                        className="h-8"
-                      >
-                        {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <FormattedAIResponse content={response} />
-
-                    {/* Opciones de Profundización (Sacar de dudas) */}
-                    <div className="mt-8 pt-6 border-t border-border grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in delay-500">
-                      <div className="col-span-full mb-2">
-                        <h4 className="text-lg font-semibold flex items-center gap-2">
-                          <MessageSquare className="h-5 w-5 text-primary" />
-                          ¿Quieres profundizar más?
-                        </h4>
-                        <p className="text-sm text-muted-foreground">Selecciona una opción para continuar el estudio</p>
+                {/* Respuesta de Preguntas de Reflexión */}
+                {questionsResponse.content && (
+                  <Card className="border-2 border-violet-200 dark:border-violet-800">
+                    <CardHeader className="bg-violet-50 dark:bg-violet-900/20 flex flex-row items-center justify-between py-3">
+                      <CardTitle className="flex items-center gap-2 text-violet-700 dark:text-violet-300 text-base">
+                        <MessageSquare className="h-4 w-4" />
+                        Preguntas de Reflexión
+                        {questionsResponse.fromCache && <Badge variant="secondary" className="ml-2 text-xs"><Zap className="h-3 w-3 mr-1" />Cache</Badge>}
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        {questionsResponse.time !== null && <span className="text-xs text-muted-foreground">{questionsResponse.fromCache ? 'Instantáneo' : `${(questionsResponse.time / 1000).toFixed(1)}s`}</span>}
+                        <Button variant="ghost" size="sm" onClick={() => handleCopyResponse(questionsResponse.content!)} className="h-7">
+                          {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                        </Button>
                       </div>
-
-                      <Button variant="outline" className="h-auto py-4 justify-start text-left group hover:border-primary hover:bg-primary/5" onClick={handleReflectionQuestions}>
-                        <div className="bg-primary/10 p-2 rounded-lg mr-3 group-hover:bg-primary/20 transition-colors">
-                          <Target className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">Aplicación Práctica</div>
-                          <div className="text-xs text-muted-foreground">¿Cómo aplico esto hoy?</div>
-                        </div>
-                      </Button>
-
-                      <Button variant="outline" className="h-auto py-4 justify-start text-left group hover:border-primary hover:bg-primary/5" onClick={() => {
-                        setTopic(`Teología de ${book?.name} ${chapter}`);
-                        setActiveTab('thematic');
-                      }}>
-                        <div className="bg-primary/10 p-2 rounded-lg mr-3 group-hover:bg-primary/20 transition-colors">
-                          <BookOpen className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">Teología Profunda</div>
-                          <div className="text-xs text-muted-foreground">Analizar conceptos clave</div>
-                        </div>
-                      </Button>
-
-                      <Button variant="outline" className="h-auto py-4 justify-start text-left group hover:border-primary hover:bg-primary/5" onClick={handleDevotional}>
-                        <div className="bg-primary/10 p-2 rounded-lg mr-3 group-hover:bg-primary/20 transition-colors">
-                          <Heart className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">Devocional</div>
-                          <div className="text-xs text-muted-foreground">Meditación espiritual</div>
-                        </div>
-                      </Button>
-
-                      <Button variant="outline" className="h-auto py-4 justify-start text-left group hover:border-primary hover:bg-primary/5" onClick={() => {
-                        // Simular "sacar de duda" haciendo una pregunta específica
-                        setTopic("Dudas comunes sobre este pasaje");
-                        handleThematicStudy();
-                      }}>
-                        <div className="bg-primary/10 p-2 rounded-lg mr-3 group-hover:bg-primary/20 transition-colors">
-                          <Sparkles className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">Resolver Dudas</div>
-                          <div className="text-xs text-muted-foreground">Aclarar puntos difíciles</div>
-                        </div>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <FormattedAIResponse content={questionsResponse.content} />
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
             </div>
           </ScrollArea>
         </Tabs>

@@ -4,23 +4,9 @@
 import { callAI, callAIFast, callAIDetailed, type AIResponse } from './aiProvider';
 
 // ============ CONTEXTO DEL SISTEMA PARA EXÉGESIS PROFUNDA ============
-const BIBLE_SCHOLAR = `Eres un teólogo bíblico con formación en seminario, especializado en exégesis y hermenéutica.
-PRINCIPIO FUNDAMENTAL: Sola Scriptura - La Biblia interpreta a la Biblia. El texto bíblico es la autoridad final.
+const BIBLE_SCHOLAR = `Eres un teólogo bíblico experto. Principio: Sola Scriptura. Responde en español de forma clara y concisa.`;
 
-Tu enfoque:
-- Análisis riguroso del texto original (hebreo/griego)
-- Contexto histórico-cultural verificable
-- Múltiples perspectivas cristianas (reformada, pentecostal, arminiana, etc.)
-- Aplicación práctica fundamentada en el texto
-- Lenguaje accesible pero académicamente sólido
-
-NO hagas:
-- Imponer tradiciones humanas sobre el texto
-- Dar interpretaciones dogmáticas sin base textual
-- Ignorar pasajes difíciles o controversiales`;
-
-const BIBLE_EXPERT_SIMPLE = `Eres un guía bíblico experto y mentor espiritual.
-Principio: La Biblia es la autoridad final. Responde de forma clara y profunda.`;
+const BIBLE_EXPERT_SIMPLE = `Eres un guía bíblico experto. Responde en español de forma clara y breve.`;
 
 // ============ EXÉGESIS PROFUNDA Y COMPLETA ============
 export async function performExegesis(
@@ -34,69 +20,18 @@ export async function performExegesis(
   const messages = [
     { role: 'system' as const, content: BIBLE_SCHOLAR },
     {
-      role: 'user' as const, content: `ANÁLISIS EXEGÉTICO PROFUNDO DE ${reference.toUpperCase()}
+      role: 'user' as const, content: `Análisis de ${reference}:
+${passage ? `"${passage.substring(0, 600)}"` : ''}
 
-${passage ? `TEXTO A ANALIZAR:\n"${passage.substring(0, 1500)}"\n` : ''}
-
-Desarrolla un estudio exegético COMPLETO siguiendo esta metodología:
-
-📜 1. CONTEXTO HISTÓRICO-CULTURAL
-- ¿Quién escribió este libro y cuándo? (fecha aproximada, evidencias)
-- ¿Cuál era la situación histórica del pueblo en ese momento?
-- ¿A quién se dirigía originalmente este mensaje?
-- Costumbres, geografía o eventos relevantes para entender el texto
-
-📖 2. CONTEXTO LITERARIO
-- ¿Qué tipo de literatura es? (narrativa, poesía, profecía, epístola, apocalíptica)
-- ¿Cómo se conecta con los capítulos anteriores y posteriores?
-- ¿Cuál es el argumento o flujo del libro completo?
-- Estructura del pasaje (divisiones naturales del texto)
-
-🔤 3. ANÁLISIS DEL TEXTO ORIGINAL
-- Palabras clave en hebreo/griego con su significado raíz
-- Matices que se pierden en la traducción al español
-- Tiempos verbales significativos
-- Figuras retóricas o expresiones idiomáticas
-
-🔗 4. REFERENCIAS CRUZADAS ESENCIALES
-- Pasajes paralelos que iluminan este texto
-- Cómo otros autores bíblicos tratan el mismo tema
-- Conexiones Antiguo-Nuevo Testamento
-- Citas o alusiones a otros textos bíblicos
-
-⛪ 5. PERSPECTIVAS TEOLÓGICAS CRISTIANAS
-Presenta cómo diferentes tradiciones cristianas interpretan este pasaje:
-- Perspectiva REFORMADA (Calvino, teología de la gracia)
-- Perspectiva ARMINIANA (libre albedrío, gracia resistible)
-- Perspectiva PENTECOSTAL (énfasis en el Espíritu, dones)
-- Perspectiva ANABAPTISTA (discipulado radical, no violencia)
-- ¿Qué dice CLARAMENTE el texto sin añadir interpretaciones?
-
-⚠️ 6. DIFICULTADES Y CONTROVERSIAS
-- Pasajes difíciles de interpretar y por qué
-- Diferentes lecturas textuales si las hay
-- Preguntas que el texto deja abiertas
-- Errores comunes de interpretación
-
-💎 7. TESOROS TEOLÓGICOS
-- Verdades centrales sobre Dios reveladas aquí
-- Verdades sobre la humanidad
-- Verdades sobre la salvación/redención
-- Verdades sobre la vida cristiana
-
-💡 8. APLICACIÓN PRÁCTICA
-- ¿Qué significaba para la audiencia original?
-- ¿Qué principios eternos podemos extraer?
-- ¿Cómo debe cambiar nuestra vida hoy?
-- Preguntas de reflexión personal
-
-🙏 9. ORACIÓN BASADA EN EL TEXTO
-Una oración que responda a las verdades descubiertas.
-
-IMPORTANTE: Sé profundo, crítico y honesto. No simplifiques en exceso. Cita versículos específicos.` }
+📜 CONTEXTO: Autor, fecha, audiencia
+📖 GÉNERO: Tipo de literatura
+🔤 PALABRAS CLAVE: Términos hebreos/griegos importantes
+⛪ TEOLOGÍA: Qué revela sobre Dios
+💡 APLICACIÓN: Cómo aplicar hoy
+🙏 ORACIÓN: Breve oración` }
   ];
 
-  return callAIDetailed(messages);
+  return callAI(messages, 1200);
 }
 
 // ============ ESTUDIO TEMÁTICO PROFUNDO ============
@@ -104,39 +39,15 @@ export async function thematicStudy(topic: string): Promise<AIResponse> {
   const messages = [
     { role: 'system' as const, content: BIBLE_SCHOLAR },
     {
-      role: 'user' as const, content: `Estudio bíblico sobre: "${topic}"
+      role: 'user' as const, content: `Estudio sobre: "${topic}"
 
-ESTRUCTURA (completa TODAS las secciones):
-
-📚 DEFINICIÓN BÍBLICA
-- Significado en hebreo/griego
-- Cómo la Biblia define este concepto
-
-📖 DESARROLLO EN LAS ESCRITURAS
-- Primera mención en la Biblia
-- Desarrollo en el Antiguo Testamento
-- Cumplimiento en el Nuevo Testamento
-- 8-10 pasajes clave con explicación breve
-
-⛪ PERSPECTIVAS CRISTIANAS
-- Diferentes interpretaciones dentro del cristianismo
-- Perspectiva reformada
-- Perspectiva pentecostal
-- Perspectiva arminiana
-- ¿Qué dice CLARAMENTE la Escritura? (lo más importante)
-
-⚠️ ERRORES COMUNES
-- Malentendidos frecuentes
-- Enseñanzas no bíblicas sobre este tema
-
-💡 APLICACIÓN HOY
-- Relevancia práctica
-- Cómo vivir esta verdad
-
-IMPORTANTE: Basa TODO en la Escritura, no en tradiciones humanas.` }
+📚 DEFINICIÓN: Significado bíblico
+📖 PASAJES: 4-5 versículos clave
+⛪ ENSEÑANZA: Qué dice la Biblia
+💡 APLICACIÓN: Cómo vivirlo hoy` }
   ];
 
-  return callAI(messages, 2500);
+  return callAI(messages, 1000);
 }
 
 // ============ COMPARACIÓN DE VERSÍCULOS ============
@@ -163,7 +74,7 @@ Analiza:
   return callAIFast(messages);
 }
 
-// ============ PREGUNTAS DE REFLEXIÓN PROFUNDAS ============
+// ============ PREGUNTAS DE REFLEXIÓN ============
 export async function generateReflectionQuestions(
   passage: string,
   bookName: string,
@@ -172,28 +83,13 @@ export async function generateReflectionQuestions(
   const messages = [
     { role: 'system' as const, content: BIBLE_EXPERT_SIMPLE },
     {
-      role: 'user' as const, content: `Genera preguntas de reflexión PROFUNDAS para ${bookName} ${chapter}:
-"${passage.substring(0, 1000)}"
+      role: 'user' as const, content: `Preguntas para ${bookName} ${chapter}:
+"${passage.substring(0, 500)}"
 
-Crea 10 preguntas organizadas así:
-
-📖 OBSERVACIÓN (¿Qué dice el texto?)
-1. Pregunta sobre detalles específicos del texto
-2. Pregunta sobre personajes o acciones
-3. Pregunta sobre palabras o frases clave
-
-🔍 INTERPRETACIÓN (¿Qué significa?)
-4. Pregunta sobre el significado para la audiencia original
-5. Pregunta sobre conexiones con otros pasajes bíblicos
-6. Pregunta teológica profunda
-7. Pregunta sobre lo que revela de Dios
-
-💡 APLICACIÓN (¿Cómo me afecta?)
-8. Pregunta sobre cambios personales necesarios
-9. Pregunta sobre relaciones con otros
-10. Pregunta sobre decisiones o acciones concretas
-
-Las preguntas deben provocar reflexión profunda, no respuestas superficiales.` }
+Genera 6 preguntas:
+📖 OBSERVACIÓN: 2 preguntas sobre qué dice el texto
+🔍 INTERPRETACIÓN: 2 preguntas sobre qué significa
+💡 APLICACIÓN: 2 preguntas sobre cómo aplicarlo` }
   ];
 
   return callAIFast(messages);
@@ -361,7 +257,7 @@ Sé específico con las referencias.` }
   return callAI(messages, 1000);
 }
 
-// ============ DEVOCIONAL DIARIO PROFUNDO ============
+// ============ DEVOCIONAL DIARIO ============
 export async function generateDailyDevotional(
   passage: string,
   bookName: string,
@@ -371,49 +267,19 @@ export async function generateDailyDevotional(
   const reference = verse ? `${bookName} ${chapter}:${verse}` : `${bookName} ${chapter}`;
 
   const messages = [
+    { role: 'system' as const, content: `Eres un escritor devocional cristiano. Escribe de forma cálida y breve en español.` },
     {
-      role: 'system' as const, content: `Eres un escritor devocional cristiano con profundidad teológica. 
-Escribes de forma cálida, personal y espiritualmente nutritiva. 
-Combinas solidez bíblica con aplicación práctica que toca el corazón.
-Responde en español.` },
-    {
-      role: 'user' as const, content: `Escribe un devocional COMPLETO y PROFUNDO basado en ${reference}:
-"${passage.substring(0, 800)}"
+      role: 'user' as const, content: `Devocional de ${reference}:
+"${passage.substring(0, 400)}"
 
-ESTRUCTURA:
-
-📖 LECTURA DEL DÍA
-${reference}
-
-🌅 INTRODUCCIÓN
-- Una historia, ilustración o situación de la vida real que conecte con el tema
-- Algo que capture la atención y prepare el corazón
-
-💭 REFLEXIÓN PROFUNDA
-- Explica el contexto del pasaje brevemente
-- ¿Qué verdad central comunica Dios aquí?
-- ¿Cómo se relaciona con el carácter de Dios?
-- ¿Qué promesa o mandamiento encontramos?
-(3-4 párrafos sustanciales)
-
-🔑 VERDAD PARA HOY
-- Una frase memorable que resuma la enseñanza principal
-
-⚡ DESAFÍO PRÁCTICO
-- Una acción específica y concreta para hoy
-- Algo medible y alcanzable
-
-🙏 ORACIÓN
-- Una oración sincera y personal (no genérica)
-- Que responda al texto y pida ayuda para aplicarlo
-
-📝 VERSÍCULO PARA MEMORIZAR
-- El versículo más impactante del pasaje
-
-Escribe con calidez pastoral pero profundidad teológica.` }
+📖 LECTURA: ${reference}
+💭 REFLEXIÓN: Qué nos enseña este pasaje
+🔑 VERDAD: Una frase clave
+⚡ DESAFÍO: Una acción práctica para hoy
+🙏 ORACIÓN: Breve oración` }
   ];
 
-  return callAI(messages, 1500);
+  return callAI(messages, 800);
 }
 
 // ============ VERSÍCULO DEL DÍA ============

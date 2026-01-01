@@ -1,11 +1,11 @@
-// Proveedor de IA OPTIMIZADO - Llamadas paralelas para máxima velocidad
-// Usa Ollama (via proxy) y Groq simultáneamente, devuelve la primera respuesta
+// Proveedor de IA - Ollama (principal) + Groq (respaldo)
+// Soporta: Proxy backend local, Proxy Nginx (producción), URL externa directa
 
-const OLLAMA_BASE_URL = import.meta.env.VITE_OLLAMA_BASE_URL || 'https://ollama-ollama.ginee6.easypanel.host';
+const OLLAMA_EXTERNAL_URL = import.meta.env.VITE_OLLAMA_BASE_URL || 'https://ollama-ollama.ginee6.easypanel.host';
 const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'gemma2:2b';
 const GROQ_MODEL = import.meta.env.VITE_GROQ_MODEL || 'llama-3.1-8b-instant';
 
-// URL del servidor backend para proxy (evita CORS)
+// URL del backend para proxy (evita CORS) - para desarrollo local
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 // Recolectar todas las API keys de Groq
@@ -18,24 +18,23 @@ const GROQ_API_KEYS: string[] = [
 
 // Debug: mostrar configuración al cargar
 console.log('🔧 AI Provider Config:', {
-  OLLAMA_BASE_URL,
+  OLLAMA_EXTERNAL_URL,
   OLLAMA_MODEL,
-  API_BASE_URL,
+  API_BASE_URL: API_BASE_URL || '(no configurado)',
   GROQ_KEYS: GROQ_API_KEYS.length
 });
 
-// Estado de rotación de keys
+// Estado de rotación de keys Groq
 let currentKeyIndex = 0;
 let failedKeys: Set<number> = new Set();
 let lastKeyReset = Date.now();
-const KEY_RESET_INTERVAL = 3 * 60 * 1000; // 3 minutos
+const KEY_RESET_INTERVAL = 3 * 60 * 1000;
 
 function getNextGroqKey(): string | null {
   if (Date.now() - lastKeyReset > KEY_RESET_INTERVAL) {
     failedKeys.clear();
     lastKeyReset = Date.now();
   }
-
   for (let i = 0; i < GROQ_API_KEYS.length; i++) {
     const index = (currentKeyIndex + i) % GROQ_API_KEYS.length;
     if (!failedKeys.has(index)) {
@@ -43,7 +42,6 @@ function getNextGroqKey(): string | null {
       return GROQ_API_KEYS[index];
     }
   }
-
   failedKeys.clear();
   return GROQ_API_KEYS[0] || null;
 }
@@ -72,101 +70,103 @@ export interface AIResponse {
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
     promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error('Timeout')), ms)
-    )
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
   ]);
 }
 
-// Llamar a Ollama (via proxy si está disponible, directo si no)
+// Llamar a Ollama - Intenta múltiples métodos
 async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIResponse> {
   const startTime = Date.now();
-
   const systemPrompt = messages.find(m => m.role === 'system')?.content || '';
   const userPrompt = messages.filter(m => m.role !== 'system').map(m => m.content).join('\n');
+  
+  // Timeout dinámico basado en tokens solicitados
+  const timeout = Math.max(60000, maxTokens * 20); // Mínimo 60s, más para respuestas largas
 
-  // Intentar primero via proxy del backend (evita CORS)
+  // 1. Intentar via proxy backend (desarrollo local)
   if (API_BASE_URL) {
     try {
-      console.log(`📡 Llamando a Ollama via proxy: ${API_BASE_URL}/api/ai/ollama/generate`);
-
+      console.log(`📡 Ollama via proxy: ${API_BASE_URL}/api/ai/ollama/generate`);
       const response = await withTimeout(
         fetch(`${API_BASE_URL}/api/ai/ollama/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            prompt: userPrompt,
-            system: systemPrompt,
-            maxTokens,
-          }),
+          body: JSON.stringify({ prompt: userPrompt, system: systemPrompt, maxTokens }),
         }),
-        15000
+        timeout
       );
-
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.content) {
           console.log(`✅ Ollama (proxy) respondió en ${Date.now() - startTime}ms`);
-          return {
-            success: true,
-            content: data.content,
-            provider: 'ollama',
-            timeMs: Date.now() - startTime
-          };
+          return { success: true, content: data.content, provider: 'ollama', timeMs: Date.now() - startTime };
         }
       }
     } catch (error) {
-      console.warn(`🛑 Proxy Ollama falló: ${error instanceof Error ? error.message : 'Error'}`);
+      console.warn(`⚠️ Proxy falló: ${error instanceof Error ? error.message : 'Error'}`);
     }
   }
 
-  // Fallback: llamada directa a Ollama (puede fallar por CORS en producción)
-  if (!OLLAMA_BASE_URL) {
-    console.warn('🛑 Ollama: No hay URL configurada');
-    return { success: false, content: '', provider: 'ollama' };
-  }
-
+  // 2. Intentar proxy Nginx interno (producción EasyPanel)
   try {
-    console.log(`📡 Llamando a Ollama directo: ${OLLAMA_BASE_URL}/api/generate`);
-
+    console.log(`📡 Ollama via Nginx: /api/ollama/api/generate`);
     const response = await withTimeout(
-      fetch(`${OLLAMA_BASE_URL}/api/generate`, {
+      fetch('/api/ollama/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: OLLAMA_MODEL,
           prompt: `${systemPrompt}\n\n${userPrompt}`,
           stream: false,
-          options: {
-            temperature: 0.7,
-            num_predict: maxTokens,
-          },
+          options: { temperature: 0.7, num_predict: maxTokens },
         }),
       }),
-      15000
+      timeout
     );
-
     if (response.ok) {
       const data = await response.json();
       if (data.response) {
-        console.log(`✅ Ollama (directo) respondió en ${Date.now() - startTime}ms`);
-        return {
-          success: true,
-          content: data.response,
-          provider: 'ollama',
-          timeMs: Date.now() - startTime
-        };
+        console.log(`✅ Ollama (Nginx) respondió en ${Date.now() - startTime}ms`);
+        return { success: true, content: data.response, provider: 'ollama', timeMs: Date.now() - startTime };
       }
-    } else {
-      console.warn(`🛑 Ollama falló con status: ${response.status}`);
     }
   } catch (error) {
-    console.warn(`🛑 Ollama inaccesible: ${error instanceof Error ? error.message : 'Error de red'}`);
+    console.warn(`⚠️ Nginx proxy falló: ${error instanceof Error ? error.message : 'Error'}`);
   }
+
+  // 3. Fallback: URL externa directa (puede tener CORS)
+  if (OLLAMA_EXTERNAL_URL) {
+    try {
+      console.log(`📡 Ollama directo: ${OLLAMA_EXTERNAL_URL}/api/generate`);
+      const response = await withTimeout(
+        fetch(`${OLLAMA_EXTERNAL_URL}/api/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: OLLAMA_MODEL,
+            prompt: `${systemPrompt}\n\n${userPrompt}`,
+            stream: false,
+            options: { temperature: 0.7, num_predict: maxTokens },
+          }),
+        }),
+        timeout
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data.response) {
+          console.log(`✅ Ollama (directo) respondió en ${Date.now() - startTime}ms`);
+          return { success: true, content: data.response, provider: 'ollama', timeMs: Date.now() - startTime };
+        }
+      }
+    } catch (error) {
+      console.warn(`⚠️ Ollama directo falló: ${error instanceof Error ? error.message : 'Error'}`);
+    }
+  }
+
   return { success: false, content: '', provider: 'ollama' };
 }
 
-// Llamar a Groq (optimizado)
+// Llamar a Groq
 async function callGroq(messages: AIMessage[], maxTokens: number): Promise<AIResponse> {
   const startTime = Date.now();
   const apiKey = getNextGroqKey();
@@ -187,77 +187,61 @@ async function callGroq(messages: AIMessage[], maxTokens: number): Promise<AIRes
           max_tokens: maxTokens,
         }),
       }),
-      25000 // 25 segundos timeout
+      45000
     );
 
     if (response.ok) {
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
       if (content) {
-        return {
-          success: true,
-          content,
-          provider: 'groq',
-          timeMs: Date.now() - startTime
-        };
+        console.log(`✅ Groq respondió en ${Date.now() - startTime}ms`);
+        return { success: true, content, provider: 'groq', timeMs: Date.now() - startTime };
       }
-    } else if (response.status === 401) {
-      // API Key inválida - marcar y NO reintentar infinitamente
-      console.warn(`🛑 Groq API Key inválida (key #${currentKeyIndex + 1})`);
-      markKeyAsFailed(apiKey);
-      // Solo reintentar si hay más keys disponibles
-      if (failedKeys.size < GROQ_API_KEYS.length) {
-        return callGroq(messages, maxTokens);
-      }
-    } else if (response.status === 429 || response.status === 503) {
+    } else if (response.status === 401 || response.status === 429 || response.status === 503) {
+      console.warn(`⚠️ Groq key #${currentKeyIndex + 1} falló (${response.status})`);
       markKeyAsFailed(apiKey);
       if (failedKeys.size < GROQ_API_KEYS.length) {
         return callGroq(messages, maxTokens);
       }
     }
   } catch (error) {
-    console.warn(`🛑 Groq error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.warn(`⚠️ Groq error: ${error instanceof Error ? error.message : 'Error'}`);
     markKeyAsFailed(apiKey);
   }
   return { success: false, content: '', provider: 'groq' };
 }
 
-// FUNCIÓN PRINCIPAL: Prioridad OLLAMA -> Fallback GROQ
+// FUNCIÓN PRINCIPAL: Ollama primero, Groq como respaldo
 export async function callAI(messages: AIMessage[], maxTokens: number = 2000): Promise<AIResponse> {
   const startTime = Date.now();
 
-  // 1. Intentar PRIMERO con Ollama (Principal)
-  console.log('🚀 Iniciando consulta con IA Principal (Ollama)...');
+  console.log('🚀 Iniciando consulta IA...');
+  
+  // 1. Intentar con Ollama
   const ollamaResult = await callOllama(messages, maxTokens);
+  if (ollamaResult.success) return ollamaResult;
 
-  if (ollamaResult.success) {
-    return ollamaResult;
-  }
+  console.warn('⚠️ Ollama no disponible, probando Groq...');
 
-  console.warn('⚠️ Ollama falló o no respondió. Activando respaldo (Groq)...');
-
-  // 2. Si Ollama falla, intentar con Groq (Respaldo)
+  // 2. Fallback a Groq
   const groqResult = await callGroq(messages, maxTokens);
+  if (groqResult.success) return groqResult;
 
-  if (groqResult.success) {
-    return groqResult;
-  }
-
-  // 3. Si ambos fallan
+  // 3. Ambos fallaron
   return {
     success: false,
-    content: 'No se pudo conectar con Biblo. Por favor verifica que el servidor de IA esté activo.',
+    content: 'No se pudo conectar con ningún servicio de IA. Verifica tu conexión.',
     provider: 'error',
     timeMs: Date.now() - startTime
   };
 }
 
-// Versión RÁPIDA para respuestas cortas (preguntas simples)
+// Versión rápida (respuestas cortas)
 export async function callAIFast(messages: AIMessage[]): Promise<AIResponse> {
   return callAI(messages, 1200);
 }
 
-// Versión para respuestas largas (exégesis profunda, estudios teológicos)
+// Versión detallada (exégesis profunda)
 export async function callAIDetailed(messages: AIMessage[]): Promise<AIResponse> {
   return callAI(messages, 4500);
 }
