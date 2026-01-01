@@ -17,6 +17,9 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'robots.txt', 'icon-512.png'],
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB limit
+      },
       manifest: {
         name: 'Blessed Insight - Biblia de Estudio',
         short_name: 'Blessed',
