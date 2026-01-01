@@ -8,7 +8,7 @@ import {
   Bookmark, Settings, Microscope, Lightbulb, Compass, Gift,
   Check, Copy, BookOpen, GraduationCap, Flame, Play,
   History, User, Zap, MessageCircle, Heart, Star, ChevronRight, Sparkles,
-  Loader2, RefreshCw
+  Loader2, RefreshCw, Download
 } from 'lucide-react';
 import {
   getVerseOfTheDay,
@@ -45,6 +45,32 @@ export function HomeScreen({
   const [currentVerse, setCurrentVerse] = useState<any>(null);
   const [dynamicInsights, setDynamicInsights] = useState<DailyInsight[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBanner(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setShowInstallBanner(false);
+    }
+    setDeferredPrompt(null);
+  };
   const stats = getReadingStats();
 
   useEffect(() => {
@@ -207,6 +233,32 @@ export function HomeScreen({
             <Settings className="h-5 w-5 text-amber-500" />
             <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Ajustes</span>
           </button>
+
+          {/* Banner de Instalación (Si está disponible) */}
+          <AnimatePresence>
+            {showInstallBanner && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                onClick={handleInstallClick}
+                className="col-span-4 group relative overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 rounded-[2rem] p-6 text-left transition-all hover:shadow-xl active:scale-[0.98]"
+              >
+                <div className="absolute top-0 right-0 p-4 opacity-20">
+                  <Play className="h-16 w-16 text-white rotate-12" />
+                </div>
+                <div className="relative z-10 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-white text-lg font-black italic uppercase tracking-tighter">Instalar en el Celular</h3>
+                    <p className="text-white/70 text-[10px] font-bold uppercase tracking-widest mt-1">Lleva tu Biblia a todas partes</p>
+                  </div>
+                  <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md border border-white/30">
+                    <Download className="h-5 w-5 text-white" />
+                  </div>
+                </div>
+              </motion.button>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         {/* Versículo del Día (Pool Dinámico) */}
