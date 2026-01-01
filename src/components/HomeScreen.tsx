@@ -4,17 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  Search, Menu, UserCircle, Sun, Share2,
-  Bookmark, Settings, Microscope, Lightbulb, Compass, Gift,
-  Check, Copy, BookOpen, GraduationCap, Flame, Play,
-  History, User, Zap, MessageCircle, Heart, Star, ChevronRight, Sparkles,
-  Loader2, RefreshCw, Download
+  Search, BookOpen, Sparkles, GraduationCap,
+  Heart, Share2, ChevronRight, Sun,
+  Loader2, Download, Gift, Zap, User,
+  Bookmark, ArrowRight
 } from 'lucide-react';
 import {
   getVerseOfTheDay,
   getReadingStats,
-  getActivePlan,
-  getPlanById,
   getStoredInsights,
   generateDynamicInsight,
   getStoredVerses,
@@ -22,14 +19,19 @@ import {
   type DailyInsight
 } from '@/lib/studyService';
 
+// Importar imágenes
+import heroSunrise from '@/assets/hero-sunrise.jpg';
+import bibleStudy from '@/assets/bible-study.jpg';
+import spiritDove from '@/assets/spirit-dove.jpg';
+
 interface HomeScreenProps {
   onStartReading: () => void;
   onOpenSearch: () => void;
   onOpenStudyCenter: () => void;
   onOpenFavorites: () => void;
-  onOpenAI: () => void; // Nuevo
-  onOpenPlans: () => void; // Nuevo
-  onOpenTheme: () => void; // Nuevo
+  onOpenAI: () => void;
+  onOpenPlans: () => void;
+  onOpenTheme: () => void;
 }
 
 export function HomeScreen({
@@ -54,23 +56,18 @@ export function HomeScreen({
       setDeferredPrompt(e);
       setShowInstallBanner(true);
     };
-
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setShowInstallBanner(false);
-    }
+    if (outcome === 'accepted') setShowInstallBanner(false);
     setDeferredPrompt(null);
   };
+
   const stats = getReadingStats();
 
   useEffect(() => {
@@ -79,29 +76,20 @@ export function HomeScreen({
     else if (hour < 18) setGreeting('Buenas tardes');
     else setGreeting('Buenas noches');
 
-    // 1. Cargar Versículos Dinámicos
     const savedVerses = getStoredVerses();
     if (savedVerses.length > 0) {
-      // Rotar aleatoriamente entre los guardados
       setCurrentVerse(savedVerses[Math.floor(Math.random() * savedVerses.length)]);
     } else {
-      // Fallback al estático si no hay nada guardado aún
       setCurrentVerse(getVerseOfTheDay());
     }
 
-    // 2. Cargar Insights Dinámicos
     const cachedInsights = getStoredInsights();
-    // Barajar aleatoriamente para que cada vez que entre vea algo distinto
     const shuffled = [...cachedInsights].sort(() => Math.random() - 0.5);
     setDynamicInsights(shuffled);
 
-    // 3. Sistema de Generación Automática (Fondo)
-    // Objetivo: tener al menos 15 pepitas de sabiduría guardadas
     const checkAndGenerate = async () => {
       const currentInsights = getStoredInsights();
       const currentVerses = getStoredVerses();
-
-      // Generar si faltan datos o si lo último es muy viejo (> 24h)
       const needsInsights = currentInsights.length < 15;
       const needsVerses = currentVerses.length < 5;
 
@@ -110,10 +98,8 @@ export function HomeScreen({
         try {
           if (needsInsights) await generateDynamicInsight();
           if (needsVerses) await generateDynamicVerse();
-
-          // Actualizar UI con lo nuevo
           const updated = getStoredInsights();
-          setDynamicInsights(prev => [...updated].sort(() => Math.random() - 0.5));
+          setDynamicInsights([...updated].sort(() => Math.random() - 0.5));
           if (needsVerses) {
             const updatedVerses = getStoredVerses();
             setCurrentVerse(updatedVerses[0]);
@@ -122,172 +108,188 @@ export function HomeScreen({
         setIsGenerating(false);
       }
     };
-
     checkAndGenerate();
   }, []);
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  };
-
-  const item = {
-    hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1, transition: { duration: 0.6 } }
-  };
-
   return (
     <div className="flex-1 bg-background overflow-y-auto scroll-smooth pb-24">
-      {/* Header Premium */}
-      <header className="sticky top-0 z-30 glass px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
-            <div className="relative bg-primary p-2 rounded-xl shadow-lg">
-              <BookOpen className="h-5 w-5 text-primary-foreground" />
+      {/* Hero Section con imagen real */}
+      <div className="relative h-[420px] md:h-[480px] overflow-hidden">
+        <img 
+          src={heroSunrise} 
+          alt="Amanecer sobre Jerusalén" 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-background" />
+        
+        {/* Header flotante */}
+        <header className="absolute top-0 left-0 right-0 z-30 px-5 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-white/95 dark:bg-black/80 backdrop-blur-xl p-2.5 rounded-2xl shadow-lg">
+              <BookOpen className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-serif font-bold text-white drop-shadow-lg">Blessed Insight</h1>
+              <p className="text-[11px] text-white/80 font-medium">Biblia de Estudio</p>
             </div>
           </div>
-          <div>
-            <h1 className="text-xl font-serif font-bold tracking-tight text-foreground">Blessed Insight</h1>
-            <p className="text-[10px] text-muted-foreground font-medium tracking-wide uppercase">Biblia de Estudio</p>
+          <div className="flex items-center gap-2">
+            {isGenerating && (
+              <div className="bg-white/20 backdrop-blur-xl rounded-full p-2">
+                <Loader2 className="h-4 w-4 text-white animate-spin" />
+              </div>
+            )}
+            <button 
+              onClick={onOpenSearch}
+              className="bg-white/95 dark:bg-black/80 backdrop-blur-xl h-11 w-11 rounded-2xl flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+            >
+              <Search className="h-5 w-5 text-foreground" />
+            </button>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          {isGenerating && <Loader2 className="h-4 w-4 text-primary animate-spin" />}
-          <button className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:bg-accent transition-colors shadow-elegant">
-            <UserCircle className="h-5 w-5" />
-          </button>
-        </div>
-      </header>
+        </header>
 
-      <motion.div
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className="px-5 py-6 space-y-8 max-w-2xl mx-auto"
-      >
-        {/* Bienvenida */}
-        {/* Panel Bento Premium */}
-        <motion.div variants={item} className="grid grid-cols-4 gap-4">
-          {/* Card Principal: Biblia */}
-          <button
-            onClick={onStartReading}
-            className="col-span-4 sm:col-span-2 group relative overflow-hidden h-44 bg-gradient-to-br from-primary to-primary/80 rounded-3xl p-7 text-left transition-all duration-300 hover:shadow-xl hover:shadow-primary/20 active:scale-[0.98] shadow-premium"
+        {/* Contenido del Hero */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 pb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            <div className="absolute -bottom-8 -right-8 opacity-[0.08] group-hover:scale-110 group-hover:opacity-[0.12] transition-all duration-500">
-              <BookOpen size={160} strokeWidth={1} />
-            </div>
-            <div className="relative z-10 h-full flex flex-col justify-between">
-              <div className="bg-white/15 w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-lg">
-                <BookOpen className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h3 className="text-primary-foreground text-2xl font-serif font-bold leading-tight">Sagrada Escritura</h3>
-                <p className="text-primary-foreground/60 text-xs font-medium mt-1.5 tracking-wide">Continuar lectura</p>
-              </div>
-            </div>
-          </button>
+            <p className="text-white/80 text-sm font-medium mb-1">{greeting}</p>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4 drop-shadow-lg">
+              Tu espacio de<br />encuentro espiritual
+            </h2>
+            <Button
+              onClick={onStartReading}
+              size="lg"
+              className="bg-white text-slate-900 hover:bg-white/90 rounded-2xl h-14 px-8 font-semibold shadow-xl hover:shadow-2xl transition-all hover:scale-[1.02]"
+            >
+              <BookOpen className="h-5 w-5 mr-2" />
+              Comenzar a Leer
+            </Button>
+          </motion.div>
+        </div>
+      </div>
 
-          {/* Card IA */}
+      {/* Contenido Principal */}
+      <div className="px-5 py-6 space-y-8 max-w-2xl mx-auto -mt-6 relative z-10">
+        
+        {/* Grid de Acciones Principales */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-2 gap-4"
+        >
+          {/* Card IA Biblo */}
           <button
             onClick={onOpenAI}
-            className="col-span-2 sm:col-span-1 group h-44 bg-card rounded-3xl border border-border p-5 flex flex-col justify-between transition-all duration-300 hover:shadow-premium hover:border-primary/20 active:scale-[0.98]"
+            className="group relative overflow-hidden bg-card rounded-3xl border border-border p-5 text-left transition-all duration-300 hover:shadow-xl hover:border-primary/30 active:scale-[0.98]"
           >
-            <div className="w-12 h-12 bg-accent text-accent-foreground rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-elegant">
-              <Sparkles className="h-5 w-5" />
+            <div className="absolute -right-6 -bottom-6 opacity-5 group-hover:opacity-10 transition-opacity">
+              <Sparkles size={100} strokeWidth={1} />
             </div>
-            <div>
-              <p className="text-[11px] font-medium text-muted-foreground mb-0.5">Asistente IA</p>
-              <h4 className="text-lg font-serif font-semibold text-foreground">Biblo</h4>
+            <div className="relative z-10">
+              <div className="w-14 h-14 bg-gradient-to-br from-violet-500 to-purple-600 text-white rounded-2xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                <Sparkles className="h-7 w-7" />
+              </div>
+              <h3 className="text-lg font-serif font-bold text-foreground mb-1">Biblo IA</h3>
+              <p className="text-xs text-muted-foreground">Tu asistente bíblico inteligente</p>
             </div>
           </button>
 
-          {/* Card Estudio */}
+          {/* Card Centro de Estudio */}
           <button
             onClick={onOpenStudyCenter}
-            className="col-span-2 sm:col-span-1 group h-44 bg-card rounded-3xl border border-border p-5 flex flex-col justify-between transition-all duration-300 hover:shadow-premium hover:border-primary/20 active:scale-[0.98]"
+            className="group relative overflow-hidden bg-card rounded-3xl border border-border p-5 text-left transition-all duration-300 hover:shadow-xl hover:border-primary/30 active:scale-[0.98]"
           >
-            <div className="w-12 h-12 bg-secondary text-secondary-foreground rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-elegant">
-              <GraduationCap className="h-5 w-5" />
+            <div className="absolute -right-6 -bottom-6 opacity-5 group-hover:opacity-10 transition-opacity">
+              <GraduationCap size={100} strokeWidth={1} />
             </div>
-            <div>
-              <p className="text-[11px] font-medium text-muted-foreground mb-0.5">Centro de</p>
-              <h4 className="text-lg font-serif font-semibold text-foreground">Estudio</h4>
+            <div className="relative z-10">
+              <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-2xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                <GraduationCap className="h-7 w-7" />
+              </div>
+              <h3 className="text-lg font-serif font-bold text-foreground mb-1">Estudio</h3>
+              <p className="text-xs text-muted-foreground">Planes y herramientas</p>
             </div>
           </button>
-
-          {/* Acciones Rápidas */}
-          <button onClick={onOpenSearch} className="flex flex-col items-center justify-center gap-2.5 p-4 bg-card rounded-2xl border border-border hover:bg-accent hover:border-primary/20 transition-all duration-200 active:scale-95 shadow-elegant">
-            <Search className="h-5 w-5 text-muted-foreground" />
-            <span className="text-[10px] font-semibold text-muted-foreground">Buscar</span>
-          </button>
-
-          <button onClick={onOpenFavorites} className="flex flex-col items-center justify-center gap-2.5 p-4 bg-card rounded-2xl border border-border hover:bg-accent hover:border-primary/20 transition-all duration-200 active:scale-95 shadow-elegant">
-            <Heart className="h-5 w-5 text-primary" />
-            <span className="text-[10px] font-semibold text-muted-foreground">Favoritos</span>
-          </button>
-
-          <button onClick={onOpenPlans} className="flex flex-col items-center justify-center gap-2.5 p-4 bg-card rounded-2xl border border-border hover:bg-accent hover:border-primary/20 transition-all duration-200 active:scale-95 shadow-elegant">
-            <Check className="h-5 w-5 text-green-600 dark:text-green-500" />
-            <span className="text-[10px] font-semibold text-muted-foreground">Planes</span>
-          </button>
-
-          <button onClick={onOpenTheme} className="flex flex-col items-center justify-center gap-2.5 p-4 bg-card rounded-2xl border border-border hover:bg-accent hover:border-primary/20 transition-all duration-200 active:scale-95 shadow-elegant">
-            <Settings className="h-5 w-5 text-muted-foreground" />
-            <span className="text-[10px] font-semibold text-muted-foreground">Ajustes</span>
-          </button>
-
-          {/* Banner de Instalación */}
-          <AnimatePresence>
-            {showInstallBanner && (
-              <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                onClick={handleInstallClick}
-                className="col-span-4 group relative overflow-hidden bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-5 text-left transition-all hover:shadow-xl hover:shadow-primary/20 active:scale-[0.99]"
-              >
-                <div className="absolute -right-4 -top-4 opacity-10">
-                  <Download className="h-24 w-24" />
-                </div>
-                <div className="relative z-10 flex items-center justify-between">
-                  <div>
-                    <h3 className="text-primary-foreground font-serif font-semibold text-lg">Instalar Aplicación</h3>
-                    <p className="text-primary-foreground/70 text-xs mt-0.5">Acceso rápido desde tu dispositivo</p>
-                  </div>
-                  <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm border border-white/20">
-                    <Download className="h-5 w-5 text-primary-foreground" />
-                  </div>
-                </div>
-              </motion.button>
-            )}
-          </AnimatePresence>
         </motion.div>
+
+        {/* Quick Actions */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="grid grid-cols-4 gap-3"
+        >
+          {[
+            { icon: Heart, label: 'Favoritos', onClick: onOpenFavorites, color: 'text-rose-500' },
+            { icon: Bookmark, label: 'Planes', onClick: onOpenPlans, color: 'text-emerald-500' },
+            { icon: Search, label: 'Buscar', onClick: onOpenSearch, color: 'text-blue-500' },
+            { icon: Sun, label: 'Tema', onClick: onOpenTheme, color: 'text-amber-500' },
+          ].map((action, i) => (
+            <button
+              key={i}
+              onClick={action.onClick}
+              className="flex flex-col items-center justify-center gap-2 p-4 bg-card rounded-2xl border border-border hover:bg-accent hover:border-primary/20 transition-all active:scale-95"
+            >
+              <action.icon className={`h-6 w-6 ${action.color}`} />
+              <span className="text-[11px] font-medium text-muted-foreground">{action.label}</span>
+            </button>
+          ))}
+        </motion.div>
+
+        {/* Banner de Instalación */}
+        <AnimatePresence>
+          {showInstallBanner && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              onClick={handleInstallClick}
+              className="w-full group relative overflow-hidden rounded-2xl transition-all hover:shadow-xl active:scale-[0.99]"
+            >
+              <img src={spiritDove} alt="Instalar App" className="w-full h-32 object-cover rounded-2xl" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent rounded-2xl" />
+              <div className="absolute inset-0 p-5 flex items-center justify-between">
+                <div className="text-left">
+                  <h3 className="text-white font-serif font-bold text-lg">Instalar Aplicación</h3>
+                  <p className="text-white/70 text-xs">Acceso rápido desde tu dispositivo</p>
+                </div>
+                <div className="bg-white/20 backdrop-blur p-3 rounded-xl border border-white/30">
+                  <Download className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </motion.button>
+          )}
+        </AnimatePresence>
 
         {/* Versículo del Día */}
         {currentVerse && (
-          <motion.div variants={item}>
-            <Card className="rounded-3xl border-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-premium overflow-hidden relative group">
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
-              <CardContent className="p-8 md:p-10 relative z-10">
-                <div className="flex items-center justify-between mb-6">
-                  <Badge className="bg-white/10 text-white/90 border-white/10 px-4 py-1.5 rounded-full text-[11px] font-medium tracking-wide">
-                    Versículo del Día
-                  </Badge>
-                  <Sun className="h-5 w-5 text-amber-400/60" />
-                </div>
-                <blockquote className="text-xl md:text-2xl font-serif italic leading-relaxed text-white/95 group-hover:text-white transition-colors duration-500">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card className="rounded-3xl border-0 overflow-hidden shadow-xl group">
+              <div className="relative">
+                <img src={bibleStudy} alt="Biblia abierta" className="w-full h-48 object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-slate-900/30" />
+                <Badge className="absolute top-4 left-4 bg-white/20 text-white border-white/30 backdrop-blur-sm px-4 py-1.5 rounded-full text-xs font-medium">
+                  <Sun className="h-3.5 w-3.5 mr-1.5" />
+                  Versículo del Día
+                </Badge>
+              </div>
+              <CardContent className="bg-slate-900 p-6 relative">
+                <blockquote className="text-xl font-serif italic leading-relaxed text-white/95 mb-4">
                   "{currentVerse.text}"
                 </blockquote>
-                <div className="flex items-center justify-between pt-6 mt-6 border-t border-white/10">
-                  <div>
-                    <p className="text-[11px] font-medium text-white/40 mb-0.5">Referencia</p>
-                    <p className="text-sm font-semibold text-white/90">{currentVerse.book} {currentVerse.chapter}:{currentVerse.verse}</p>
-                  </div>
-                  <Button size="icon" variant="ghost" className="rounded-full bg-white/5 hover:bg-white/15 text-white/70 hover:text-white">
+                <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                  <p className="text-sm font-semibold text-white/90">
+                    {currentVerse.book} {currentVerse.chapter}:{currentVerse.verse}
+                  </p>
+                  <Button size="icon" variant="ghost" className="rounded-full bg-white/10 hover:bg-white/20 text-white">
                     <Share2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -296,45 +298,51 @@ export function HomeScreen({
           </motion.div>
         )}
 
-        {/* Insights */}
+        {/* Sección Reflexiones */}
         <section className="space-y-5">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-lg font-serif font-semibold text-foreground">Para Tu Reflexión</h2>
-            <span className="text-xs text-muted-foreground">{dynamicInsights.length} reflexiones</span>
+            <div>
+              <h2 className="text-xl font-serif font-bold text-foreground">Para Tu Reflexión</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Inspiración diaria para tu camino</p>
+            </div>
+            <Badge variant="secondary" className="text-xs">
+              {dynamicInsights.length} reflexiones
+            </Badge>
           </div>
-          <AnimatePresence mode="popLayout">
-            {dynamicInsights.slice(0, 6).map((insight, idx) => (
+
+          <div className="grid gap-4">
+            {dynamicInsights.slice(0, 4).map((insight, idx) => (
               <motion.article
                 key={insight.id}
-                layout
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ delay: idx * 0.05 }}
-                className="rounded-2xl p-6 bg-card border border-border shadow-elegant hover:shadow-premium transition-all duration-300"
+                transition={{ delay: 0.4 + idx * 0.05 }}
+                className="bg-card rounded-2xl p-5 border border-border hover:shadow-lg hover:border-primary/20 transition-all group"
               >
-                <div className="flex items-start gap-4 mb-4">
-                  <div className={`p-2.5 rounded-xl shadow-sm ${
-                    insight.type === 'promise' ? 'bg-primary/10 text-primary' :
-                    insight.type === 'fact' ? 'bg-green-500/10 text-green-600 dark:text-green-500' : 
-                    'bg-accent text-accent-foreground'
+                <div className="flex items-start gap-4">
+                  <div className={`p-3 rounded-xl shrink-0 ${
+                    insight.type === 'promise' 
+                      ? 'bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 text-amber-600 dark:text-amber-400' 
+                      : insight.type === 'fact' 
+                        ? 'bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 text-emerald-600 dark:text-emerald-400' 
+                        : 'bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-600 dark:text-blue-400'
                   }`}>
-                    {insight.type === 'promise' ? <Gift className="h-4 w-4" /> :
-                      insight.type === 'fact' ? <Zap className="h-4 w-4" /> : <User className="h-4 w-4" />}
+                    {insight.type === 'promise' ? <Gift className="h-5 w-5" /> :
+                      insight.type === 'fact' ? <Zap className="h-5 w-5" /> : <User className="h-5 w-5" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                       {insight.type === 'promise' ? 'Promesa Bíblica' : insight.type === 'fact' ? 'Dato Curioso' : 'Personaje'}
                     </span>
-                    <h3 className="font-serif font-semibold text-foreground leading-snug mt-0.5">{insight.title}</h3>
+                    <h3 className="font-serif font-bold text-foreground leading-snug mt-0.5 text-[15px]">{insight.title}</h3>
                   </div>
                 </div>
-                <p className="text-muted-foreground leading-relaxed text-[15px]">
+                <p className="text-muted-foreground leading-relaxed text-sm mt-3">
                   {insight.content}
                 </p>
                 {insight.reference && (
-                  <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
-                    <span className="text-xs font-medium px-3 py-1 bg-secondary rounded-full text-secondary-foreground">
+                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
+                    <span className="text-xs font-medium px-3 py-1.5 bg-secondary rounded-full text-secondary-foreground">
                       {insight.reference}
                     </span>
                     <div className="flex gap-1">
@@ -349,28 +357,38 @@ export function HomeScreen({
                 )}
               </motion.article>
             ))}
-          </AnimatePresence>
+          </div>
         </section>
 
-        {/* CTA Section */}
-        <motion.div variants={item} className="pb-8 pt-2">
-          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-3xl p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 shadow-premium relative overflow-hidden group">
-            <div className="absolute -right-10 -bottom-10 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-700">
-              <Microscope size={200} strokeWidth={1} />
+        {/* CTA Final */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="pb-8"
+        >
+          <button
+            onClick={onOpenStudyCenter}
+            className="w-full group relative overflow-hidden rounded-3xl transition-all hover:shadow-2xl active:scale-[0.99]"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary/80" />
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxjaXJjbGUgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIgY3g9IjIwIiBjeT0iMjAiIHI9IjEiLz48L2c+PC9zdmc+')] opacity-50" />
+            <div className="relative z-10 p-8 flex items-center justify-between">
+              <div className="text-left">
+                <h3 className="text-2xl font-serif font-bold text-primary-foreground mb-2">
+                  Profundiza en la Palabra
+                </h3>
+                <p className="text-primary-foreground/70 text-sm max-w-[250px]">
+                  Herramientas avanzadas de estudio bíblico a tu alcance
+                </p>
+              </div>
+              <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-sm border border-white/30 group-hover:scale-110 transition-transform">
+                <ArrowRight className="h-6 w-6 text-primary-foreground" />
+              </div>
             </div>
-            <div className="flex-1 text-center md:text-left z-10">
-              <h3 className="text-2xl md:text-3xl font-serif font-bold mb-3 text-white">Profundiza en la Palabra</h3>
-              <p className="text-white/50 text-sm leading-relaxed mb-6 max-w-md">Descubre el significado exegético de cada pasaje con herramientas de estudio avanzadas.</p>
-              <Button 
-                onClick={onOpenStudyCenter} 
-                className="bg-white text-slate-900 hover:bg-white/90 rounded-xl h-12 px-8 font-semibold text-sm shadow-lg hover:shadow-xl transition-all"
-              >
-                Comenzar Estudio
-              </Button>
-            </div>
-          </div>
+          </button>
         </motion.div>
-      </motion.div>
+      </div>
     </div>
   );
 }

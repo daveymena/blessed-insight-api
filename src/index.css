@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,115 +6,114 @@
 
 @layer base {
   :root {
-    /* ========== TEMA LIGHT PREMIUM ========== */
-    /* Fondo cremoso elegante, no blanco puro */
-    --background: 40 33% 99%;
-    --foreground: 220 20% 15%;
+    /* ========== TEMA LIGHT - MODERNO Y LIMPIO ========== */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
 
     /* Tarjetas con sutil elevación */
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 15%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 15%;
+    --popover-foreground: 222 47% 11%;
 
-    /* COLOR PRIMARIO: Azul profundo elegante (Autoridad/Confianza) */
-    --primary: 220 70% 45%;
+    /* COLOR PRIMARIO: Indigo elegante */
+    --primary: 238 83% 66%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secundario: Gris cálido sofisticado */
-    --secondary: 40 20% 96%;
-    --secondary-foreground: 220 20% 25%;
+    /* Secundario: Gris neutro */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 47% 11%;
 
     /* Muted: Para elementos sutiles */
-    --muted: 40 15% 95%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    /* Accent: Oro suave para destacados premium */
-    --accent: 40 60% 94%;
-    --accent-foreground: 35 80% 30%;
+    /* Accent: Para destacados */
+    --accent: 220 14% 96%;
+    --accent-foreground: 222 47% 11%;
 
     /* Destructive */
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Bordes y inputs refinados */
-    --border: 40 20% 90%;
-    --input: 40 20% 92%;
-    --ring: 220 70% 50%;
+    /* Bordes y inputs */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 238 83% 66%;
 
-    --radius: 1rem;
+    --radius: 0.75rem;
 
     /* ========== TOKENS PERSONALIZADOS ========== */
-    --scripture-bg: 40 30% 98%;
-    --scripture-border: 40 20% 88%;
-    --verse-number: 220 70% 45%;
-    --gold-accent: 40 85% 55%;
-    --warm-shadow: 40 30% 85%;
+    --scripture-bg: 45 30% 98%;
+    --scripture-border: 45 20% 88%;
+    --verse-number: 238 83% 66%;
+    --gold-accent: 38 92% 50%;
+    --warm-shadow: 220 14% 90%;
 
-    /* Tipografía Premium */
+    /* Tipografía */
     --font-serif: 'Playfair Display', Georgia, serif;
-    --font-sans: 'DM Sans', system-ui, sans-serif;
+    --font-sans: 'Inter', system-ui, sans-serif;
 
-    /* Sidebar elegante */
-    --sidebar-background: 40 25% 98%;
-    --sidebar-foreground: 220 20% 15%;
-    --sidebar-primary: 220 70% 45%;
+    /* Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 238 83% 66%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 30% 95%;
-    --sidebar-accent-foreground: 220 20% 25%;
-    --sidebar-border: 40 20% 92%;
-    --sidebar-ring: 220 70% 50%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 238 83% 66%;
 
-    /* Gradientes Premium */
-    --gradient-hero: linear-gradient(135deg, hsl(220 70% 45%) 0%, hsl(250 60% 50%) 100%);
-    --gradient-gold: linear-gradient(135deg, hsl(40 85% 55%) 0%, hsl(35 80% 45%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(40 33% 99%) 0%, hsl(40 25% 97%) 100%);
+    /* Gradientes */
+    --gradient-hero: linear-gradient(135deg, hsl(238 83% 66%) 0%, hsl(280 80% 60%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(28 90% 45%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 14% 98%) 100%);
   }
 
   .dark {
-    /* ========== TEMA DARK PREMIUM ========== */
-    --background: 220 20% 8%;
-    --foreground: 40 20% 95%;
+    /* ========== TEMA DARK - MODERNO ========== */
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
 
-    --card: 220 20% 10%;
-    --card-foreground: 40 20% 95%;
+    --card: 224 71% 6%;
+    --card-foreground: 213 31% 91%;
 
-    --popover: 220 20% 9%;
-    --popover-foreground: 40 20% 95%;
+    --popover: 224 71% 5%;
+    --popover-foreground: 213 31% 91%;
 
-    --primary: 220 65% 60%;
-    --primary-foreground: 220 20% 8%;
+    --primary: 238 83% 70%;
+    --primary-foreground: 224 71% 4%;
 
-    --secondary: 220 15% 15%;
-    --secondary-foreground: 40 20% 90%;
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 213 31% 91%;
 
-    --muted: 220 15% 18%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 215 28% 17%;
+    --muted-foreground: 215 20% 55%;
 
-    --accent: 40 40% 20%;
-    --accent-foreground: 40 60% 75%;
+    --accent: 215 28% 17%;
+    --accent-foreground: 213 31% 91%;
 
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 18%;
-    --input: 220 15% 15%;
-    --ring: 220 65% 60%;
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 238 83% 70%;
 
-    --scripture-bg: 220 20% 11%;
-    --scripture-border: 220 15% 20%;
-    --verse-number: 220 60% 65%;
-    --gold-accent: 40 75% 60%;
+    --scripture-bg: 224 71% 8%;
+    --scripture-border: 215 28% 20%;
+    --verse-number: 238 83% 75%;
+    --gold-accent: 38 90% 55%;
 
-    --sidebar-background: 220 20% 7%;
-    --sidebar-foreground: 40 20% 95%;
-    --sidebar-primary: 220 65% 60%;
-    --sidebar-primary-foreground: 220 20% 8%;
-    --sidebar-accent: 220 15% 15%;
-    --sidebar-accent-foreground: 40 20% 90%;
-    --sidebar-border: 220 15% 15%;
-    --sidebar-ring: 220 65% 60%;
+    --sidebar-background: 224 71% 4%;
+    --sidebar-foreground: 213 31% 91%;
+    --sidebar-primary: 238 83% 70%;
+    --sidebar-primary-foreground: 224 71% 4%;
+    --sidebar-accent: 215 28% 17%;
+    --sidebar-accent-foreground: 213 31% 91%;
+    --sidebar-border: 215 28% 17%;
+    --sidebar-ring: 238 83% 70%;
   }
 
   /* ========== TEMA SEPIA - Lectura Cómoda ========== */
