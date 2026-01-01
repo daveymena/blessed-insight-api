@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,215 +6,212 @@
 
 @layer base {
   :root {
-    /* FONDO BLANCO PURO Y LUMINOSO */
-    --background: 0 0% 100%;
-    /* Texto gris grisáceo oscuro para lectura cómoda (no negro puro) */
-    --foreground: 222 47% 11%;
+    /* ========== TEMA LIGHT PREMIUM ========== */
+    /* Fondo cremoso elegante, no blanco puro */
+    --background: 40 33% 99%;
+    --foreground: 220 20% 15%;
 
-    /* Tarjetas blancas con sombra suave */
+    /* Tarjetas con sutil elevación */
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 220 20% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 220 20% 15%;
 
-    /* COLOR PRINCIPAL: ÍNDIGO VIBRANTE (Inteligencia/Divinidad) */
-    /* Antes era marrón (25 45% 35%) */
-    --primary: 262 83% 58%;
-    --primary-foreground: 210 40% 98%;
+    /* COLOR PRIMARIO: Azul profundo elegante (Autoridad/Confianza) */
+    --primary: 220 70% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11%;
+    /* Secundario: Gris cálido sofisticado */
+    --secondary: 40 20% 96%;
+    --secondary-foreground: 220 20% 25%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215 16% 47%;
+    /* Muted: Para elementos sutiles */
+    --muted: 40 15% 95%;
+    --muted-foreground: 220 10% 50%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222 47% 11%;
+    /* Accent: Oro suave para destacados premium */
+    --accent: 40 60% 94%;
+    --accent-foreground: 35 80% 30%;
 
-    /* Rojo suave para acciones destructivas */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 262 83% 58%;
+    /* Bordes y inputs refinados */
+    --border: 40 20% 90%;
+    --input: 40 20% 92%;
+    --ring: 220 70% 50%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    /* TOKENS PERSONALIZADOS */
-    /* Fondo de escritura muy sutil, casi blanco */
-    --scripture-bg: 0 0% 99%;
-    --scripture-border: 220 13% 91%;
+    /* ========== TOKENS PERSONALIZADOS ========== */
+    --scripture-bg: 40 30% 98%;
+    --scripture-border: 40 20% 88%;
+    --verse-number: 220 70% 45%;
+    --gold-accent: 40 85% 55%;
+    --warm-shadow: 40 30% 85%;
 
-    /* Números de versículos en dorado/naranja para mantener tradición pero vibrante */
-    --verse-number: 262 83% 58%;
-    --gold-accent: 45 93% 47%;
-    --warm-shadow: 220 40% 90%;
+    /* Tipografía Premium */
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-sans: 'DM Sans', system-ui, sans-serif;
 
-    --font-serif: 'Cormorant Garamond', Georgia, serif;
-    --font-sans: 'Inter', system-ui, sans-serif;
-
-    /* Sidebar limpia */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 262 83% 58%;
+    /* Sidebar elegante */
+    --sidebar-background: 40 25% 98%;
+    --sidebar-foreground: 220 20% 15%;
+    --sidebar-primary: 220 70% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96.1%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 262 83% 58%;
+    --sidebar-accent: 40 30% 95%;
+    --sidebar-accent-foreground: 220 20% 25%;
+    --sidebar-border: 40 20% 92%;
+    --sidebar-ring: 220 70% 50%;
+
+    /* Gradientes Premium */
+    --gradient-hero: linear-gradient(135deg, hsl(220 70% 45%) 0%, hsl(250 60% 50%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(40 85% 55%) 0%, hsl(35 80% 45%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(40 33% 99%) 0%, hsl(40 25% 97%) 100%);
   }
 
   .dark {
-    /* MODO OSCURO PROFUNDO (Azul marino nocturno, no negro total) */
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    /* ========== TEMA DARK PREMIUM ========== */
+    --background: 220 20% 8%;
+    --foreground: 40 20% 95%;
 
-    --card: 222 47% 13%;
-    --card-foreground: 210 40% 98%;
+    --card: 220 20% 10%;
+    --card-foreground: 40 20% 95%;
 
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 220 20% 9%;
+    --popover-foreground: 40 20% 95%;
 
-    --primary: 263 70% 50%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 220 65% 60%;
+    --primary-foreground: 220 20% 8%;
 
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 220 15% 15%;
+    --secondary-foreground: 40 20% 90%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 220 15% 18%;
+    --muted-foreground: 220 10% 55%;
 
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 40 40% 20%;
+    --accent-foreground: 40 60% 75%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 263 70% 50%;
+    --border: 220 15% 18%;
+    --input: 220 15% 15%;
+    --ring: 220 65% 60%;
 
-    --scripture-bg: 223 47% 14%;
-    --scripture-border: 217 33% 20%;
-    --verse-number: 263 70% 60%;
-    --gold-accent: 48 96% 53%;
+    --scripture-bg: 220 20% 11%;
+    --scripture-border: 220 15% 20%;
+    --verse-number: 220 60% 65%;
+    --gold-accent: 40 75% 60%;
 
-    --sidebar-background: 222 47% 10%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 263 70% 50%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 263 70% 50%;
+    --sidebar-background: 220 20% 7%;
+    --sidebar-foreground: 40 20% 95%;
+    --sidebar-primary: 220 65% 60%;
+    --sidebar-primary-foreground: 220 20% 8%;
+    --sidebar-accent: 220 15% 15%;
+    --sidebar-accent-foreground: 40 20% 90%;
+    --sidebar-border: 220 15% 15%;
+    --sidebar-ring: 220 65% 60%;
   }
 
-  /* TEMA SEPIA -> Ahora "Crema Luminoso" (Lectura suave) */
+  /* ========== TEMA SEPIA - Lectura Cómoda ========== */
   .theme-sepia {
-    --background: 40 50% 98%;
-    /* Mucho más blanco, apenas un toque crema */
-    --foreground: 222 47% 15%;
-    /* Texto oscuro nítido, no marrón borroso */
+    --background: 35 40% 97%;
+    --foreground: 25 30% 15%;
 
-    --card: 40 50% 96%;
-    --card-foreground: 222 47% 15%;
+    --card: 35 45% 96%;
+    --card-foreground: 25 30% 15%;
 
-    --popover: 40 50% 98%;
-    --popover-foreground: 222 47% 15%;
+    --popover: 35 45% 97%;
+    --popover-foreground: 25 30% 15%;
 
-    --primary: 35 90% 35%;
-    /* Ocre dorado vibrante, no marrón muerto */
-    --primary-foreground: 40 50% 98%;
+    --primary: 25 65% 40%;
+    --primary-foreground: 35 40% 97%;
 
-    --secondary: 40 30% 94%;
-    --secondary-foreground: 35 90% 30%;
+    --secondary: 35 30% 93%;
+    --secondary-foreground: 25 50% 30%;
 
-    --muted: 40 30% 94%;
-    --muted-foreground: 25 10% 45%;
+    --muted: 35 25% 92%;
+    --muted-foreground: 25 20% 45%;
 
-    --accent: 40 30% 94%;
-    --accent-foreground: 35 90% 35%;
+    --accent: 35 35% 91%;
+    --accent-foreground: 25 65% 40%;
 
-    --border: 40 20% 88%;
-    --input: 40 20% 88%;
-    --ring: 35 90% 35%;
+    --border: 35 25% 88%;
+    --input: 35 25% 90%;
+    --ring: 25 65% 45%;
 
-    --scripture-bg: 40 50% 97%;
-    --verse-number: 35 90% 40%;
+    --scripture-bg: 35 45% 96%;
+    --verse-number: 25 65% 45%;
   }
 
-  /* TEMA NAVY -> Ahora "Azul Real Profundo" */
+  /* ========== TEMA NAVY - Lectura Nocturna Premium ========== */
   .theme-navy {
-    --background: 224 71% 4%;
-    /* Azul muy oscuro casi negro, elegante */
-    --foreground: 210 40% 98%;
+    --background: 220 50% 6%;
+    --foreground: 40 30% 95%;
 
-    --card: 224 71% 8%;
-    --card-foreground: 210 40% 98%;
+    --card: 220 45% 9%;
+    --card-foreground: 40 30% 95%;
 
-    --popover: 224 71% 4%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 220 50% 7%;
+    --popover-foreground: 40 30% 95%;
 
-    --primary: 262 83% 65%;
-    /* Púrpura brillante para contraste divino */
-    /* Dorado para contraste secundario */
-    --primary-foreground: 210 40% 98%;
+    --primary: 40 80% 55%;
+    --primary-foreground: 220 50% 6%;
 
-    --secondary: 224 50% 15%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 220 40% 14%;
+    --secondary-foreground: 40 30% 90%;
 
-    --muted: 224 50% 15%;
-    --muted-foreground: 224 30% 60%;
+    --muted: 220 35% 16%;
+    --muted-foreground: 220 20% 55%;
 
-    --accent: 224 50% 20%;
-    --accent-foreground: 45 93% 50%;
+    --accent: 220 35% 18%;
+    --accent-foreground: 40 75% 60%;
 
-    --border: 224 30% 20%;
-    --input: 224 30% 20%;
-    --ring: 262 83% 65%;
+    --border: 220 35% 15%;
+    --input: 220 35% 14%;
+    --ring: 40 80% 55%;
 
-    --scripture-bg: 224 60% 6%;
+    --scripture-bg: 220 45% 8%;
+    --verse-number: 40 80% 60%;
   }
 
-  /* TEMA SLATE (Moderno) -> Ajustado para ser más limpio */
+  /* ========== TEMA SLATE - Moderno Minimalista ========== */
   .theme-slate {
-    --background: 210 20% 99%;
-    /* Blanco frío */
-    --foreground: 222 47% 11%;
+    --background: 210 15% 98%;
+    --foreground: 215 25% 15%;
+
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 215 25% 15%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 221 83% 53%;
-    /* Azul eléctrico vibrante */
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 221 83% 53%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
-    --scripture-bg: 210 20% 98%;
+    --popover-foreground: 215 25% 15%;
+
+    --primary: 215 80% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 215 25% 25%;
+
+    --muted: 210 15% 95%;
+    --muted-foreground: 215 15% 50%;
+
+    --accent: 210 20% 94%;
+    --accent-foreground: 215 80% 50%;
+
+    --border: 210 20% 92%;
+    --input: 210 20% 94%;
+    --ring: 215 80% 55%;
+
+    --scripture-bg: 210 15% 97%;
+    --verse-number: 215 80% 50%;
   }
 }
 
-@layer utilities {
-  .bg-pattern-dots {
-    background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
-    background-size: 20px 20px;
-    opacity: 0.5;
-  }
-
-  .bg-pattern-paper {
-    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
-  }
-}
-
+/* ========== ESTILOS BASE REFINADOS ========== */
 @layer base {
   * {
     @apply border-border;
@@ -222,18 +219,23 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply font-serif;
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif tracking-tight;
+    text-wrap: balance;
   }
+
+  h1 { @apply text-4xl md:text-5xl font-bold; }
+  h2 { @apply text-3xl md:text-4xl font-semibold; }
+  h3 { @apply text-2xl md:text-3xl font-semibold; }
 }
 
+/* ========== UTILIDADES DE DISEÑO ========== */
 @layer utilities {
   .font-serif {
     font-family: var(--font-serif);
@@ -243,114 +245,129 @@
     font-family: var(--font-sans);
   }
 
+  /* Texto de escritura bíblica premium */
   .scripture-text {
-    @apply font-serif text-lg leading-relaxed tracking-wide;
+    @apply font-serif text-xl leading-loose tracking-normal;
+    font-feature-settings: "kern" 1, "liga" 1, "onum" 1;
   }
 
-  /* Estilos para versículos con más espacio */
   .scripture-text p {
-    @apply mb-5 text-lg leading-8;
+    @apply mb-6 text-xl leading-[2];
     text-indent: 0;
   }
 
-  .scripture-text p:first-letter {
-    @apply text-primary/80;
-  }
-
   .verse-number {
-    @apply text-sm font-sans font-semibold text-verse-number mr-2 align-super;
-    font-size: 0.7em;
+    @apply text-xs font-sans font-bold text-verse-number mr-2.5;
+    font-size: 0.65em;
+    vertical-align: super;
+    opacity: 0.7;
   }
 
   .text-balance {
     text-wrap: balance;
   }
 
+  /* Glassmorphism premium */
+  .glass {
+    @apply backdrop-blur-xl bg-background/80 border border-border/50;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  }
+
+  .glass-dark {
+    @apply backdrop-blur-xl bg-black/40 border border-white/10;
+  }
+
+  /* Sombras elegantes */
+  .shadow-elegant {
+    box-shadow: 
+      0 1px 2px rgba(0, 0, 0, 0.02),
+      0 2px 4px rgba(0, 0, 0, 0.02),
+      0 4px 8px rgba(0, 0, 0, 0.02),
+      0 8px 16px rgba(0, 0, 0, 0.02),
+      0 16px 32px rgba(0, 0, 0, 0.02);
+  }
+
+  .shadow-premium {
+    box-shadow: 
+      0 0 0 1px hsl(var(--border) / 0.5),
+      0 2px 4px rgba(0, 0, 0, 0.02),
+      0 12px 24px rgba(0, 0, 0, 0.04),
+      0 24px 48px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Gradientes suaves */
+  .gradient-subtle {
+    background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted) / 0.3) 100%);
+  }
+
+  .gradient-card {
+    background: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.95) 100%);
+  }
+}
+
+/* ========== ANIMACIONES REFINADAS ========== */
+@layer utilities {
   .animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
+    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animate-slide-up {
-    animation: slideUp 0.4s ease-out forwards;
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animate-scale-in {
-    animation: scaleIn 0.3s ease-out forwards;
+    animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 @keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
-.animate-slide-in-right {
-  animation: slideInRight 0.3s ease-out forwards;
-}
-
-/* Scrollbar styling */
+/* ========== SCROLLBAR ELEGANTE ========== */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-  border-radius: 4px;
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
-  border-radius: 4px;
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+  background: hsl(var(--muted-foreground) / 0.35);
+  background-clip: content-box;
 }
 
-
-/* Safe area for mobile devices with notch */
+/* ========== SAFE AREAS MÓVIL ========== */
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -359,10 +376,12 @@
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* Mobile bottom navigation styles */
+/* ========== COMPONENTES MÓVILES ========== */
 @layer components {
   .mobile-nav-item {
-    @apply flex flex-col items-center justify-center gap-0.5 p-2 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors min-w-[56px];
+    @apply flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl 
+           transition-all duration-200 min-w-[60px]
+           hover:bg-muted/60 active:scale-95;
   }
 
   .mobile-nav-item-active {
@@ -370,40 +389,56 @@
   }
 }
 
-/* Prevent content from being hidden behind bottom nav on mobile */
+/* Padding inferior en móvil para nav */
 @media (max-width: 767px) {
   .main-content {
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
   }
 }
 
-/* Improve touch targets on mobile */
+/* Touch targets accesibles */
 @media (max-width: 767px) {
-
-  button,
-  a {
+  button, a {
     min-height: 44px;
     min-width: 44px;
   }
 }
 
-/* Animation Extensions */
+/* ========== EFECTOS VISUALES ========== */
 @layer utilities {
   .animate-ken-burns {
-    animation: ken-burns 40s ease-out infinite alternate;
+    animation: ken-burns 50s ease-out infinite alternate;
   }
 
-  .bg-glass {
-    @apply backdrop-blur-md bg-background/70 shadow-lg border border-white/10 dark:border-white/5 dark:bg-black/60;
+  .bg-pattern-dots {
+    background-image: radial-gradient(circle, hsl(var(--muted-foreground) / 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .bg-pattern-lines {
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 23px,
+      hsl(var(--border) / 0.3) 23px,
+      hsl(var(--border) / 0.3) 24px
+    );
   }
 }
 
 @keyframes ken-burns {
-  0% {
-    transform: scale(1.0) translate(0, 0);
-  }
+  0% { transform: scale(1) translate(0, 0); }
+  100% { transform: scale(1.08) translate(-1%, -0.5%); }
+}
 
-  100% {
-    transform: scale(1.15) translate(-2%, -1%);
-  }
+/* ========== SELECCIÓN DE TEXTO ========== */
+::selection {
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
+}
+
+/* ========== FOCUS STATES ACCESIBLES ========== */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
