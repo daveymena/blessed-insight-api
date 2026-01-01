@@ -89,12 +89,13 @@ export function BibleHeader({
       <div className="flex items-center justify-between h-14 px-3 md:px-6">
         {/* Lado izquierdo - Menú y Título */}
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          {/* Botón Home (móvil) */}
+          {/* Botón Home (Visible en todas las resoluciones) */}
           <Button
             variant="ghost"
             size="icon"
-            className={`md:hidden flex-shrink-0 h-9 w-9 ${hasScenicBackground ? 'hover:bg-white/10 text-white' : ''}`}
+            className={`flex-shrink-0 h-9 w-9 ${hasScenicBackground ? 'hover:bg-white/10 text-white' : ''}`}
             onClick={onHomeClick}
+            title="Inicio"
           >
             <Home className="h-5 w-5" />
           </Button>
@@ -196,6 +197,16 @@ export function BibleHeader({
 
           {/* DESKTOP: Controles individuales */}
           <div className="hidden sm:flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onMenuClick}
+              className={`h-9 w-9 ${hasScenicBackground ? 'text-white hover:bg-white/10' : ''}`}
+              title="Libros de la Biblia"
+            >
+              <BookOpen className="h-5 w-5" />
+            </Button>
+
             <Button
               variant="ghost"
               size="icon"
