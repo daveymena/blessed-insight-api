@@ -21,7 +21,7 @@ import { useNavigate } from 'react-router-dom';
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false); // Nuevo: control de panel derecho
-  const [rightPanelType, setRightPanelType] = useState<'ai' | 'study' | 'none'>('none');
+  const [rightPanelType, setRightPanelType] = useState<'biblo' | 'study' | 'none'>('none');
   const [searchOpen, setSearchOpen] = useState(false);
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
@@ -31,7 +31,7 @@ const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const toggleRightPanel = (type: 'ai' | 'study') => {
+  const toggleRightPanel = (type: 'biblo' | 'study') => {
     if (rightPanelOpen && rightPanelType === type) {
       setRightPanelOpen(false);
       setRightPanelType('none');
@@ -87,40 +87,36 @@ const Index = () => {
     goToNextChapter,
     goToPreviousChapter,
     refetch,
+    navigateTo,
     showSpanishEquivalent,
     setShowSpanishEquivalent,
     isSpanishVersion,
+    changeVersion,
   } = useBibleReader();
 
   const handleSearchSelect = (book: BibleBook, chapter?: number) => {
-    selectBook(book);
-    if (chapter) {
-      setTimeout(() => selectChapter(chapter), 100);
-    }
+    navigateTo(book, chapter || 1);
+    setSearchOpen(false);
   };
 
   const handleVersionChange = () => {
+    changeVersion();
     refetch();
   };
 
   const handleNavigation = (book: BibleBook, chapter: number, verse?: number) => {
-    selectBook(book);
-    setTimeout(() => {
-      selectChapter(chapter);
-      if (verse) {
-        // Implementar scroll suave al versículo
-        // Damos un poco más de tiempo para que cargue el contenido
-        setTimeout(() => {
-          const element = document.getElementById(`verse-${verse}`);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Opcional: Resaltar temporalmente
-            element.classList.add('bg-primary/20');
-            setTimeout(() => element.classList.remove('bg-primary/20'), 2000);
-          }
-        }, 300);
-      }
-    }, 100);
+    navigateTo(book, chapter);
+    if (verse) {
+      // Damos un tiempo para que el componente ScriptureReader renderice el nuevo pasaje
+      setTimeout(() => {
+        const element = document.getElementById(`verse-${verse}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.classList.add('bg-primary/20');
+          setTimeout(() => element.classList.remove('bg-primary/20'), 2000);
+        }
+      }, 500); // Un poco más de tiempo para asegurar carga
+    }
     setNavModalOpen(false);
   };
 
@@ -131,7 +127,7 @@ const Index = () => {
 
       <BibleHeader
         onMenuClick={() => setSidebarOpen(true)}
-        onAIClick={() => toggleRightPanel('ai')}
+        onAIClick={() => toggleRightPanel('biblo')}
         onSearchClick={() => setSearchOpen(true)}
         onFavoritesClick={() => setFavoritesOpen(true)}
         onStudyClick={() => toggleRightPanel('study')}
@@ -167,7 +163,7 @@ const Index = () => {
                 onOpenSearch={() => setSearchOpen(true)}
                 onOpenStudyCenter={() => toggleRightPanel('study')}
                 onOpenFavorites={() => setFavoritesOpen(true)}
-                onOpenAI={() => toggleRightPanel('ai')}
+                onOpenAI={() => toggleRightPanel('biblo')}
                 onOpenPlans={() => toggleRightPanel('study')} // O un modal específico si existe
                 onOpenTheme={() => setThemeOpen(true)}
               />
@@ -197,7 +193,7 @@ const Index = () => {
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                 className="hidden lg:block w-[450px] border-l bg-card/80 backdrop-blur-xl z-30 shadow-2xl overflow-hidden"
               >
-                {rightPanelType === 'ai' ? (
+                {rightPanelType === 'biblo' ? (
                   <AIStudyPanel
                     book={selectedBook}
                     chapter={selectedChapter}
@@ -229,7 +225,7 @@ const Index = () => {
         onMenuClick={() => { setActiveTab('bible'); setShowHome(false); setSidebarOpen(true); }}
         onSearchClick={() => { setActiveTab('search'); setSearchOpen(true); }}
         onFavoritesClick={() => { setActiveTab('favorites'); setFavoritesOpen(true); }}
-        onAIClick={() => toggleRightPanel('ai')}
+        onAIClick={() => toggleRightPanel('biblo')}
         onStudyClick={() => toggleRightPanel('study')}
       />
 
@@ -249,7 +245,7 @@ const Index = () => {
           book={selectedBook}
           chapter={selectedChapter}
           passage={passage}
-          isOpen={rightPanelOpen && rightPanelType === 'ai'}
+          isOpen={rightPanelOpen && rightPanelType === 'biblo'}
           onClose={() => setRightPanelOpen(false)}
         />
 

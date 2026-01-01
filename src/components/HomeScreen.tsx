@@ -169,7 +169,7 @@ export function HomeScreen({
             </div>
             <div>
               <p className="text-xs font-black uppercase tracking-tighter">Asistente</p>
-              <h4 className="text-lg font-black italic uppercase italic tracking-tighter text-purple-600">IA</h4>
+              <h4 className="text-lg font-black italic uppercase italic tracking-tighter text-purple-600">Biblo</h4>
             </div>
           </button>
 

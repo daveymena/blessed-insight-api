@@ -37,7 +37,7 @@ export function AIStudyPanel({ book, chapter, passage, isOpen, onClose, isSideba
     // Si hay referencia personalizada, el servicio debería manejarla. 
     // Por ahora pasamos la referencia personalizada si existe como parte del prompt o parámetro.
     const ref = customReference.trim() || `${book?.name} ${chapter}`;
-    const result = await analyzePassage(textToAnalyze, book?.name || "", chapter);
+    const result = await analyzePassage(textToAnalyze, book?.name || "", chapter, customReference.trim());
     setResponse({ content: result.content, source: result.source });
     setLoading(false);
   };
@@ -66,7 +66,7 @@ export function AIStudyPanel({ book, chapter, passage, isOpen, onClose, isSideba
       <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2 text-white">
           <Sparkles className="h-5 w-5" />
-          <span className="font-semibold text-sm sm:text-base">Estudio con IA</span>
+          <span className="font-semibold text-sm sm:text-base">Estudio con Biblo</span>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20 h-8 w-8">
           <X className="h-5 w-5" />
@@ -125,7 +125,7 @@ export function AIStudyPanel({ book, chapter, passage, isOpen, onClose, isSideba
 
               <Button onClick={handleAnalyze} disabled={loading || !book} className="w-full h-12 bg-gradient-to-r from-indigo-600 to-purple-600 font-bold shadow-lg shadow-indigo-500/20">
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Microscope className="h-5 w-5 mr-2" />}
-                {loading ? 'Analizando...' : customReference.trim() ? `Analizar "${customReference.trim()}"` : 'Realizar Exégesis'}
+                {loading ? 'Investigando...' : customReference.trim() ? `Estudiar "${customReference.trim()}"` : 'Realizar Exégesis Completa'}
               </Button>
             </TabsContent>
 

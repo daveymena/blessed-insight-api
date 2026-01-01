@@ -3,11 +3,11 @@
 
 import { callAI, callAIFast, type AIResponse as ProviderResponse } from './aiProvider';
 
-// Contexto de Experto Teológico - PROFESIONAL & ESTÉTICO
-const BIBLE_CONTEXT = `Eres un teólogo experto y mentor espiritual. 
-Tu lenguaje debe ser profundo, académico pero accesible, y SIEMPRE organizado.
-Usa emojis, negritas y separadores para que la información sea muy legible.
-Estructura tus respuestas con títulos claros y listas con viñetas.`;
+// Contexto de Mentor Bíblico - ORGANIZACIÓN PROFESIONAL
+const BIBLE_CONTEXT = `Eres un mentor bíblico erudito y guía espiritual.
+Tu misión es facilitar el estudio profundo de las Escrituras de forma organizada.
+Usa emojis, negritas y separadores claros.
+Tu lenguaje debe ser profesional, inspirador y basado en principios bíblicos sólidos.`;
 
 export interface AIResponse {
   success: boolean;
@@ -19,13 +19,15 @@ export interface AIResponse {
 export async function analyzePassage(
   passage: string,
   bookName: string,
-  chapter: number
+  chapter: number,
+  customReference?: string
 ): Promise<AIResponse> {
+  const reference = customReference || `${bookName} ${chapter}`;
   const messages = [
     { role: 'system' as const, content: BIBLE_CONTEXT },
     {
-      role: 'user' as const, content: `Realiza una EXÉGESIS PROFUNDA de ${bookName} ${chapter}:
-"${passage.substring(0, 1000)}"
+      role: 'user' as const, content: `Realiza una EXÉGESIS PROFUNDA de ${reference}:
+${passage ? `Texto de referencia: "${passage.substring(0, 1000)}"` : 'Analiza basándote en tu conocimiento bíblico.'}
 
 Estructura tu respuesta exactamente así:
 ---
@@ -44,7 +46,7 @@ Estructura tu respuesta exactamente así:
 Usa separadores visuales y mantén un tono profesional.` }
   ];
 
-  const result = await callAI(messages, 600);
+  const result = await callAI(messages, 1800); // Aumentado para exégesis completa
 
   if (result.success) {
     return { success: true, content: result.content, source: 'AI' };
@@ -92,7 +94,7 @@ Estructura la información por días de forma estética:
 [Añadir separadores entre días]` }
   ];
 
-  const result = await callAI(messages, 800);
+  const result = await callAI(messages, 2500); // Aumentado para planes completos
 
   if (result.success) {
     return { success: true, content: result.content, source: 'AI' };

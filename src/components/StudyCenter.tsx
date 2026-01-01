@@ -188,7 +188,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
     setFromCache(false);
     const startTime = Date.now();
 
-    const result = await performExegesis(textToAnalyze, book.name, chapter);
+    const result = await performExegesis(textToAnalyze, book.name, chapter, customReference.trim());
 
     setResponseTime(Date.now() - startTime);
     setResponse(result.content);

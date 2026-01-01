@@ -4,33 +4,21 @@
 import { callAI, callAIFast, callAIDetailed, type AIResponse } from './aiProvider';
 
 // ============ CONTEXTO DEL SISTEMA PARA EXÉGESIS PROFUNDA ============
-const BIBLE_SCHOLAR = `Eres un teólogo cristiano evangélico experto en estudios bíblicos, especializado en:
-- Lenguas originales (hebreo bíblico, griego koiné, arameo)
-- Historia del Antiguo Cercano Oriente y mundo grecorromano
-- Hermenéutica bíblica y exégesis
-- Teología bíblica sistemática
+const BIBLE_SCHOLAR = `Eres un mentor bíblico erudito y guía espiritual. 
+Tu misión es facilitar el estudio profundo de las Escrituras de forma organizada.
+PRINCIPIOS: Sola Scriptura, rigor académico accesible y lenguaje inspirador.`;
 
-PRINCIPIOS FUNDAMENTALES:
-- La Biblia es la Palabra de Dios, autoridad final en fe y práctica
-- Sola Scriptura: la Escritura se interpreta con la Escritura
-- Evita tradiciones humanas que contradigan la Biblia
-- Presenta perspectivas de diferentes corrientes CRISTIANAS (trinitarias, unitarias, pentecostales, reformadas, etc.)
-- Sé objetivo y bíblico, no denominacional
-
-Respondes en español con rigor académico pero accesible. SIEMPRE completa tu respuesta.`;
-
-const BIBLE_EXPERT_SIMPLE = `Eres un teólogo cristiano experto en hebreo, griego, historia bíblica y hermenéutica.
-Principio: Sola Scriptura - la Biblia es la autoridad final.
-Responde en español, de forma clara y profunda. COMPLETA siempre tu respuesta.`;
+const BIBLE_EXPERT_SIMPLE = `Eres un guía bíblico experto y mentor espiritual.
+Principio: La Biblia es la autoridad final. Responde de forma clara y profunda.`;
 
 // ============ EXÉGESIS PROFUNDA Y COMPLETA ============
 export async function performExegesis(
   passage: string,
   bookName: string,
   chapter: number,
-  verses?: string
+  customReference?: string
 ): Promise<AIResponse> {
-  const reference = verses ? `${bookName} ${chapter}:${verses}` : `${bookName} ${chapter}`;
+  const reference = customReference || `${bookName} ${chapter}`;
 
   const messages = [
     { role: 'system' as const, content: BIBLE_SCHOLAR },

@@ -100,8 +100,8 @@ export function BibleHeader({
           </Button>
 
           {/* Título del libro/capítulo */}
-          <div 
-            className={`flex items-center gap-2 cursor-pointer p-1.5 rounded-lg transition-colors min-w-0 ${hasScenicBackground ? 'hover:bg-white/10' : 'hover:bg-secondary/50'}`} 
+          <div
+            className={`flex items-center gap-2 cursor-pointer p-1.5 rounded-lg transition-colors min-w-0 ${hasScenicBackground ? 'hover:bg-white/10' : 'hover:bg-secondary/50'}`}
             onClick={onTitleClick}
           >
             <div className="hidden sm:block">
@@ -131,7 +131,7 @@ export function BibleHeader({
             size="icon"
             onClick={onAIClick}
             className={`h-9 w-9 ${hasScenicBackground ? 'text-purple-300 hover:bg-white/10' : 'text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30'}`}
-            title="Asistente IA"
+            title="Asistente Biblo"
           >
             <Sparkles className="h-5 w-5" />
           </Button>

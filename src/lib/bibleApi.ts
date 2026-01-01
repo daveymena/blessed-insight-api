@@ -169,7 +169,7 @@ export function setVersion(v: string) { currentVersion = v; }
 export function getVersion() { return currentVersion || 'rvr'; }
 export function getCurrentVersionInfo() { return bibleVersions.find(v => v.id === getVersion()) || bibleVersions[0]; }
 
-export async function fetchChapter(bookId: string, chapter: number, versionId?: string): Promise<BiblePassage> {
+export async function fetchChapter(bookId: string, chapter: number, versionId?: string, showSpanishEquivalent: boolean = false): Promise<BiblePassage> {
   const version = versionId || getVersion();
   const versionInfo = bibleVersions.find(v => v.id === version) || bibleVersions[0];
   const book = getBookById(bookId);
@@ -192,10 +192,24 @@ export async function fetchChapter(bookId: string, chapter: number, versionId?: 
 
   const bibleData = await loadBibleVersion(version);
   if (!bibleData) throw new Error(`Versión no cargada: ${version}`);
+
   const chapterData = bibleData[book.index].chapters[chapter - 1];
-  const verses = chapterData.map((text, i) => ({
+  let verses = chapterData.map((text, i) => ({
     book_id: book.id, book_name: book.name, chapter, verse: i + 1, text: text.trim(),
   }));
+
+  // Lógica para añadir equivalentes en español si se solicita y la versión actual no lo es
+  if (showSpanishEquivalent && versionInfo.languageCode !== 'es') {
+    const esData = await loadBibleVersion('rvr');
+    if (esData) {
+      const esChapter = esData[book.index].chapters[chapter - 1];
+      verses = verses.map((v, i) => ({
+        ...v,
+        text: `${v.text} <br/><span class="text-xs opacity-60 block mt-1 border-t border-current/10 pt-1">ES: ${esChapter[i]?.trim()}</span>`
+      }));
+    }
+  }
+
   return {
     reference: `${book.name} ${chapter}`,
     verses,
@@ -222,6 +236,12 @@ export async function searchVerses(query: string, versionId?: string): Promise<B
   for (let bIdx = 0; bIdx < bibleData.length && results.length < 20; bIdx++) {
     const book = bibleBooks[bIdx];
     const bData = bibleData[bIdx];
+
+    // Periódicamente permitimos que el navegador respire
+    if (bIdx % 10 === 0) {
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+
     for (let cIdx = 0; cIdx < bData.chapters.length && results.length < 20; cIdx++) {
       const cData = bData.chapters[cIdx];
       for (let vIdx = 0; vIdx < cData.length && results.length < 20; vIdx++) {

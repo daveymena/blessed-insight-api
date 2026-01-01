@@ -64,7 +64,7 @@ export function MobileBottomNav({
           className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg text-muted-foreground transition-all min-w-[60px]"
         >
           <Sparkles className="h-5 w-5" />
-          <span className="text-[10px] font-bold uppercase tracking-tighter">IA</span>
+          <span className="text-[10px] font-bold uppercase tracking-tighter">Biblo</span>
         </button>
       </div>
     </nav>

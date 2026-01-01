@@ -61,7 +61,7 @@ export interface AIResponse {
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
     promise,
-    new Promise<T>((_, reject) => 
+    new Promise<T>((_, reject) =>
       setTimeout(() => reject(new Error('Timeout')), ms)
     )
   ]);
@@ -73,7 +73,7 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
   try {
     const systemPrompt = messages.find(m => m.role === 'system')?.content || '';
     const userPrompt = messages.filter(m => m.role !== 'system').map(m => m.content).join('\n');
-    
+
     const response = await withTimeout(
       fetch(`${OLLAMA_BASE_URL}/api/generate`, {
         method: 'POST',
@@ -82,8 +82,8 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
           model: OLLAMA_MODEL,
           prompt: `${systemPrompt}\n\n${userPrompt}`,
           stream: false,
-          options: { 
-            temperature: 0.7, 
+          options: {
+            temperature: 0.7,
             num_predict: maxTokens,
           },
         }),
@@ -94,9 +94,9 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
     if (response.ok) {
       const data = await response.json();
       if (data.response) {
-        return { 
-          success: true, 
-          content: data.response, 
+        return {
+          success: true,
+          content: data.response,
           provider: 'ollama',
           timeMs: Date.now() - startTime
         };
@@ -136,9 +136,9 @@ async function callGroq(messages: AIMessage[], maxTokens: number): Promise<AIRes
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
       if (content) {
-        return { 
-          success: true, 
-          content, 
+        return {
+          success: true,
+          content,
           provider: 'groq',
           timeMs: Date.now() - startTime
         };
@@ -158,38 +158,38 @@ async function callGroq(messages: AIMessage[], maxTokens: number): Promise<AIRes
 // FUNCIÓN PRINCIPAL: Llamadas PARALELAS - devuelve la primera respuesta
 export async function callAI(messages: AIMessage[], maxTokens: number = 1500): Promise<AIResponse> {
   const startTime = Date.now();
-  
+
   // Lanzar ambas llamadas en paralelo
   const ollamaPromise = callOllama(messages, maxTokens);
   const groqPromise = callGroq(messages, maxTokens);
 
-  // Promise.any devuelve la primera que tenga éxito
   try {
+    // Esperamos a que ambas terminen (o fallen)
     const results = await Promise.all([ollamaPromise, groqPromise]);
-    
-    // Encontrar la primera respuesta exitosa
+
+    // Filtramos la primera que haya tenido éxito
     const successResult = results.find(r => r.success);
-    
+
     if (successResult) {
-      console.log(`✓ Respuesta de ${successResult.provider} en ${successResult.timeMs}ms`);
+      console.log(`✓ IA: Respuesta recibida de ${successResult.provider.toUpperCase()} en ${successResult.timeMs}ms`);
       return successResult;
     }
   } catch (error) {
-    console.error('Error en llamadas paralelas:', error);
+    console.error('CRÍTICO: Error en el orquestador de IA:', error);
   }
 
-  // Si ambas fallan, intentar secuencialmente con más tiempo
-  console.log('⚠️ Reintentando secuencialmente...');
-  
+  // SI FALLAN LAS PARALELAS, reintento individual con más tiempo
+  console.log('⚠️ Proveedores paralelos fallaron. Iniciando secuencia de recuperación...');
+
   const ollamaResult = await callOllama(messages, maxTokens);
   if (ollamaResult.success) return ollamaResult;
-  
+
   const groqResult = await callGroq(messages, maxTokens);
   if (groqResult.success) return groqResult;
 
-  return { 
-    success: false, 
-    content: 'No se pudo conectar con ningún servicio de IA. Intenta de nuevo.', 
+  return {
+    success: false,
+    content: 'No se pudo conectar con ningún servicio de IA. Intenta de nuevo.',
     provider: 'error',
     timeMs: Date.now() - startTime
   };

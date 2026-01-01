@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Loader2, Volume2, Wifi, Heart, BookOpen, Languages, Sparkles, ChevronDown, ChevronUp, MoreVertical, Check, Columns, Trash2, FileEdit } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Volume2, Heart, BookOpen, Languages, Sparkles, ChevronDown, Check, Columns, Trash2, FileEdit, X } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Button } from '@/components/ui/button';
 import {
@@ -10,15 +10,11 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { getCurrentVersionInfo, BIBLE_VERSIONS, setVersion, getVersion } from '@/lib/bibleApi';
 import type { BibleBook, BiblePassage } from '@/lib/bibleApi';
 import { useThemeSettings } from '@/hooks/useThemeSettings';
-import { AdPlaceholder } from './AdPlaceholder';
 import { NoteDialog } from './NoteDialog';
 import { VersionComparator } from './VersionComparator';
 import { personalStudyService, type Note } from '@/lib/personalStudyService';
@@ -35,19 +31,19 @@ interface ScriptureReaderProps {
   canGoPrevious: boolean;
   onNext: () => void;
   onPrevious: () => void;
-  onVersionChange?: () => void; // Optional para compatibilidad hacia atrás temporal
+  onVersionChange?: () => void;
   user?: any;
 }
 
 const BACKGROUND_CLASSES: Record<string, string> = {
-  'none': 'bg-background text-foreground', // Usa variable CSS global actualizada
+  'none': 'bg-background text-foreground',
   'pure-white': 'bg-white text-slate-900',
-  'soft-cream': 'bg-slate-50 text-slate-900', // REDEFINIDO: Ahora es "Gris Suave", no crema amarillenta
+  'soft-cream': 'bg-slate-50 text-slate-900',
   'elegant-gray': 'bg-gray-50 text-gray-900',
-  'book-beige': 'bg-white text-slate-800', // REDEFINIDO: Forzado a blanco puro aunque se llame beige
+  'book-beige': 'bg-white text-slate-800',
   'morning-blue': 'bg-blue-50/30 text-slate-900',
   'mint-tea': 'bg-emerald-50/30 text-teal-950',
-  'paper': 'bg-[#fdf6e3] text-slate-900 border-l-8 border-l-[#dcb]', // Tono solarizado suave
+  'paper': 'bg-[#fdf6e3] text-slate-900 border-l-8 border-l-[#dcb]',
   'parchment': 'bg-gradient-to-br from-white via-slate-50 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950',
   'clouds': 'bg-gradient-to-br from-blue-50/50 via-white to-blue-50/50',
   'sunset-sky': 'bg-gradient-to-br from-indigo-50/30 via-white to-purple-50/30',
@@ -94,7 +90,7 @@ export function ScriptureReader({
   const currentVersionId = getVersion();
 
   useEffect(() => {
-    if (user && book) {
+    if (book) {
       personalStudyService.getNotes().then(allNotes => {
         const chapterNotes = allNotes.filter(n => n.bookId === book.id && n.chapter === chapter);
         setNotes(chapterNotes);
@@ -107,7 +103,6 @@ export function ScriptureReader({
     setShowAnalysis(false);
   }, [book?.id, chapter]);
 
-  // HANDLERS
   const handleVersionSelect = (versionId: string) => {
     setVersion(versionId);
     setVersionDisplay(getCurrentVersionInfo());
@@ -131,10 +126,10 @@ export function ScriptureReader({
     }
     setAnalysisLoading(true);
     setShowAnalysis(true);
-    const passageText = passage.verses.map(v => v.text).join(' ').substring(0, 1200);
+    const passageText = passage.verses.map(v => v.text).join(' ').substring(0, 1500);
     const messages = [
-      { role: 'system' as const, content: `Eres un teólogo experto. Responde en español con emojis.` },
-      { role: 'user' as const, content: `Análisis de ${book.name} ${chapter}:\n"${passageText}"` }
+      { role: 'system' as const, content: `Eres un mentor bíblico erudito llamado Biblo. Tu misión es facilitar el estudio profundo. Responde en español con un tono pastoral.` },
+      { role: 'user' as const, content: `Brinda una reflexión profunda y exegética de ${book.name} ${chapter}:\n"${passageText}"` }
     ];
     try {
       const result = await callAIFast(messages);
@@ -160,12 +155,8 @@ export function ScriptureReader({
 
     try {
       const existingNote = notes.find(n => n.verse === verseNum);
-
       if (!colorClasses) {
-        // Si no hay color, estamos "borrando" el resaltado
-        if (existingNote && existingNote.id) {
-          await personalStudyService.deleteNote(existingNote.id);
-        }
+        if (existingNote?.id) await personalStudyService.deleteNote(existingNote.id);
       } else {
         await personalStudyService.saveNote({
           bookId: book!.id,
@@ -188,7 +179,6 @@ export function ScriptureReader({
   const backgroundClass = BACKGROUND_CLASSES[themeSettings.background] || '';
   const fontFamily = FONT_FAMILIES[themeSettings.font] || FONT_FAMILIES.serif;
 
-  // Calculamos el estilo dinámico para el texto
   const textStyle = {
     fontFamily,
     fontSize: `${themeSettings.fontSize}px`,
@@ -210,142 +200,10 @@ export function ScriptureReader({
     );
   }
 
-  const renderContent = () => {
-    if (isLoading) {
-      return (
-        <div className="flex flex-col items-center justify-center py-20 min-h-[60vh]">
-          <Loader2 className="h-10 w-10 animate-spin mb-4 text-primary" />
-          <p className="font-serif italic">Preparando las Escrituras...</p>
-        </div>
-      );
-    }
-    if (error) {
-      return (
-        <div className="p-8 border border-destructive/20 bg-destructive/5 rounded-lg text-center min-h-[60vh] flex flex-col items-center justify-center">
-          <p className="font-bold text-destructive">Error al cargar</p>
-        </div>
-      );
-    }
-    if (passage && passage.verses.length > 0) {
-      return (
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${book.id}-${chapter}`}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="min-h-[60vh]"
-          >
-            {showAudioPlayer && (
-              <div className="mb-6 border rounded-xl overflow-hidden shadow-sm">
-                <AudioPlayer verses={passage.verses.map(v => v.text)} onVerseHighlight={setHighlightedVerse} />
-              </div>
-            )}
-            <article
-              className={`bible-text prose prose-lg dark:prose-invert max-w-none ${themeSettings.textColor === 'auto' ? 'text-foreground' : ''}`}
-              style={textStyle}
-            >
-              {passage.verses.map((verse, index) => (
-                <div
-                  key={`${verse.chapter}-${verse.verse}`}
-                  id={`verse-${verse.verse}`}
-                  onClick={() => setSelectedVerseIndex(selectedVerseIndex === index ? -1 : index)}
-                  className={cn(
-                    "mb-2 transition-all p-3 rounded-lg cursor-pointer border-l-4 border-transparent hover:bg-muted/30",
-                    highlightedVerse === index && "bg-primary/20",
-                    selectedVerseIndex === index && "bg-primary/5 ring-1 ring-primary/30",
-                    notes.find(n => n.verse === verse.verse)?.color
-                  )}
-                >
-                  <sup className={cn(
-                    "verse-number font-bold mr-2 select-none",
-                    hasScenicBackground ? "text-amber-200/90 drop-shadow-sm" : "text-primary/60"
-                  )}>{verse.verse}</sup>
-                  <span dangerouslySetInnerHTML={{ __html: verse.text }} />
-
-                  <AnimatePresence>
-                    {selectedVerseIndex === index && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 5, scale: 0.95 }}
-                        className="mt-3 p-2 bg-popover border border-border shadow-xl rounded-xl flex items-center gap-2 w-fit"
-                      >
-                        {HIGHLIGHT_COLORS.map((c) => (
-                          <button
-                            key={c.id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleHighlight(`${c.bg} ${c.border}`);
-                            }}
-                            className={cn(
-                              "w-8 h-8 rounded-full border-2 border-transparent transition-transform hover:scale-110",
-                              c.dot,
-                              notes.find(n => n.verse === verse.verse)?.color?.includes(c.id) && "ring-2 ring-primary ring-offset-2"
-                            )}
-                          />
-                        ))}
-                        <div className="w-px h-6 bg-border mx-1" />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="w-8 h-8 rounded-full text-destructive hover:bg-destructive/10"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleHighlight('');
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 gap-1"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsNoteDialogOpen(true);
-                          }}
-                        >
-                          <FileEdit className="h-3.5 w-3.5" />
-                          <span>Nota</span>
-                        </Button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ))}
-            </article>
-            <div className="mt-8">
-              {!showAnalysis ? (
-                <Button onClick={handleQuickAnalysis} variant="outline" className="w-full h-14 bg-indigo-50/50">
-                  <Sparkles className="h-5 w-5 mr-2" /> Análisis rápido
-                </Button>
-              ) : (
-                <div className="p-5 bg-indigo-50/30 border rounded-xl">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="font-bold">Análisis</span>
-                    <Button variant="ghost" size="sm" onClick={() => setShowAnalysis(false)}>Cerrar</Button>
-                  </div>
-                  {analysisLoading ? <Loader2 className="animate-spin h-5 w-5 mx-auto" /> : <div className="whitespace-pre-wrap text-sm">{analysisContent}</div>}
-                </div>
-              )}
-            </div>
-            <div className="mt-12 text-center text-xs text-muted-foreground">{passage.translation_name}</div>
-          </motion.div>
-        </AnimatePresence>
-      );
-    }
-    return <div className="text-center py-20">No disponible.</div>;
-  };
-
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className={`flex items-center justify-between px-3 py-3 border-b transition-colors ${hasScenicBackground ? 'bg-black/20 border-white/10 text-white backdrop-blur-sm' : 'bg-card/50 backdrop-blur-sm'}`}>
-
-        {/* IZQUIERDA: Botón Anterior */}
         <div className="flex items-center">
-          {/* Móvil: Solo icono */}
           <Button
             variant={hasScenicBackground ? "outline" : "ghost"}
             size="icon"
@@ -355,7 +213,6 @@ export function ScriptureReader({
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          {/* Escritorio: Texto completo */}
           <Button
             variant={hasScenicBackground ? "outline" : "ghost"}
             onClick={onPrevious}
@@ -366,7 +223,6 @@ export function ScriptureReader({
           </Button>
         </div>
 
-        {/* CENTRO: Título */}
         <div className="text-center flex-1 mx-2 min-w-0">
           <h2 className="text-lg md:text-xl font-bold truncate">{book.name}</h2>
           <p className={`text-[10px] md:text-xs ${hasScenicBackground ? 'text-white/70' : 'text-muted-foreground'}`}>
@@ -374,28 +230,22 @@ export function ScriptureReader({
           </p>
         </div>
 
-        {/* DERECHA: Herramientas y Siguiente */}
         <div className="flex items-center gap-1 md:gap-2 shrink-0">
-
-          {/* Audio Toggle */}
           <Button
             variant={hasScenicBackground ? "outline" : (showAudioPlayer ? "default" : "ghost")}
             size="icon"
             onClick={() => setShowAudioPlayer(!showAudioPlayer)}
             className={`rounded-full h-8 w-8 md:h-9 md:w-9 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''}`}
-            title="Audio"
           >
             <Volume2 className="h-4 w-4" />
           </Button>
 
-          {/* Selector de Versiones */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant={hasScenicBackground ? "outline" : "ghost"}
                 size="icon"
                 className={`rounded-full h-8 w-8 md:h-9 md:w-9 ${hasScenicBackground ? 'border-white/20 bg-black/20 text-white hover:bg-white/10' : ''}`}
-                title="Versiones"
               >
                 <Languages className="h-4 w-4" />
               </Button>
@@ -405,7 +255,6 @@ export function ScriptureReader({
               {BIBLE_VERSIONS.map((v) => (
                 <DropdownMenuItem key={v.id} onClick={() => handleVersionSelect(v.id)}>
                   <span className="flex-1 font-medium">{v.shortName}</span>
-                  <span className="text-xs text-muted-foreground ml-2">{v.name}</span>
                   {v.id === currentVersionId && <Check className="ml-2 h-4 w-4 text-primary" />}
                 </DropdownMenuItem>
               ))}
@@ -416,7 +265,6 @@ export function ScriptureReader({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Botón Siguiente (Móvil) */}
           <Button
             variant={hasScenicBackground ? "outline" : "ghost"}
             size="icon"
@@ -426,8 +274,6 @@ export function ScriptureReader({
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
-
-          {/* Botón Siguiente (Escritorio) */}
           <Button
             variant={hasScenicBackground ? "outline" : "ghost"}
             onClick={onNext}
@@ -438,9 +284,85 @@ export function ScriptureReader({
           </Button>
         </div>
       </div>
+
       <div className={`flex-1 overflow-auto ${!hasScenicBackground ? backgroundClass : ''}`}>
         <div className={`max-w-3xl mx-auto px-4 py-8 ${hasScenicBackground ? 'bg-black/30 backdrop-blur-[2px] rounded-xl my-4 shadow-2xl border border-white/10' : ''}`}>
-          {renderContent()}
+          <AnimatePresence mode="popLayout">
+            {isLoading ? (
+              <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center py-20 min-h-[60vh]">
+                <Loader2 className="h-10 w-10 animate-spin mb-4 text-primary" />
+                <p className="font-serif italic opacity-70">Preparando las Escrituras...</p>
+              </motion.div>
+            ) : error ? (
+              <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 border border-destructive/20 bg-destructive/5 rounded-lg text-center min-h-[60vh] flex flex-col items-center justify-center">
+                <p className="font-bold text-destructive text-lg">⚠️ Error al cargar</p>
+                <Button variant="outline" size="sm" onClick={() => window.location.reload()} className="mt-4">Reintentar</Button>
+              </motion.div>
+            ) : passage && passage.verses.length > 0 ? (
+              <motion.div
+                key={`${book.id}-${chapter}-${currentVersionId}`}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.4 }}
+                className="min-h-[60vh]"
+              >
+                {showAudioPlayer && (
+                  <div className="mb-8 border rounded-2xl overflow-hidden shadow-xl bg-card/50 backdrop-blur-md">
+                    <AudioPlayer verses={passage.verses.map(v => v.text)} onVerseHighlight={setHighlightedVerse} />
+                  </div>
+                )}
+                <article className={`bible-text prose prose-lg dark:prose-invert max-w-none`} style={textStyle}>
+                  {passage.verses.map((verse, index) => (
+                    <div
+                      key={`${verse.chapter}-${verse.verse}`}
+                      id={`verse-${verse.verse}`}
+                      onClick={() => setSelectedVerseIndex(selectedVerseIndex === index ? -1 : index)}
+                      className={cn(
+                        "mb-3 transition-all p-4 rounded-2xl cursor-pointer border-l-4 border-transparent hover:bg-muted/40 group",
+                        highlightedVerse === index && "bg-primary/20",
+                        selectedVerseIndex === index && "bg-primary/10 ring-1 ring-primary/40 shadow-inner",
+                        notes.find(n => n.verse === verse.verse)?.color
+                      )}
+                    >
+                      <sup className={cn("verse-number font-black mr-3 select-none text-[12px] opacity-40 group-hover:opacity-100", hasScenicBackground ? "text-amber-200/90" : "text-primary")}>
+                        {verse.verse}
+                      </sup>
+                      <span className="leading-relaxed tracking-wide" dangerouslySetInnerHTML={{ __html: verse.text }} />
+                      <AnimatePresence>
+                        {selectedVerseIndex === index && (
+                          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="mt-4 p-2 bg-popover border shadow-xl rounded-xl flex items-center gap-2 w-fit">
+                            {HIGHLIGHT_COLORS.map(c => (
+                              <button key={c.id} onClick={(e) => { e.stopPropagation(); handleHighlight(`${c.bg} ${c.border}`); }} className={cn("w-8 h-8 rounded-full", c.dot)} />
+                            ))}
+                            <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleHighlight(''); }}><Trash2 className="h-4 w-4" /></Button>
+                            <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); setIsNoteDialogOpen(true); }}>Nota</Button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ))}
+                </article>
+                <div className="mt-12">
+                  {!showAnalysis ? (
+                    <Button onClick={handleQuickAnalysis} variant="outline" className="w-full h-16 rounded-2xl">
+                      <Sparkles className="h-5 w-5 mr-3 text-indigo-500" /> 🔍 Análisis Rápido
+                    </Button>
+                  ) : (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6 bg-card border rounded-3xl shadow-xl">
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="font-black text-[10px] uppercase">Análisis</span>
+                        <Button variant="ghost" size="sm" onClick={() => setShowAnalysis(false)}><X className="h-4 w-4" /></Button>
+                      </div>
+                      {analysisLoading ? <Loader2 className="animate-spin h-6 w-6 mx-auto" /> : <div className="font-serif italic">{analysisContent}</div>}
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
+            ) : (
+              <div className="text-center py-20 opacity-50 italic">Pasaje no disponible.</div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
       <VersionComparator isOpen={isComparatorOpen} onClose={() => setIsComparatorOpen(false)} book={book} chapter={chapter} />

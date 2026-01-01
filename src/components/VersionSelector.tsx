@@ -29,12 +29,10 @@ export function VersionSelector({ onVersionChange }: VersionSelectorProps) {
   const handleVersionChange = (version: BibleVersion) => {
     setVersion(version.id);
     setCurrentVersionId(version.id);
-    // Notificar al padre para que recargue
+    // Notificar al padre para que recargue reactivamente
     if (onVersionChange) {
       onVersionChange(version);
     }
-    // Forzar recarga de la página para limpiar cache
-    window.location.reload();
   };
 
   // Agrupar por idioma - separando locales y online
@@ -59,7 +57,7 @@ export function VersionSelector({ onVersionChange }: VersionSelectorProps) {
           Versión de la Biblia
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        
+
         {/* Español - Locales */}
         {spanishLocal.length > 0 && (
           <>
@@ -159,7 +157,7 @@ export function VersionSelector({ onVersionChange }: VersionSelectorProps) {
             ))}
           </>
         )}
-        
+
         <DropdownMenuSeparator />
         <div className="px-2 py-1 text-xs text-muted-foreground">
           <Wifi className="h-3 w-3 inline text-blue-500" /> = Requiere internet

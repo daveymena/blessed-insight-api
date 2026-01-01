@@ -14,6 +14,7 @@ export interface ReaderState {
   selectedBook: BibleBook | null;
   selectedChapter: number;
   showSpanishEquivalent: boolean;
+  currentVersion: string;
 }
 
 export function useBibleReader() {
@@ -22,12 +23,10 @@ export function useBibleReader() {
     selectedBook: bibleBooks[0], // Génesis por defecto
     selectedChapter: 1,
     showSpanishEquivalent: false,
+    currentVersion: getVersion(),
   });
 
-  const { selectedBook, selectedChapter, showSpanishEquivalent } = state;
-
-  // Incluir la versión en la queryKey para que se recargue al cambiar
-  const currentVersion = getVersion();
+  const { selectedBook, selectedChapter, showSpanishEquivalent, currentVersion } = state;
   const versionInfo = getCurrentVersionInfo();
   const isSpanishVersion = versionInfo.languageCode === 'es';
 
@@ -45,19 +44,28 @@ export function useBibleReader() {
     retry: 2,
   });
 
-  const selectBook = useCallback((book: BibleBook) => {
+  const navigateTo = useCallback((book: BibleBook, chapter: number = 1) => {
     setState((prev) => ({
       ...prev,
       selectedBook: book,
-      selectedChapter: 1,
+      selectedChapter: chapter,
     }));
   }, []);
+
+  const selectBook = useCallback((book: BibleBook) => {
+    navigateTo(book, 1);
+  }, [navigateTo]);
 
   const selectChapter = useCallback((chapter: number) => {
     setState((prev) => ({
       ...prev,
       selectedChapter: chapter,
     }));
+  }, []);
+
+  const changeVersion = useCallback(() => {
+    const newVersion = getVersion();
+    setState(prev => ({ ...prev, currentVersion: newVersion }));
   }, []);
 
   const setShowSpanishEquivalent = useCallback((show: boolean) => {
@@ -129,9 +137,11 @@ export function useBibleReader() {
     canGoPrevious,
     selectBook,
     selectChapter,
+    navigateTo,
     goToNextChapter,
     goToPreviousChapter,
     refetch,
+    changeVersion,
     // Propiedades para mostrar equivalente español
     showSpanishEquivalent,
     setShowSpanishEquivalent,
