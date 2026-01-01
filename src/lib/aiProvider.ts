@@ -1,9 +1,12 @@
 // Proveedor de IA OPTIMIZADO - Llamadas paralelas para máxima velocidad
-// Usa Ollama y Groq simultáneamente, devuelve la primera respuesta
+// Usa Ollama (via proxy) y Groq simultáneamente, devuelve la primera respuesta
 
 const OLLAMA_BASE_URL = import.meta.env.VITE_OLLAMA_BASE_URL || 'https://ollama-ollama.ginee6.easypanel.host';
 const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'gemma2:2b';
 const GROQ_MODEL = import.meta.env.VITE_GROQ_MODEL || 'llama-3.1-8b-instant';
+
+// URL del servidor backend para proxy (evita CORS)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 // Recolectar todas las API keys de Groq
 const GROQ_API_KEYS: string[] = [
@@ -67,21 +70,56 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   ]);
 }
 
-// Llamar a Ollama (optimizado)
+// Llamar a Ollama (via proxy si está disponible, directo si no)
 async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIResponse> {
   const startTime = Date.now();
   
-  // Siempre intentar Ollama si hay URL configurada
+  const systemPrompt = messages.find(m => m.role === 'system')?.content || '';
+  const userPrompt = messages.filter(m => m.role !== 'system').map(m => m.content).join('\n');
+
+  // Intentar primero via proxy del backend (evita CORS)
+  if (API_BASE_URL) {
+    try {
+      console.log(`📡 Llamando a Ollama via proxy: ${API_BASE_URL}/api/ai/ollama/generate`);
+      
+      const response = await withTimeout(
+        fetch(`${API_BASE_URL}/api/ai/ollama/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: userPrompt,
+            system: systemPrompt,
+            maxTokens,
+          }),
+        }),
+        60000
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.content) {
+          console.log(`✅ Ollama (proxy) respondió en ${Date.now() - startTime}ms`);
+          return {
+            success: true,
+            content: data.content,
+            provider: 'ollama',
+            timeMs: Date.now() - startTime
+          };
+        }
+      }
+    } catch (error) {
+      console.warn(`🛑 Proxy Ollama falló: ${error instanceof Error ? error.message : 'Error'}`);
+    }
+  }
+
+  // Fallback: llamada directa a Ollama (puede fallar por CORS en producción)
   if (!OLLAMA_BASE_URL) {
     console.warn('🛑 Ollama: No hay URL configurada');
     return { success: false, content: '', provider: 'ollama' };
   }
   
   try {
-    const systemPrompt = messages.find(m => m.role === 'system')?.content || '';
-    const userPrompt = messages.filter(m => m.role !== 'system').map(m => m.content).join('\n');
-
-    console.log(`📡 Llamando a Ollama: ${OLLAMA_BASE_URL}/api/generate`);
+    console.log(`📡 Llamando a Ollama directo: ${OLLAMA_BASE_URL}/api/generate`);
     
     const response = await withTimeout(
       fetch(`${OLLAMA_BASE_URL}/api/generate`, {
@@ -97,13 +135,13 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
           },
         }),
       }),
-      60000 // 60 segundos timeout para respuestas largas
+      60000
     );
 
     if (response.ok) {
       const data = await response.json();
       if (data.response) {
-        console.log(`✅ Ollama respondió en ${Date.now() - startTime}ms`);
+        console.log(`✅ Ollama (directo) respondió en ${Date.now() - startTime}ms`);
         return {
           success: true,
           content: data.response,
@@ -112,10 +150,10 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
         };
       }
     } else {
-      console.warn(`🛑 Ollama falló con status: ${response.status} - ${response.statusText}`);
+      console.warn(`🛑 Ollama falló con status: ${response.status}`);
     }
   } catch (error) {
-    console.warn(`🛑 Ollama inaccesible (${OLLAMA_BASE_URL}): ${error instanceof Error ? error.message : 'Error de red'}`);
+    console.warn(`🛑 Ollama inaccesible: ${error instanceof Error ? error.message : 'Error de red'}`);
   }
   return { success: false, content: '', provider: 'ollama' };
 }
