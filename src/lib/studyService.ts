@@ -21,48 +21,12 @@ export async function performExegesis(
   const reference = customReference || `${bookName} ${chapter}`;
 
   const messages = [
-    { role: 'system' as const, content: BIBLE_SCHOLAR },
+    { role: 'system' as const, content: `${BIBLE_SCHOLAR} Responde de forma relajada y fluida, evita la fragmentación excesiva.` },
     {
-      role: 'user' as const, content: `Análisis exegético de ${reference}:
+      role: 'user' as const, content: `Realiza un estudio exegético de ${reference}. 
+${passage ? `Refiriéndote a: "${passage.substring(0, 1000)}"` : ''}
 
-"${passage.substring(0, 1200)}"
-
-ESTRUCTURA (usa emojis y sé COMPLETO):
-
-📜 CONTEXTO HISTÓRICO
-- Autor, fecha aproximada, audiencia original
-- Situación histórica del pueblo
-- Contexto cultural relevante
-
-📖 CONTEXTO LITERARIO  
-- Género literario
-- Estructura y conexión con el libro
-- Temas principales
-
-🔤 ANÁLISIS DEL TEXTO ORIGINAL
-- Palabras clave en hebreo/griego con significado
-- Matices importantes de la traducción
-- Figuras literarias
-
-⛪ PERSPECTIVAS CRISTIANAS
-- ¿Cómo interpretan este pasaje las iglesias CRISTIANAS?
-- Perspectiva trinitaria vs unitaria (si aplica)
-- Perspectiva reformada/calvinista
-- Perspectiva pentecostal/carismática
-- Perspectiva arminiana
-- ¿Qué dice claramente la ESCRITURA? (más importante)
-
-🔗 CONEXIONES BÍBLICAS
-- Pasajes paralelos
-- Tipologías y profecías
-- Desarrollo del tema en la Biblia
-
-💡 SIGNIFICADO Y APLICACIÓN
-- ¿Qué revela sobre Dios?
-- ¿Qué enseña para hoy?
-- Aplicación práctica
-
-IMPORTANTE: Completa TODAS las secciones. Basa todo en la Escritura.` }
+Presenta la información de forma coherente y natural, integrando el contexto histórico, el análisis de originales y la aplicación práctica en un texto fluido y profundo.` }
   ];
 
   return callAIDetailed(messages);

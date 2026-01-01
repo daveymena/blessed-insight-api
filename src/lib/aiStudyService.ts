@@ -24,26 +24,12 @@ export async function analyzePassage(
 ): Promise<AIResponse> {
   const reference = customReference || `${bookName} ${chapter}`;
   const messages = [
-    { role: 'system' as const, content: BIBLE_CONTEXT },
+    { role: 'system' as const, content: `${BIBLE_CONTEXT} Responde de forma relajada y fluida. Evita dividir con demasiados títulos rígidos.` },
     {
-      role: 'user' as const, content: `Realiza una EXÉGESIS PROFUNDA de ${reference}:
-${passage ? `Texto de referencia: "${passage.substring(0, 1000)}"` : 'Analiza basándote en tu conocimiento bíblico.'}
+      role: 'user' as const, content: `Realiza un estudio profundo y relajado de ${reference}. 
+${passage ? `Texto base: "${passage.substring(0, 1000)}"` : ''}
 
-Estructura tu respuesta exactamente así:
----
-### 📜 1. CONTEXTO HISTÓRICO & CULTURAL
-[Añadir detalles sobre el autor, destinatarios y situación histórica]
-
-### 🔍 2. ANÁLISIS EXEGÉTICO (Originales)
-[Identificar palabras clave en hebreo/griego y su significado profundo]
-
-### 💡 3. VERDAD CENTRAL
-[Resumir el mensaje teológico principal en una frase potente]
-
-### 🛠️ 4. APLICACIÓN PASTORAL
-[Cómo este pasaje transforma la vida hoy con consejos prácticos]
----
-Usa separadores visuales y mantén un tono profesional.` }
+Presenta la información de forma coherente y natural, integrando el contexto histórico, el análisis de originales y la aplicación práctica en un texto fluido que alimente el espíritu. Basa todo en la Escritura.` }
   ];
 
   const result = await callAI(messages, 1800); // Aumentado para exégesis completa
