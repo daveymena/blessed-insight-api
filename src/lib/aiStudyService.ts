@@ -136,7 +136,7 @@ ${analysis.theme}
 ${analysis.application}
 
 ---
-*Para un análisis más profundo con IA, configura tu API key de Gemini en las variables de entorno (VITE_GEMINI_API_KEY).*`,
+*Para un análisis más profundo y exégesis detallada, verifica tu conexión a Internet o el estado de Biblo.*`,
     source: 'offline',
   };
 }
