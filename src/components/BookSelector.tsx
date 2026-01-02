@@ -27,16 +27,7 @@ export function BookSelector({ selectedBook, onSelectBook, onClose }: BookSelect
   return (
     <div className="flex flex-col h-full bg-background/50 backdrop-blur-sm">
       <div className="p-4 space-y-4">
-        {/* Search bar simplified */}
-        <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-          <Input
-            placeholder="Buscar Libro..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-11 bg-secondary/30 border-none focus-visible:ring-1 focus-visible:ring-primary shadow-sm rounded-xl"
-          />
-        </div>
+        {/* Tabs only */}
 
         {/* Minimal Tab Switcher */}
         <div className="flex p-1 bg-secondary/40 rounded-xl">
@@ -80,16 +71,16 @@ export function BookSelector({ selectedBook, onSelectBook, onClose }: BookSelect
                 )}
               >
                 <div className="flex items-center gap-3">
-                   {/* Minimal book abbreviation circle */}
-                   <div className={cn(
-                     "w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold uppercase",
-                     selectedBook?.id === book.id ? "bg-primary text-white" : "bg-secondary text-muted-foreground"
-                   )}>
-                     {book.abbrev.substring(0, 3)}
-                   </div>
-                   <span className="text-base font-medium">{book.name}</span>
+                  {/* Minimal book abbreviation circle */}
+                  <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold uppercase",
+                    selectedBook?.id === book.id ? "bg-primary text-white" : "bg-secondary text-muted-foreground"
+                  )}>
+                    {book.abbrev.substring(0, 3)}
+                  </div>
+                  <span className="text-base font-medium">{book.name}</span>
                 </div>
-                
+
                 {selectedBook?.id === book.id && (
                   <motion.div layoutId="check" className="text-primary">
                     <div className="h-2 w-2 rounded-full bg-current" />
