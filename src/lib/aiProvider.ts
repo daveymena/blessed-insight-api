@@ -1,6 +1,4 @@
-// Proveedor de IA - Ollama via Nginx proxy (evita CORS)
-
-const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'gemma2:2b';
+// Proveedor de IA - Via Backend Node.js (evita CORS completamente)
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -27,42 +25,40 @@ export async function callAI(messages: AIMessage[], maxTokens: number = 2000): P
   const systemPrompt = messages.find(m => m.role === 'system')?.content || '';
   const userPrompt = messages.filter(m => m.role !== 'system').map(m => m.content).join('\n');
   
-  // Timeout dinámico: mínimo 90s, más para respuestas largas
-  const timeout = Math.max(90000, maxTokens * 30);
+  // Timeout dinámico: mínimo 120s para modelos locales
+  const timeout = Math.max(120000, maxTokens * 50);
 
-  console.log('🚀 Iniciando consulta IA via Nginx proxy...');
+  console.log('🚀 Iniciando consulta IA via Backend...');
 
-  // Usar proxy Nginx que evita CORS: /api/ollama/ -> Ollama
+  // Usar Backend Node.js que llama a Ollama (sin CORS)
   try {
-    console.log(`📡 Ollama via Nginx: /api/ollama/api/generate`);
+    console.log(`📡 Backend: /api/ai/generate`);
     
     const response = await withTimeout(
-      fetch('/api/ollama/api/generate', {
+      fetch('/api/ai/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: OLLAMA_MODEL,
-          prompt: `${systemPrompt}\n\n${userPrompt}`,
-          stream: false,
-          options: { temperature: 0.7, num_predict: maxTokens },
+          prompt: userPrompt,
+          system: systemPrompt,
+          maxTokens,
         }),
       }),
       timeout
     );
 
-    if (response.ok) {
-      const data = await response.json();
-      if (data.response) {
-        console.log(`✅ Ollama respondió en ${Date.now() - startTime}ms`);
-        return { 
-          success: true, 
-          content: data.response, 
-          provider: 'ollama', 
-          timeMs: Date.now() - startTime 
-        };
-      }
+    const data = await response.json();
+    
+    if (data.success && data.content) {
+      console.log(`✅ ${data.provider} respondió en ${Date.now() - startTime}ms`);
+      return { 
+        success: true, 
+        content: data.content, 
+        provider: data.provider || 'ollama', 
+        timeMs: Date.now() - startTime 
+      };
     } else {
-      console.warn(`⚠️ Ollama respondió con error: ${response.status}`);
+      console.warn(`⚠️ Backend respondió sin éxito:`, data);
     }
   } catch (error) {
     console.warn(`⚠️ Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
@@ -70,7 +66,7 @@ export async function callAI(messages: AIMessage[], maxTokens: number = 2000): P
 
   return {
     success: false,
-    content: 'No se pudo conectar con el servicio de IA. Verifica que Ollama esté corriendo.',
+    content: 'No se pudo conectar con ningún servicio de IA. Verifica tu conexión.',
     provider: 'error',
     timeMs: Date.now() - startTime
   };
