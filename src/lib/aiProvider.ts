@@ -83,37 +83,9 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
   // Timeout dinámico basado en tokens solicitados
   const timeout = Math.max(60000, maxTokens * 20); // Mínimo 60s, más para respuestas largas
 
-  // Intentar primero conexión directa (Saltarse el proxy 403 de Nginx)
-  if (OLLAMA_EXTERNAL_URL) {
-    try {
-      console.log(`📡 Conectando directamente con Biblo...`);
-      const response = await withTimeout(
-        fetch(`${OLLAMA_EXTERNAL_URL}/api/generate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: OLLAMA_MODEL,
-            prompt: `${systemPrompt}\n\n${userPrompt}`,
-            stream: false,
-            options: { temperature: 0.7, num_predict: maxTokens },
-          }),
-        }),
-        timeout
-      );
-      if (response.ok) {
-        const data = await response.json();
-        if (data.response) {
-          console.log(`✅ Respuesta directa recibida (${Date.now() - startTime}ms)`);
-          return { success: true, content: data.response, provider: 'ollama', timeMs: Date.now() - startTime };
-        }
-      }
-    } catch (error) {
-      console.warn(`⚠️ Conexión directa bloqueada (Posible CORS): ${error instanceof Error ? error.message : ''}`);
-    }
-  }
-
-  // Fallback: Intentar Proxy (por si el directo falla por CORS)
+  // 1. Intentar via Proxy (Nginx interno - Ahora con Host correcto)
   try {
+    console.log(`📡 Consultando a Biblo vía Red Interna...`);
     const response = await withTimeout(
       fetch('/api/ollama/api/generate', {
         method: 'POST',
@@ -131,11 +103,39 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
     if (response.ok) {
       const data = await response.json();
       if (data.response) {
+        console.log(`✅ Respuesta recibida vía Red Interna (${Date.now() - startTime}ms)`);
         return { success: true, content: data.response, provider: 'ollama', timeMs: Date.now() - startTime };
       }
     }
   } catch (error) {
-    console.error(`❌ Fallo total en comunicación con Ollama`);
+    console.warn(`⚠️ Red interna no disponible, probando directa...`);
+  }
+
+  // 2. Fallback: Conexión Directa
+  if (OLLAMA_EXTERNAL_URL) {
+    try {
+      const response = await withTimeout(
+        fetch(`${OLLAMA_EXTERNAL_URL}/api/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: OLLAMA_MODEL,
+            prompt: `${systemPrompt}\n\n${userPrompt}`,
+            stream: false,
+            options: { temperature: 0.7, num_predict: maxTokens },
+          }),
+        }),
+        timeout
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data.response) {
+          return { success: true, content: data.response, provider: 'ollama', timeMs: Date.now() - startTime };
+        }
+      }
+    } catch (error) {
+      console.error(`❌ Fallo total en comunicación con Ollama`);
+    }
   }
 
   return { success: false, content: '', provider: 'ollama' };
