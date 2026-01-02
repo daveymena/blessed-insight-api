@@ -106,6 +106,9 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
         console.log(`✅ Respuesta recibida vía Red Interna (${Date.now() - startTime}ms)`);
         return { success: true, content: data.response, provider: 'ollama', timeMs: Date.now() - startTime };
       }
+    } else {
+      const errorText = await response.text();
+      console.warn(`🛑 El servidor respondió con error ${response.status}: ${errorText.substring(0, 200)}`);
     }
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
