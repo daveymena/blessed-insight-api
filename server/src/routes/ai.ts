@@ -4,7 +4,13 @@ const router = Router();
 
 // Configuración desde variables de entorno
 const OLLAMA_EXTERNAL_URL = process.env.VITE_OLLAMA_BASE_URL || 'https://ollama-ollama.ginee6.easypanel.host';
-const OLLAMA_INTERNAL_URL = 'http://ollama_ollama:11434'; // URL interna de Docker
+// En EasyPanel, los servicios se comunican por: proyecto_servicio
+// Proyecto: ollama, Servicio: ollama -> ollama.ollama (con punto, no guión bajo)
+const OLLAMA_INTERNAL_URLS = [
+  'http://ollama.ollama:11434',      // EasyPanel interno (proyecto.servicio)
+  'http://ollama_ollama:11434',      // Docker compose style
+  'http://ollama:11434',             // Simple name
+];
 const OLLAMA_MODEL = process.env.VITE_OLLAMA_MODEL || 'gemma2:2b';
 const GROQ_MODEL = process.env.VITE_GROQ_MODEL || 'llama-3.1-8b-instant';
 
@@ -26,8 +32,8 @@ async function generateAIResponse(params: {
 }) {
   const { prompt, system, messages, maxTokens = 2000 } = params;
 
-  // Lista de URLs para intentar conectarse a Ollama
-  const ollamaUrls = [OLLAMA_INTERNAL_URL, OLLAMA_EXTERNAL_URL];
+  // Lista de URLs para intentar conectarse a Ollama (internas primero, luego externa)
+  const ollamaUrls = [...OLLAMA_INTERNAL_URLS, OLLAMA_EXTERNAL_URL];
 
   // 1. Intentar con OLLAMA
   for (const baseUrl of ollamaUrls) {
@@ -141,9 +147,14 @@ router.get('/ollama/health', async (req, res) => {
     } catch { return false; }
   };
 
+  const results: Record<string, boolean> = {};
+  for (const url of OLLAMA_INTERNAL_URLS) {
+    results[url] = await check(url);
+  }
+  results[OLLAMA_EXTERNAL_URL] = await check(OLLAMA_EXTERNAL_URL);
+
   res.json({
-    internal: await check(OLLAMA_INTERNAL_URL),
-    external: await check(OLLAMA_EXTERNAL_URL),
+    urls: results,
     groqKeys: GROQ_API_KEYS.length,
     model: OLLAMA_MODEL
   });
