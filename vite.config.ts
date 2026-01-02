@@ -29,11 +29,14 @@ export default defineConfig(({ mode }) => ({
       includeAssets: ['favicon.svg', 'robots.txt', 'icon-512.png'],
       workbox: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB limit
+        // Forzar actualización del SW
+        skipWaiting: true,
+        clientsClaim: true,
       },
       manifest: {
         name: 'Blessed Insight - Biblia de Estudio',
         short_name: 'Blessed',
-        description: 'Tu compañero espiritual con Asistente Biblo y Biblias multi-versión.',
+        description: 'Tu compañero espiritual con IA - v2.0',
         theme_color: '#4f46e5',
         icons: [
           {
