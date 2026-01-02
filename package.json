@@ -1,7 +1,7 @@
 {
   "name": "blessed-insight",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Biblia de Estudio con Inteligencia Artificial",
   "type": "module",
   "scripts": {
