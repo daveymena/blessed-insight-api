@@ -176,16 +176,22 @@ async function callGroq(messages: AIMessage[], maxTokens: number): Promise<AIRes
         console.log(`✅ Groq respondió en ${Date.now() - startTime}ms`);
         return { success: true, content, provider: 'groq', timeMs: Date.now() - startTime };
       }
-    } else if (response.status === 401 || response.status === 429 || response.status === 503) {
-      console.warn(`⚠️ Groq key #${currentKeyIndex + 1} falló (${response.status})`);
+    } else if (response.status === 401 || response.status === 429 || response.status === 503 || response.status === 403) {
+      console.warn(`🛑 Groq key #${currentKeyIndex + 1} falló (${response.status}). Probando siguiente...`);
       markKeyAsFailed(apiKey);
       if (failedKeys.size < GROQ_API_KEYS.length) {
         return callGroq(messages, maxTokens);
       }
+    } else {
+      const errorText = await response.text();
+      console.error(`❌ Error inesperado de Groq (${response.status}): ${errorText.substring(0, 100)}`);
     }
   } catch (error) {
-    console.warn(`⚠️ Groq error: ${error instanceof Error ? error.message : 'Error'}`);
+    console.warn(`⚠️ Error de red con Groq: ${error instanceof Error ? error.message : 'Error'}`);
     markKeyAsFailed(apiKey);
+    if (failedKeys.size < GROQ_API_KEYS.length) {
+      return callGroq(messages, maxTokens);
+    }
   }
   return { success: false, content: '', provider: 'groq' };
 }
