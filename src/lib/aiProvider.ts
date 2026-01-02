@@ -196,29 +196,48 @@ async function callGroq(messages: AIMessage[], maxTokens: number): Promise<AIRes
   return { success: false, content: '', provider: 'groq' };
 }
 
-// FUNCIÓN PRINCIPAL: Ollama primero, Groq como respaldo
+// Función centralizada para llamar a la IA a través del backend
 export async function callAI(messages: AIMessage[], maxTokens: number = 2000): Promise<AIResponse> {
   const startTime = Date.now();
+  console.log('🚀 Enviando consulta al backend de IA...');
 
-  console.log('🚀 Iniciando consulta IA...');
+  try {
+    // Obtenemos el sistema y el último mensaje para compatibilidad si el backend lo requiere separado
+    const systemMessage = messages.find(m => m.role === 'system')?.content || '';
+    const lastUserMessage = [...messages].reverse().find(m => m.role === 'user')?.content || '';
 
-  // 1. Intentar con Ollama
-  const ollamaResult = await callOllama(messages, maxTokens);
-  if (ollamaResult.success) return ollamaResult;
+    const response = await fetch('/api/ai/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages, // Mandamos todo el historial
+        prompt: lastUserMessage,
+        system: systemMessage,
+        maxTokens
+      }),
+    });
 
-  console.warn('⚠️ Ollama no disponible, probando Groq...');
-
-  // 2. Fallback a Groq
-  const groqResult = await callGroq(messages, maxTokens);
-  if (groqResult.success) return groqResult;
-
-  // 3. Ambos fallaron
-  return {
-    success: false,
-    content: 'No se pudo conectar con ningún servicio de IA. Verifica tu conexión.',
-    provider: 'error',
-    timeMs: Date.now() - startTime
-  };
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        success: data.success,
+        content: data.content,
+        provider: data.provider,
+        timeMs: Date.now() - startTime
+      };
+    } else {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `Error ${response.status}`);
+    }
+  } catch (error) {
+    console.error('❌ Error en callAI (Backend Proxy):', error);
+    return {
+      success: false,
+      content: 'No se pudo conectar con el servicio de IA a través del servidor. Verifica la conexión del backend.',
+      provider: 'error',
+      timeMs: Date.now() - startTime
+    };
+  }
 }
 
 // Versión rápida (respuestas cortas)
