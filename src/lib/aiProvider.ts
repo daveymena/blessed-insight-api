@@ -80,8 +80,8 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
   const systemPrompt = messages.find(m => m.role === 'system')?.content || '';
   const userPrompt = messages.filter(m => m.role !== 'system').map(m => m.content).join('\n');
 
-  // Timeout dinámico basado en tokens solicitados
-  const timeout = Math.max(60000, maxTokens * 20); // Mínimo 60s, más para respuestas largas
+  // Timeout dinámico basado en tokens solicitados (Mínimo 90s para modelos locales en CPU)
+  const timeout = Math.max(90000, maxTokens * 25);
 
   // 1. Intentar via Proxy (Nginx interno - Ahora con Host correcto)
   try {
@@ -108,7 +108,8 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
       }
     }
   } catch (error) {
-    console.warn(`⚠️ Red interna no disponible, probando directa...`);
+    const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
+    console.warn(`⚠️ Red interna falló (${errorMsg}), probando directa...`);
   }
 
   // 2. Fallback: Conexión Directa
