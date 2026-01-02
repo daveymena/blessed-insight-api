@@ -6,6 +6,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -167,34 +168,127 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
                             </div>
                         </div>
 
-                        {/* Visual y Apariencia */}
+                        {/* Galería de Temas Visuales */}
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <Palette className="w-5 h-5 text-primary" />
-                                    <Label className="text-lg font-serif">Ambiente y Color</Label>
-                                </div>
+                            <div className="flex items-center gap-2">
+                                <Palette className="w-5 h-5 text-primary" />
+                                <Label className="text-lg font-serif">Galería de Temas</Label>
                             </div>
 
-                            <RadioGroup
-                                value={settings.theme}
-                                onValueChange={(v) => updateSetting("theme", v)}
-                                className="grid grid-cols-3 gap-3"
-                            >
-                                {THEMES.map((theme) => (
-                                    <div key={theme.id}>
-                                        <RadioGroupItem value={theme.id} id={`theme-${theme.id}`} className="peer sr-only" />
-                                        <Label
-                                            htmlFor={`theme-${theme.id}`}
-                                            className="flex flex-col items-center justify-center rounded-xl border-2 border-muted bg-popover p-2 hover:bg-accent peer-data-[state=checked]:border-primary transition-all cursor-pointer h-20"
-                                        >
-                                            <div className={`w-8 h-8 rounded-full mb-1 ${theme.color} shadow-inner`} />
-                                            <span className="text-[10px] font-medium opacity-80">{theme.name}</span>
-                                        </Label>
+                            <Tabs defaultValue="soft" className="w-full">
+                                <TabsList className="grid w-full grid-cols-3 mb-4">
+                                    <TabsTrigger value="soft">Suaves</TabsTrigger>
+                                    <TabsTrigger value="scenic">Paisajes</TabsTrigger>
+                                    <TabsTrigger value="classic">Clásicos</TabsTrigger>
+                                </TabsList>
+
+                                <TabsContent value="soft" className="space-y-4">
+                                    <p className="text-xs text-muted-foreground mb-2">Paletas pastel para lectura relajada.</p>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {[
+                                            { id: 'soft-cream', name: 'Crema', color: '#fdfbf7', text: '#4a4a4a' },
+                                            { id: 'vanilla-bean', name: 'Vainilla', color: '#f3e5ab', text: '#5c4033' },
+                                            { id: 'almond-milk', name: 'Almendra', color: '#eaddcf', text: '#5d4037' },
+                                            { id: 'pale-rose', name: 'Rosa', color: '#ffeef2', text: '#880e4f' },
+                                            { id: 'soft-lilac', name: 'Lila', color: '#e6e6fa', text: '#4a148c' },
+                                            { id: 'sky-blue', name: 'Cielo', color: '#e0ffff', text: '#01579b' },
+                                            { id: 'mint-breeze', name: 'Menta', color: '#f5fffa', text: '#1b5e20' },
+                                            { id: 'sage-green', name: 'Salvia', color: '#dce3d5', text: '#33691e' },
+                                            { id: 'cloud-white', name: 'Nube', color: '#f5f5f5', text: '#212121' },
+                                            { id: 'pearl-gradient', name: 'Perla', color: 'linear-gradient(to bottom right, #fdfbf7, #f5f5f5)', text: '#333' },
+                                            { id: 'dawn-gradient', name: 'Alba', color: 'linear-gradient(to bottom right, #fff0f5, #e6e6fa)', text: '#4a148c' },
+                                            { id: 'champagne', name: 'Champán', color: '#f7e7ce', text: '#3e2723' },
+                                            { id: 'arctic-ice', name: 'Hielo', color: '#eafcfc', text: '#006064' },
+                                            { id: 'matcha-latte', name: 'Matcha', color: '#d5ecd4', text: '#1b5e20' },
+                                            { id: 'periwinkle', name: 'Bígaro', color: '#ccccff', text: '#311b92' },
+                                        ].map((theme) => (
+                                            <button
+                                                key={theme.id}
+                                                onClick={() => {
+                                                    updateSetting("background", theme.id);
+                                                    updateSetting("darkMode", false);
+                                                    updateSetting("textColor", theme.text);
+                                                    updateSetting("theme", "light");
+                                                }}
+                                                className={`
+                                                    relative h-16 rounded-lg border transition-all duration-200 overflow-hidden text-center flex items-center justify-center p-1
+                                                    ${settings.background === theme.id ? 'border-primary ring-2 ring-primary/20 scale-[1.05]' : 'border-border hover:border-primary/50'}
+                                                `}
+                                                style={{ background: theme.color }}
+                                            >
+                                                <span className="font-medium text-[10px]" style={{ color: theme.text }}>{theme.name}</span>
+                                                {settings.background === theme.id && (
+                                                    <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary" />
+                                                )}
+                                            </button>
+                                        ))}
                                     </div>
-                                ))}
-                            </RadioGroup>
+                                </TabsContent>
+
+                                <TabsContent value="scenic">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {[
+                                            { id: 'nature-sunset', name: 'Atardecer', bgClass: 'bg-gradient-to-tr from-orange-900 to-slate-900' },
+                                            { id: 'deep-ocean', name: 'Océano', bgClass: 'bg-gradient-to-br from-blue-900 to-slate-950' },
+                                            { id: 'misty-forest', name: 'Bosque', bgClass: 'bg-gradient-to-br from-emerald-900 to-slate-950' },
+                                            { id: 'northern-lights', name: 'Aurora', bgClass: 'bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-900' },
+                                            { id: 'desert-dusk', name: 'Desierto', bgClass: 'bg-gradient-to-tr from-orange-900 via-rose-900 to-slate-900' },
+                                            { id: 'royal-gold', name: 'Real', bgClass: 'bg-gradient-to-b from-amber-950 to-black' },
+                                        ].map((theme) => (
+                                            <button
+                                                key={theme.id}
+                                                onClick={() => {
+                                                    updateSetting("background", theme.id);
+                                                    updateSetting("darkMode", true);
+                                                    updateSetting("textColor", "#ffffff");
+                                                    updateSetting("theme", "dark");
+                                                }}
+                                                className={`
+                                                    relative h-20 rounded-xl border-2 transition-all duration-300 overflow-hidden text-left p-3 flex flex-col justify-end text-white
+                                                    ${settings.background === theme.id ? 'border-primary ring-2 ring-primary/20 scale-[1.02]' : 'border-transparent hover:border-muted/50'}
+                                                    ${theme.bgClass}
+                                                `}
+                                            >
+                                                <span className="relative z-10 font-bold text-sm shadow-black drop-shadow-md">{theme.name}</span>
+                                                {settings.background === theme.id && (
+                                                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-white" />
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="classic">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {[
+                                            { id: 'clean-white', name: 'Minimalista', type: 'light', class: 'bg-white border text-slate-900', textColor: '#000000', dark: false },
+                                            { id: 'soft-paper', name: 'Papel Antiguo', type: 'sepia', class: 'bg-[#f4f1ea] text-amber-900', textColor: '#5b4636', dark: false },
+                                            { id: 'modern-slate', name: 'Pizarra', type: 'dark', class: 'bg-slate-900 text-slate-200', textColor: '#e2e8f0', dark: true },
+                                        ].map(theme => (
+                                            <button
+                                                key={theme.id}
+                                                onClick={() => {
+                                                    updateSetting("background", theme.id);
+                                                    updateSetting("darkMode", theme.dark);
+                                                    updateSetting("textColor", theme.textColor);
+                                                    updateSetting("theme", theme.type);
+                                                }}
+                                                className={`
+                                                    relative h-20 rounded-xl border-2 transition-all duration-300 overflow-hidden text-left p-3 flex flex-col justify-end
+                                                    ${settings.background === theme.id ? 'border-primary ring-2 ring-primary/20 scale-[1.02]' : 'border-transparent hover:border-muted/50'}
+                                                    ${theme.class}
+                                                `}
+                                            >
+                                                <span className="relative z-10 font-bold text-sm">{theme.name}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
                         </div>
+
+                        {/* Separador */}
+                        <div className="h-px bg-border/50" />
 
                         {/* Tamaño y Lectura */}
                         <div className="space-y-5 bg-muted/30 p-4 rounded-2xl border border-border/50">
@@ -243,22 +337,18 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
                             </div>
                         </div>
 
-                        {/* Color de Texto Personalizado */}
+                        {/* Color de Texto Personalizado (Opcional) */}
                         <div className="space-y-4">
                             <div className="flex items-center gap-2">
                                 <Palette className="w-5 h-5 text-primary" />
-                                <Label className="text-lg font-serif">Color de Letra</Label>
+                                <Label className="text-lg font-serif">Ajuste Manual de Color</Label>
                             </div>
                             <div className="grid grid-cols-4 gap-2">
                                 {[
                                     { id: "auto", name: "Auto", class: "bg-gradient-to-tr from-slate-200 to-slate-800 border" },
                                     { id: "#000000", name: "Negro", class: "bg-black" },
-                                    { id: "#334155", name: "Gris", class: "bg-slate-700" },
                                     { id: "#ffffff", name: "Blanco", class: "bg-white border" },
-                                    { id: "#713f12", name: "Oro", class: "bg-yellow-900" },
-                                    { id: "#1e3a8a", name: "Azul", class: "bg-blue-900" },
-                                    { id: "#4c0519", name: "Vino", class: "bg-rose-950" },
-                                    { id: "#14532d", name: "Verde", class: "bg-green-900" },
+                                    { id: "#5b4636", name: "Sepia", class: "bg-[#5b4636]" },
                                 ].map((color) => (
                                     <div
                                         key={color.id}
@@ -268,38 +358,11 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
                                             ${settings.textColor === color.id ? "border-primary bg-primary/5" : "border-transparent hover:border-muted"}
                                         `}
                                     >
-                                        <div className={`w-8 h-8 rounded-full shadow-sm ${color.class}`} />
-                                        <span className="text-[10px] font-medium text-center">{color.name}</span>
+                                        <div className={`w-6 h-6 rounded-full shadow-sm ${color.class}`} />
                                     </div>
                                 ))}
                             </div>
                         </div>
-
-                        {/* Opciones Avanzadas - Fondos Escénicos */}
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2">
-                                <ImageIcon className="w-5 h-5 text-primary" />
-                                <Label className="text-lg font-serif">Paisajes y Texturas</Label>
-                            </div>
-                            <p className="text-xs text-muted-foreground mb-2">Selecciona un fondo vivo para tu lectura.</p>
-                            <div className="grid grid-cols-2 gap-2">
-                                {BACKGROUNDS.map((bg) => (
-                                    <Button
-                                        key={bg.id}
-                                        variant={settings.background === bg.id ? "default" : "outline"}
-                                        size="sm"
-                                        onClick={() => updateSetting("background", bg.id)}
-                                        className="h-auto py-2 flex flex-col items-start gap-1 text-left whitespace-normal h-full"
-                                    >
-                                        <span className="font-semibold">{bg.name}</span>
-                                        {["misty-mountains", "calm-ocean", "nature-sunset", "warm-clouds"].includes(bg.id) && (
-                                            <span className="text-[10px] opacity-70">Paisaje Natural</span>
-                                        )}
-                                    </Button>
-                                ))}
-                            </div>
-                        </div>
-
                     </div>
                 </ScrollArea>
             </DialogContent >

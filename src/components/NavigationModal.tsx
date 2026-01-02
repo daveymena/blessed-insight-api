@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { BookSelector } from './BookSelector';
 import { ChapterSelector } from './ChapterSelector';
+import { VerseSelector } from './VerseSelector';
 import type { BibleBook } from '@/lib/bibleApi';
-import { Button } from './ui/button';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Hash, Bookmark, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-// We need a VerseSelector component as well for the full flow
-// For now, we'll implement a simple one here or reuse the grid logic
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface NavigationModalProps {
     isOpen: boolean;
@@ -32,7 +29,6 @@ export function NavigationModal({
     const [tempBook, setTempBook] = useState<BibleBook | null>(selectedBook);
     const [tempChapter, setTempChapter] = useState<number>(selectedChapter);
 
-    // Sync props when opening
     useEffect(() => {
         if (isOpen) {
             setTempBook(selectedBook);
@@ -48,10 +44,6 @@ export function NavigationModal({
 
     const handleChapterSelect = (chapter: number) => {
         setTempChapter(chapter);
-        // If we had verse data, we would go to verse.
-        // For now, let's close and navigate directly like existing behavior, 
-        // or optionally go to verse selector if user wants specific verse.
-        // The user asked for "chapters and verses look", so let's add a simple Verse grid.
         setActiveTab('verse');
     };
 
@@ -62,66 +54,86 @@ export function NavigationModal({
         }
     };
 
+    const steps = [
+        { id: 'book', label: tempBook?.name || 'Libro', emoji: '📖' },
+        { id: 'chapter', label: tempBook ? `Capítulo ${tempChapter}` : 'Capítulo', emoji: '🔖' },
+        { id: 'verse', label: 'Versículo', emoji: '📍' },
+    ];
+
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="sm:max-w-md h-[85vh] p-0 gap-0 overflow-hidden bg-background">
-                <div className="flex flex-col h-full overflow-hidden">
-                    {/* Header with Breadcrumbs */}
-                    <div className="p-4 border-b border-border flex items-center justify-center bg-muted/20">
-                        <div className="flex items-center gap-2 text-sm font-medium">
-                            <button
-                                onClick={() => setActiveTab('book')}
-                                className={cn("px-2 py-1 rounded transition-colors", activeTab === 'book' ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground")}
-                            >
-                                {tempBook?.name || 'Seleccionar Libro'}
-                            </button>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                            <button
-                                onClick={() => tempBook && setActiveTab('chapter')}
-                                disabled={!tempBook}
-                                className={cn("px-2 py-1 rounded transition-colors", activeTab === 'chapter' ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground")}
-                            >
-                                {tempBook ? `Cap ${tempChapter}` : 'Capítulo'}
-                            </button>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                            <button
-                                onClick={() => setActiveTab('verse')}
-                                disabled={!tempBook}
-                                className={cn("px-2 py-1 rounded transition-colors", activeTab === 'verse' ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground")}
-                            >
-                                Versículo
-                            </button>
+            <DialogContent className="sm:max-w-lg h-[80vh] p-0 gap-0 overflow-hidden border-none shadow-2xl bg-transparent">
+                <div className="flex flex-col h-full overflow-hidden glass rounded-[2rem] border border-white/20">
+                    {/* Header: Navigation Steps */}
+                    <div className="p-6 bg-secondary/20 border-b border-border/50">
+                        <div className="flex items-center justify-between gap-1 p-1 bg-background/50 backdrop-blur-md rounded-2xl border border-border/40">
+                            {steps.map((step, idx) => {
+                                const isActive = activeTab === step.id;
+                                const isLocked = (step.id === 'chapter' && !tempBook) || (step.id === 'verse' && !tempBook);
+
+                                return (
+                                    <div key={step.id} className="flex items-center flex-1">
+                                        <button
+                                            disabled={isLocked}
+                                            onClick={() => setActiveTab(step.id as any)}
+                                            className={cn(
+                                                "relative flex items-center justify-center gap-2 px-3 py-2.5 w-full rounded-xl transition-all duration-500",
+                                                isActive ? "text-primary font-bold scale-105" : "text-muted-foreground hover:text-foreground",
+                                                isLocked && "opacity-30 cursor-not-allowed"
+                                            )}
+                                        >
+                                            {isActive && (
+                                                <motion.div
+                                                    layoutId="step-bg"
+                                                    className="absolute inset-0 bg-primary/10 rounded-xl"
+                                                    transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                                                />
+                                            )}
+                                            <span className="text-lg leading-none">{step.emoji}</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:block">{step.label}</span>
+                                        </button>
+                                        {idx < steps.length - 1 && (
+                                            <ChevronRight className="h-4 w-4 text-muted-foreground/30 shrink-0" />
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto relative bg-background">
-                        {activeTab === 'book' && (
-                            <BookSelector
-                                selectedBook={tempBook}
-                                onSelectBook={handleBookSelect}
-                            />
-                        )}
+                    {/* Content View */}
+                    <div className="flex-1 overflow-hidden relative">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={activeTab}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                                className="h-full"
+                            >
+                                {activeTab === 'book' && (
+                                    <BookSelector selectedBook={tempBook} onSelectBook={handleBookSelect} />
+                                )}
 
-                        {activeTab === 'chapter' && tempBook && (
-                            <ChapterSelector
-                                book={tempBook}
-                                chapters={Array.from({ length: tempBook.chapters }, (_, i) => i + 1)}
-                                selectedChapter={tempChapter}
-                                onSelectChapter={handleChapterSelect}
-                            />
-                        )}
+                                {activeTab === 'chapter' && tempBook && (
+                                    <ChapterSelector
+                                        book={tempBook}
+                                        chapters={Array.from({ length: tempBook.chapters }, (_, i) => i + 1)}
+                                        selectedChapter={tempChapter}
+                                        onSelectChapter={handleChapterSelect}
+                                    />
+                                )}
 
-                        {activeTab === 'verse' && (
-                            <VerseSelector
-                                count={50} // Approximate, since we don't have verse count in API yet without fetching. 
-                                // In a real scenario we'd need exact verse count for the chapter. 
-                                // For now, let's assume a generous number or just allow navigation to verse 1.
-                                // Wait, useBibleReader gets 'passage' which has content, but we don't know the verse count of a *target* chapter until we fetch it.
-                                // YouVersion allows selecting up to common maxs. 
-                                // Let's mock it to 50 or use a fixed grid for now.
-                                onSelectVerse={handleVerseSelect}
-                            />
-                        )}
+                                {activeTab === 'verse' && (
+                                    <VerseSelector
+                                        bookName={tempBook?.name || ''}
+                                        chapter={tempChapter}
+                                        onSelectVerse={handleVerseSelect}
+                                    />
+                                )}
+                            </motion.div>
+                        </AnimatePresence>
                     </div>
                 </div>
             </DialogContent>
@@ -129,28 +141,3 @@ export function NavigationModal({
     );
 }
 
-function VerseSelector({ count, onSelectVerse }: { count: number, onSelectVerse: (v: number) => void }) {
-    // Common max verses is around 176 (Psalm 119), but text usually 20-50.
-    // We'll show a grid of 1-50 for now as a "Practical" placeholder.
-    return (
-        <div className="flex flex-col h-full">
-            <div className="p-4 border-b border-border">
-                <h3 className="font-serif font-semibold text-center">Selecciona el Versículo</h3>
-            </div>
-            <div className="flex-1 overflow-auto p-4">
-                <div className="grid grid-cols-5 gap-3">
-                    {Array.from({ length: 60 }, (_, i) => i + 1).map(v => (
-                        <button
-                            key={v}
-                            id={`nav-verse-${v}`}
-                            onClick={() => onSelectVerse(v)}
-                            className="aspect-square flex items-center justify-center rounded-lg bg-secondary/30 hover:bg-primary hover:text-primary-foreground transition-all duration-200 font-medium"
-                        >
-                            {v}
-                        </button>
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
-}

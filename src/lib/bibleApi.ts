@@ -227,27 +227,59 @@ export function getAllBooks() { return bibleBooks; }
 export function getChaptersForBook(id: string) { return Array.from({ length: getBookById(id)?.chapters || 0 }, (_, i) => i + 1); }
 export function getBooksByTestament(testament: 'old' | 'new') { return bibleBooks.filter(b => b.testament === testament); }
 
+export async function getVerseCount(bookId: string, chapter: number, versionId?: string): Promise<number> {
+  const version = versionId || getVersion();
+  const book = getBookById(bookId);
+  if (!book) return 0;
+
+  if (isOnlineVersion(version)) {
+    // Para versiones online, retornamos un estimado seguro o intentamos cachear
+    // Por simplicidad y rendimiento, retornamos 176 (Salmo 119) si no tenemos datos,
+    // pero idealmente deberíamos tener metadatos offline.
+    // Como fallback usaremos RVR para conteo de versos si es la estructura standard
+    const rvrData = await loadBibleVersion('rvr');
+    if (rvrData) {
+      return rvrData[book.index].chapters[chapter - 1]?.length || 0;
+    }
+    return 50;
+  }
+
+  const bibleData = await loadBibleVersion(version);
+  if (!bibleData) return 0;
+  return bibleData[book.index].chapters[chapter - 1]?.length || 0;
+}
+
 export async function searchVerses(query: string, versionId?: string): Promise<BiblePassage | null> {
   const version = versionId || getVersion();
   const bibleData = await loadBibleVersion(version);
   if (!bibleData) return null;
   const results: BibleVerse[] = [];
-  const searchTerm = query.toLowerCase();
-  for (let bIdx = 0; bIdx < bibleData.length && results.length < 20; bIdx++) {
+  const normalizedQuery = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const keywords = normalizedQuery.split(/\s+/).filter(k => k.length > 2);
+
+  if (keywords.length === 0) return null;
+
+  for (let bIdx = 0; bIdx < bibleData.length && results.length < 50; bIdx++) {
     const book = bibleBooks[bIdx];
     const bData = bibleData[bIdx];
 
     // Periódicamente permitimos que el navegador respire
-    if (bIdx % 10 === 0) {
+    if (bIdx % 5 === 0) {
       await new Promise(resolve => setTimeout(resolve, 0));
     }
 
-    for (let cIdx = 0; cIdx < bData.chapters.length && results.length < 20; cIdx++) {
+    for (let cIdx = 0; cIdx < bData.chapters.length && results.length < 50; cIdx++) {
       const cData = bData.chapters[cIdx];
-      for (let vIdx = 0; vIdx < cData.length && results.length < 20; vIdx++) {
-        if (cData[vIdx].toLowerCase().includes(searchTerm)) {
+      for (let vIdx = 0; vIdx < cData.length && results.length < 50; vIdx++) {
+        const verseText = cData[vIdx];
+        const normalizedVerse = verseText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+        // Verificamos si TODAS las palabras clave están presentes
+        const allKeywordsPresent = keywords.every(keyword => normalizedVerse.includes(keyword));
+
+        if (allKeywordsPresent) {
           results.push({
-            book_id: book.id, book_name: book.name, chapter: cIdx + 1, verse: vIdx + 1, text: cData[vIdx]
+            book_id: book.id, book_name: book.name, chapter: cIdx + 1, verse: vIdx + 1, text: verseText
           });
         }
       }

@@ -224,14 +224,27 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-serif tracking-tight;
     text-wrap: balance;
   }
 
-  h1 { @apply text-4xl md:text-5xl font-bold; }
-  h2 { @apply text-3xl md:text-4xl font-semibold; }
-  h3 { @apply text-2xl md:text-3xl font-semibold; }
+  h1 {
+    @apply text-4xl md:text-5xl font-bold;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl font-semibold;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl font-semibold;
+  }
 }
 
 /* ========== UTILIDADES DE DISEÑO ========== */
@@ -278,7 +291,7 @@
 
   /* Sombras elegantes */
   .shadow-elegant {
-    box-shadow: 
+    box-shadow:
       0 1px 2px rgba(0, 0, 0, 0.02),
       0 2px 4px rgba(0, 0, 0, 0.02),
       0 4px 8px rgba(0, 0, 0, 0.02),
@@ -287,7 +300,7 @@
   }
 
   .shadow-premium {
-    box-shadow: 
+    box-shadow:
       0 0 0 1px hsl(var(--border) / 0.5),
       0 2px 4px rgba(0, 0, 0, 0.02),
       0 12px 24px rgba(0, 0, 0, 0.04),
@@ -324,46 +337,67 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.97); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes slideInRight {
-  from { opacity: 0; transform: translateX(100%); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* ========== SCROLLBAR ELEGANTE ========== */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
 }
 
-::-webkit-scrollbar-track {
-  background: hsl(var(--muted) / 0.3);
-  border-radius: 999px;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-::-webkit-scrollbar-thumb {
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.1);
+  border-radius: 20px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.2);
-  border-radius: 999px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.35);
-  background-clip: content-box;
 }
 
 /* ========== SAFE AREAS MÓVIL ========== */
@@ -378,66 +412,37 @@
 /* ========== COMPONENTES MÓVILES ========== */
 @layer components {
   .mobile-nav-item {
-    @apply flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl 
-           transition-all duration-200 min-w-[60px]
-           hover:bg-muted/60 active:scale-95;
+    @apply flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl transition-all duration-300 min-w-[60px] hover:bg-muted/60 active:scale-95;
   }
 
   .mobile-nav-item-active {
-    @apply bg-primary/10 text-primary;
+    @apply bg-primary/10 text-primary font-bold shadow-sm;
   }
 }
 
-/* Padding inferior en móvil para nav */
-@media (max-width: 767px) {
-  .main-content {
-    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+/* Glassmorphism Refinado */
+.glass {
+  @apply backdrop-blur-2xl bg-background/70 border border-white/10;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
+}
+
+.dark .glass {
+  @apply bg-black/40 border-white/5;
+}
+
+/* Animaciones Premium */
+@keyframes slide-in-top {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
-/* Touch targets accesibles */
-@media (max-width: 767px) {
-  button, a {
-    min-height: 44px;
-    min-width: 44px;
-  }
-}
-
-/* ========== EFECTOS VISUALES ========== */
-@layer utilities {
-  .animate-ken-burns {
-    animation: ken-burns 50s ease-out infinite alternate;
-  }
-
-  .bg-pattern-dots {
-    background-image: radial-gradient(circle, hsl(var(--muted-foreground) / 0.08) 1px, transparent 1px);
-    background-size: 24px 24px;
-  }
-
-  .bg-pattern-lines {
-    background-image: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 23px,
-      hsl(var(--border) / 0.3) 23px,
-      hsl(var(--border) / 0.3) 24px
-    );
-  }
-}
-
-@keyframes ken-burns {
-  0% { transform: scale(1) translate(0, 0); }
-  100% { transform: scale(1.08) translate(-1%, -0.5%); }
-}
-
-/* ========== SELECCIÓN DE TEXTO ========== */
-::selection {
-  background: hsl(var(--primary) / 0.2);
-  color: hsl(var(--foreground));
-}
-
-/* ========== FOCUS STATES ACCESIBLES ========== */
-:focus-visible {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: 2px;
+.animate-slide-in-top {
+  animation: slide-in-top 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }

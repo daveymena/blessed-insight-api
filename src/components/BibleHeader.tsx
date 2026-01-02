@@ -54,6 +54,12 @@ export function BibleHeader({
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
+    // Comprobar si el modo oscuro está activo en el HTML
+    if (document.documentElement.classList.contains('dark')) {
+      setDarkMode(true);
+    }
+
+    // Y también cargar de localstorage
     const saved = localStorage.getItem('bible_darkMode');
     if (saved) {
       setDarkMode(JSON.parse(saved));

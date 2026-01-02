@@ -23,6 +23,7 @@ import {
 import heroSunrise from '@/assets/hero-sunrise.jpg';
 import bibleStudy from '@/assets/bible-study.jpg';
 import spiritDove from '@/assets/spirit-dove.jpg';
+import { AdSlot } from './AdSlot';
 
 interface HomeScreenProps {
   onStartReading: () => void;
@@ -32,6 +33,7 @@ interface HomeScreenProps {
   onOpenAI: () => void;
   onOpenPlans: () => void;
   onOpenTheme: () => void;
+  onOpenMenu?: () => void;
 }
 
 export function HomeScreen({
@@ -41,7 +43,8 @@ export function HomeScreen({
   onOpenFavorites,
   onOpenAI,
   onOpenPlans,
-  onOpenTheme
+  onOpenTheme,
+  onOpenMenu
 }: HomeScreenProps) {
   const [greeting, setGreeting] = useState('');
   const [currentVerse, setCurrentVerse] = useState<any>(null);
@@ -115,13 +118,13 @@ export function HomeScreen({
     <div className="flex-1 bg-background overflow-y-auto scroll-smooth pb-24">
       {/* Hero Section con imagen real */}
       <div className="relative h-[420px] md:h-[480px] overflow-hidden">
-        <img 
-          src={heroSunrise} 
-          alt="Amanecer sobre Jerusalén" 
+        <img
+          src={heroSunrise}
+          alt="Amanecer sobre Jerusalén"
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-background" />
-        
+
         {/* Header flotante */}
         <header className="absolute top-0 left-0 right-0 z-30 px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -139,12 +142,7 @@ export function HomeScreen({
                 <Loader2 className="h-4 w-4 text-white animate-spin" />
               </div>
             )}
-            <button 
-              onClick={onOpenSearch}
-              className="bg-white/95 dark:bg-black/80 backdrop-blur-xl h-11 w-11 rounded-2xl flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
-            >
-              <Search className="h-5 w-5 text-foreground" />
-            </button>
+            {/* Search button removed to avoid duplicates */}
           </div>
         </header>
 
@@ -173,9 +171,9 @@ export function HomeScreen({
 
       {/* Contenido Principal */}
       <div className="px-5 py-6 space-y-8 max-w-2xl mx-auto -mt-6 relative z-10">
-        
+
         {/* Grid de Acciones Principales */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -217,25 +215,27 @@ export function HomeScreen({
         </motion.div>
 
         {/* Quick Actions */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-4 gap-3"
+          className="grid grid-cols-3 gap-3"
         >
           {[
-            { icon: Heart, label: 'Favoritos', onClick: onOpenFavorites, color: 'text-rose-500' },
-            { icon: Bookmark, label: 'Planes', onClick: onOpenPlans, color: 'text-emerald-500' },
-            { icon: Search, label: 'Buscar', onClick: onOpenSearch, color: 'text-blue-500' },
-            { icon: Sun, label: 'Tema', onClick: onOpenTheme, color: 'text-amber-500' },
+            { icon: Heart, label: 'Favoritos', onClick: onOpenFavorites, color: 'text-rose-500', emoji: '❤️' },
+            { icon: Bookmark, label: 'Mis Planes', onClick: onOpenPlans, color: 'text-emerald-500', emoji: '📅' },
+            { icon: Sun, label: 'Apariencia', onClick: onOpenTheme, color: 'text-amber-500', emoji: '✨' },
           ].map((action, i) => (
             <button
               key={i}
               onClick={action.onClick}
-              className="flex flex-col items-center justify-center gap-2 p-4 bg-card rounded-2xl border border-border hover:bg-accent hover:border-primary/20 transition-all active:scale-95"
+              className="flex flex-col items-center justify-center gap-2 p-4 bg-card rounded-2xl border border-border hover:bg-accent hover:border-primary/20 transition-all active:scale-95 group"
             >
-              <action.icon className={`h-6 w-6 ${action.color}`} />
-              <span className="text-[11px] font-medium text-muted-foreground">{action.label}</span>
+              <div className="relative">
+                <action.icon className={`h-6 w-6 ${action.color} group-hover:scale-110 transition-transform`} />
+                <span className="absolute -top-1 -right-1 text-[10px]">{action.emoji}</span>
+              </div>
+              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight">{action.label}</span>
             </button>
           ))}
         </motion.div>
@@ -298,6 +298,11 @@ export function HomeScreen({
           </motion.div>
         )}
 
+        {/* AdSlot: Banner Horizontal (Discreto entre secciones principales) */}
+        <div className="py-2">
+          <AdSlot variant="banner" />
+        </div>
+
         {/* Sección Reflexiones */}
         <section className="space-y-5">
           <div className="flex items-center justify-between px-1">
@@ -320,13 +325,12 @@ export function HomeScreen({
                 className="bg-card rounded-2xl p-5 border border-border hover:shadow-lg hover:border-primary/20 transition-all group"
               >
                 <div className="flex items-start gap-4">
-                  <div className={`p-3 rounded-xl shrink-0 ${
-                    insight.type === 'promise' 
-                      ? 'bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 text-amber-600 dark:text-amber-400' 
-                      : insight.type === 'fact' 
-                        ? 'bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 text-emerald-600 dark:text-emerald-400' 
-                        : 'bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-600 dark:text-blue-400'
-                  }`}>
+                  <div className={`p-3 rounded-xl shrink-0 ${insight.type === 'promise'
+                    ? 'bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 text-amber-600 dark:text-amber-400'
+                    : insight.type === 'fact'
+                      ? 'bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 text-emerald-600 dark:text-emerald-400'
+                      : 'bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-600 dark:text-blue-400'
+                    }`}>
                     {insight.type === 'promise' ? <Gift className="h-5 w-5" /> :
                       insight.type === 'fact' ? <Zap className="h-5 w-5" /> : <User className="h-5 w-5" />}
                   </div>
@@ -365,7 +369,7 @@ export function HomeScreen({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="pb-8"
+          className="pb-4"
         >
           <button
             onClick={onOpenStudyCenter}
@@ -388,6 +392,9 @@ export function HomeScreen({
             </div>
           </button>
         </motion.div>
+
+        {/* AdSlot: Footer Inline (Al final del scroll) */}
+        <AdSlot variant="inline" className="mt-4 mb-8" />
       </div>
     </div>
   );

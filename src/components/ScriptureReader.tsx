@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { AudioPlayer } from '@/components/AudioPlayer';
+import { AdSlot } from './AdSlot';
 import { getCurrentVersionInfo, BIBLE_VERSIONS, setVersion, getVersion } from '@/lib/bibleApi';
 import type { BibleBook, BiblePassage } from '@/lib/bibleApi';
 import { useThemeSettings } from '@/hooks/useThemeSettings';
@@ -129,7 +130,8 @@ export function ScriptureReader({
     const passageText = passage.verses.map(v => v.text).join(' ').substring(0, 800);
     const messages = [
       { role: 'system' as const, content: `Eres un teólogo bíblico experto. Principio: Sola Scriptura. Responde en español con profundidad académica.` },
-      { role: 'user' as const, content: `ANÁLISIS DE ${book.name} ${chapter}:
+      {
+        role: 'user' as const, content: `ANÁLISIS DE ${book.name} ${chapter}:
 "${passageText}"
 
 📖 RESUMEN Y CONTEXTO
@@ -368,7 +370,13 @@ export function ScriptureReader({
                     </div>
                   ))}
                 </article>
-                <div className="mt-12">
+
+                {/* Bloque Publicitario al Final del Capítulo */}
+                <div className="mt-8 mb-4">
+                  <AdSlot variant="banner" label="Contenido Patrocinado" />
+                </div>
+
+                <div className="mt-6">
                   {!showAnalysis ? (
                     <Button onClick={handleQuickAnalysis} variant="outline" className="w-full h-16 rounded-2xl">
                       <Sparkles className="h-5 w-5 mr-3 text-indigo-500" /> 🔍 Análisis Rápido

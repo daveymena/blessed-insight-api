@@ -1,4 +1,6 @@
 import { BookOpen, Search, Heart, Sparkles, GraduationCap, Sun } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface MobileBottomNavProps {
   onHomeClick: () => void;
@@ -19,54 +21,54 @@ export function MobileBottomNav({
   onStudyClick,
   activeTab,
 }: MobileBottomNavProps) {
+  const items = [
+    { id: 'home', icon: Sun, label: 'Inicio', onClick: onHomeClick },
+    { id: 'bible', icon: BookOpen, label: 'Biblia', onClick: onMenuClick },
+    { id: 'plans', icon: GraduationCap, label: 'Planes', onClick: onStudyClick },
+    { id: 'search', icon: Search, label: 'Buscar', onClick: onSearchClick },
+    { id: 'biblo', icon: Sparkles, label: 'Biblo', onClick: onAIClick, isSpecial: true },
+  ];
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border md:hidden safe-area-bottom shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-      <div className="flex items-center justify-around h-16 px-2">
-        {/* Inicio */}
-        <button
-          onClick={onHomeClick}
-          className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg transition-all min-w-[60px] ${activeTab === 'home' ? 'text-primary' : 'text-muted-foreground'}`}
-        >
-          <Sun className={`h-5 w-5 ${activeTab === 'home' ? 'fill-current' : ''}`} />
-          <span className="text-[10px] font-bold uppercase tracking-tighter">Inicio</span>
-        </button>
+    <nav className="fixed bottom-0 left-0 right-0 z-50 glass safe-area-bottom md:hidden border-t border-white/10 shadow-[0_-8px_20px_rgba(0,0,0,0.1)]">
+      <div className="flex items-center justify-around h-20 px-4">
+        {items.map((item) => {
+          const isActive = activeTab === item.id;
+          const Icon = item.icon;
 
-        {/* Biblia */}
-        <button
-          onClick={onMenuClick}
-          className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg transition-all min-w-[60px] ${activeTab === 'bible' ? 'text-primary' : 'text-muted-foreground'}`}
-        >
-          <BookOpen className={`h-5 w-5 ${activeTab === 'bible' ? 'fill-current' : ''}`} />
-          <span className="text-[10px] font-bold uppercase tracking-tighter">Biblia</span>
-        </button>
-
-        {/* Planes / Centro de Estudio */}
-        <button
-          onClick={onStudyClick}
-          className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg transition-all min-w-[60px] ${activeTab === 'plans' ? 'text-primary' : 'text-muted-foreground'}`}
-        >
-          <GraduationCap className={`h-5 w-5 ${activeTab === 'plans' ? 'fill-current' : ''}`} />
-          <span className="text-[10px] font-bold uppercase tracking-tighter">Planes</span>
-        </button>
-
-        {/* Buscar */}
-        <button
-          onClick={onSearchClick}
-          className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg transition-all min-w-[60px] ${activeTab === 'search' ? 'text-primary' : 'text-muted-foreground'}`}
-        >
-          <Search className="h-5 w-5" />
-          <span className="text-[10px] font-bold uppercase tracking-tighter">Buscar</span>
-        </button>
-
-        {/* IA / Más */}
-        <button
-          onClick={onAIClick}
-          className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg text-muted-foreground transition-all min-w-[60px]"
-        >
-          <Sparkles className="h-5 w-5" />
-          <span className="text-[10px] font-bold uppercase tracking-tighter">Biblo</span>
-        </button>
+          return (
+            <button
+              key={item.id}
+              onClick={item.onClick}
+              className={cn(
+                "relative flex flex-col items-center justify-center gap-1.5 p-2 rounded-2xl transition-all duration-300 min-w-[64px]",
+                isActive ? "text-primary scale-110" : "text-muted-foreground hover:text-foreground",
+                item.isSpecial && "text-purple-600 dark:text-purple-400"
+              )}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="nav-active"
+                  className="absolute inset-0 bg-primary/10 rounded-2xl -z-10"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+              <Icon className={cn(
+                "h-6 w-6 transition-transform duration-300",
+                isActive && "scale-110",
+                item.isSpecial && "animate-pulse"
+              )} />
+              <span className={cn(
+                "text-[10px] font-bold uppercase tracking-wider transition-all duration-300",
+                isActive ? "opacity-100" : "opacity-70"
+              )}>
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </nav>
   );
 }
+

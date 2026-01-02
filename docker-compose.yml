@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Frontend Service (Vite + Nginx)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Variables de construcción para el cliente
+        VITE_API_BASE_URL: /api
+        VITE_OLLAMA_BASE_URL: /api/ollama
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - bible-network
+    restart: always
+
+  # Backend Service (Node.js + Express)
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - MP_ACCESS_TOKEN=${MERCADO_PAGO_ACCESS_TOKEN}
+      - PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}
+      - PAYPAL_CLIENT_SECRET=${PAYPAL_CLIENT_SECRET}
+    networks:
+      - bible-network
+    restart: always
+  # (Opcional) Ollama Service si se desea auto-hospedar
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   ports:
+  #     - "11434:11434"
+  #   networks:
+  #     - bible-network
+
+networks:
+  bible-network:
+    driver: bridge
+
+# volumes:
+#   ollama_data:

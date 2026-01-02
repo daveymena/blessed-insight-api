@@ -125,24 +125,26 @@ const Index = () => {
 
       <BackgroundLayer />
 
-      <BibleHeader
-        onMenuClick={() => setSidebarOpen(true)}
-        onAIClick={() => toggleRightPanel('biblo')}
-        onSearchClick={() => setSearchOpen(true)}
-        onFavoritesClick={() => setFavoritesOpen(true)}
-        onStudyClick={() => toggleRightPanel('study')}
-        onThemeClick={() => setThemeOpen(true)}
-        onHomeClick={handleGoHome}
-        onVersionChange={handleVersionChange}
-        showSpanishEquivalent={showSpanishEquivalent}
-        onSpanishToggle={setShowSpanishEquivalent}
-        isSpanishVersion={isSpanishVersion}
-        user={user}
-        onLoginClick={() => navigate('/login')}
-        onTitleClick={() => setNavModalOpen(true)}
-        selectedBook={selectedBook}
-        selectedChapter={selectedChapter}
-      />
+      {!showHome && (
+        <BibleHeader
+          onMenuClick={() => setSidebarOpen(true)}
+          onAIClick={() => toggleRightPanel('biblo')}
+          onSearchClick={() => setSearchOpen(true)}
+          onFavoritesClick={() => setFavoritesOpen(true)}
+          onStudyClick={() => toggleRightPanel('study')}
+          onThemeClick={() => setThemeOpen(true)}
+          onHomeClick={handleGoHome}
+          onVersionChange={handleVersionChange}
+          showSpanishEquivalent={showSpanishEquivalent}
+          onSpanishToggle={setShowSpanishEquivalent}
+          isSpanishVersion={isSpanishVersion}
+          user={user}
+          onLoginClick={() => navigate('/login')}
+          onTitleClick={() => setNavModalOpen(true)}
+          selectedBook={selectedBook}
+          selectedChapter={selectedChapter}
+        />
+      )}
 
       <div className="flex-1 flex overflow-hidden relative">
         <BibleSidebar
@@ -151,6 +153,14 @@ const Index = () => {
           chapters={chapters}
           onSelectBook={selectBook}
           onSelectChapter={selectChapter}
+          onSelectVerse={(verse) => {
+            if (selectedBook) {
+              handleNavigation(selectedBook, selectedChapter, verse);
+              if (showHome) handleStartReading();
+            } else {
+              setSidebarOpen(false);
+            }
+          }}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
         />
@@ -164,8 +174,9 @@ const Index = () => {
                 onOpenStudyCenter={() => toggleRightPanel('study')}
                 onOpenFavorites={() => setFavoritesOpen(true)}
                 onOpenAI={() => toggleRightPanel('biblo')}
-                onOpenPlans={() => toggleRightPanel('study')} // O un modal específico si existe
+                onOpenPlans={() => toggleRightPanel('study')}
                 onOpenTheme={() => setThemeOpen(true)}
+                onOpenMenu={() => setSidebarOpen(true)}
               />
             ) : (
               <ScriptureReader
@@ -230,6 +241,12 @@ const Index = () => {
       />
 
       {/* Panels and Modals */}
+      <SearchModal
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onSelectBook={handleSearchSelect}
+      />
+
       <NavigationModal
         isOpen={navModalOpen}
         onClose={() => setNavModalOpen(false)}
