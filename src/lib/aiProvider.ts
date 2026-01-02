@@ -1,7 +1,11 @@
 // Proveedor de IA - Directo a Ollama (con fallback)
+// Build: 2026-01-02-v3 - Llamada directa sin proxy
 
 const OLLAMA_BASE_URL = import.meta.env.VITE_OLLAMA_BASE_URL || 'http://localhost:11434';
 const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'gemma2:2b';
+
+// DEBUG: Log para verificar que se usa el código nuevo
+console.log('🔧 aiProvider v3 cargado - URL:', import.meta.env.VITE_OLLAMA_BASE_URL);
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
