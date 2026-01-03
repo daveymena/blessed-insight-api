@@ -137,14 +137,14 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
                         </div>
                         <div>
                             <h4 className="font-bold text-sm text-primary">
-                                {isPremium ? (isTrial ? "Prueba Gratuita Activa" : "Miembro Premium") : "Versión Gratuita"}
+                                {isPremium ? (isTrial ? "Periodo de Prueba Activo" : "Miembro Premium") : "Periodo de Prueba Finalizado"}
                             </h4>
                             <p className="text-xs text-muted-foreground">
                                 {isPremium && isTrial
-                                    ? `Te quedan ${daysLeft} días de acceso total.`
+                                    ? `Disfruta de ${daysLeft} días restantes de acceso total gratuito.`
                                     : isPremium
-                                        ? "Acceso ilimitado activado."
-                                        : "Publicidad activa. Funciones limitadas."}
+                                        ? "Tu suscripción está activa. Gracias por tu apoyo."
+                                        : "Tu prueba ha terminado. Actualiza para eliminar anuncios y habilitar funciones avanzadas."}
                             </p>
                         </div>
                     </div>
