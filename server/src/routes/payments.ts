@@ -16,6 +16,11 @@ const client = new MercadoPagoConfig({
     accessToken: mpAccessToken
 });
 
+// Helper para obtener la URL base (Frontend)
+const getFrontendUrl = (req: any) => {
+    return process.env.FRONTEND_URL || `${req.protocol}://${req.get('host')}`;
+};
+
 // 1. Create Mercado Pago Preference
 router.post('/create-preference', authenticateToken, async (req: AuthRequest, res: any) => {
     const { plan } = req.body;
@@ -42,9 +47,9 @@ router.post('/create-preference', authenticateToken, async (req: AuthRequest, re
                     email: req.user.email, // Si estuviera disponible en el token
                 },
                 back_urls: {
-                    success: `${process.env.FRONTEND_URL || 'http://localhost:8080'}/premium?status=success`,
-                    failure: `${process.env.FRONTEND_URL || 'http://localhost:8080'}/premium?status=failure`,
-                    pending: `${process.env.FRONTEND_URL || 'http://localhost:8080'}/premium?status=pending`,
+                    success: `${getFrontendUrl(req)}/?payment=success`,
+                    failure: `${getFrontendUrl(req)}/?payment=failure`,
+                    pending: `${getFrontendUrl(req)}/?payment=pending`,
                 },
                 auto_return: 'approved',
                 external_reference: userId, // Guardamos el ID del usuario aquí
@@ -53,9 +58,12 @@ router.post('/create-preference', authenticateToken, async (req: AuthRequest, re
         });
 
         res.json({ id: result.id, init_point: result.init_point });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating MP preference:', error);
-        res.status(500).json({ error: 'Error al crear la preferencia de pago' });
+        res.status(500).json({
+            error: 'Error al iniciar el pago con Mercado Pago',
+            details: error?.message || 'Unknown error'
+        });
     }
 });
 
