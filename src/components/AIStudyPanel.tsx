@@ -66,7 +66,7 @@ export function AIStudyPanel({ book, chapter, passage, isOpen, onClose, isSideba
       <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2 text-white">
           <Sparkles className="h-5 w-5" />
-          <span className="font-semibold text-sm sm:text-base">Estudio con Biblo</span>
+          <span className="font-semibold text-sm sm:text-base">Asistente de Estudio</span>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20 h-8 w-8">
           <X className="h-5 w-5" />

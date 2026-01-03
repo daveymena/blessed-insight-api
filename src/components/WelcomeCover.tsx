@@ -108,7 +108,7 @@ export function WelcomeCover({ onEnter }: WelcomeCoverProps) {
                     <div className="flex items-center gap-8 text-white/40">
                         <div className="flex items-center gap-2">
                             <Microscope className="h-4 w-4" />
-                            <span className="text-[10px] uppercase font-black tracking-widest">Exégesis IA</span>
+                            <span className="text-[10px] uppercase font-black tracking-widest">Análisis Profundo</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <Languages className="h-4 w-4" />

@@ -33,11 +33,11 @@ export function PremiumBanner({ onClose }: PremiumBannerProps) {
                 </div>
 
                 <p className="text-white/90 text-sm mb-6 leading-relaxed">
-                    Libera todo el poder de la Inteligencia Artificial, elimina anuncios y accede a herramientas de estudio exclusivas para profundizar en la Palabra.
+                    Libera todo el poder de nuestras herramientas de estudio avanzada, elimina anuncios y accede a recursos exclusivos para profundizar en la Palabra.
                 </p>
 
                 <div className="space-y-3 mb-6">
-                    <FeatureItem icon={<Zap className="h-4 w-4" />} text="IA Ilimitada y más rápida" />
+                    <FeatureItem icon={<Zap className="h-4 w-4" />} text="Analítica Bíblica Ilimitada" />
                     <FeatureItem icon={<Sparkles className="h-4 w-4" />} text="Sin anuncios en toda la app" />
                     <FeatureItem icon={<Crown className="h-4 w-4" />} text="Temas y Escenarios exclusivos" />
                 </div>

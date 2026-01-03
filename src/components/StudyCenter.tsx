@@ -117,14 +117,14 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
   const [activeTab, setActiveTab] = useState('exegesis');
   const [loading, setLoading] = useState(false);
   const [loadingTime, setLoadingTime] = useState(0);
-  
+
   // Respuestas separadas por cada tipo de estudio
   const [exegesisResponse, setExegesisResponse] = useState<{ content: string | null; time: number | null; fromCache: boolean }>({ content: null, time: null, fromCache: false });
   const [thematicResponse, setThematicResponse] = useState<{ content: string | null; time: number | null; fromCache: boolean }>({ content: null, time: null, fromCache: false });
   const [devotionalResponse, setDevotionalResponse] = useState<{ content: string | null; time: number | null; fromCache: boolean }>({ content: null, time: null, fromCache: false });
   const [questionsResponse, setQuestionsResponse] = useState<{ content: string | null; time: number | null; fromCache: boolean }>({ content: null, time: null, fromCache: false });
   const [planResponse, setPlanResponse] = useState<{ content: string | null; time: number | null; fromCache: boolean }>({ content: null, time: null, fromCache: false });
-  
+
   const [topic, setTopic] = useState('');
   const [customReference, setCustomReference] = useState(''); // Nueva: referencia personalizada para exégesis
   const [noteContent, setNoteContent] = useState('');
@@ -356,7 +356,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
           </div>
           <div>
             <h1 className={cn("font-bold font-serif tracking-wide", isSidebar ? "text-lg" : "text-2xl")}>
-              {isSidebar ? "Estudio" : "Centro de Estudio Profundo"}
+              {isSidebar ? "Estudio" : "Centro de Estudio Bíblico"}
             </h1>
             {!isSidebar && (
               <p className="text-xs text-primary-foreground/80 font-medium uppercase tracking-wider">Investigación Teológica y Exegética</p>

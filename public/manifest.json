@@ -1,7 +1,7 @@
 {
-  "name": "Blessed Insight - Biblia de Estudio IA",
+  "name": "Blessed Insight - Biblia de Estudio",
   "short_name": "Blessed",
-  "description": "Tu compañero espiritual con Inteligencia Artificial, Biblias multi-versión y voces naturales.",
+  "description": "Tu compañero espiritual con herramientas de estudio avanzadas, Biblias multi-versión y voces naturales.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1a1a2e",
