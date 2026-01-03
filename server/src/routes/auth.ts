@@ -25,7 +25,7 @@ router.post('/register', async (req, res) => {
                 email,
                 password: hashedPassword,
                 name,
-                tier: 'PREMIUM', // Default to PREMIUM as requested ("versión premium gratuita")
+                tier: 'FREE', // Nuevos usuarios empiezan en FREE
             },
         });
 
@@ -58,6 +58,7 @@ router.post('/login', async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Error logging in' });
     }
+    return;
 });
 
 export default router;

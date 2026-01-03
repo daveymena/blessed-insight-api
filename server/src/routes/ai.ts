@@ -2,25 +2,36 @@ import { Router } from 'express';
 
 const router = Router();
 
-// Configuración desde variables de entorno
-const OLLAMA_EXTERNAL_URL = process.env.VITE_OLLAMA_BASE_URL || 'https://ollama-ollama.ginee6.easypanel.host';
-// En EasyPanel, los servicios se comunican por: proyecto_servicio
-// Proyecto: ollama, Servicio: ollama -> ollama.ollama (con punto, no guión bajo)
+// Configuración desde variables de entorno - Tolerante a fallos de Nomenclatura
+const OLLAMA_EXTERNAL_URL = process.env.VITE_OLLAMA_BASE_URL || process.env.OLLAMA_BASE_URL || 'https://ollama-ollama.ginee6.easypanel.host';
+const OLLAMA_MODEL = process.env.VITE_OLLAMA_MODEL || process.env.OLLAMA_MODEL || 'gemma2:2b';
+const GROQ_MODEL = process.env.VITE_GROQ_MODEL || process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+
+// URLs internas para Easypanel/Docker
 const OLLAMA_INTERNAL_URLS = [
-  'http://ollama.ollama:11434',      // EasyPanel interno (proyecto.servicio)
-  'http://ollama_ollama:11434',      // Docker compose style
+  'http://ollama.ollama:11434',      // EasyPanel interno
+  'http://ollama_ollama:11434',      // Docker Compose style
   'http://ollama:11434',             // Simple name
 ];
-const OLLAMA_MODEL = process.env.VITE_OLLAMA_MODEL || 'gemma2:2b';
-const GROQ_MODEL = process.env.VITE_GROQ_MODEL || 'llama-3.1-8b-instant';
 
-// Recolectar llaves de Groq
+// Recolectar llaves de Groq (Probando ambos formatos: VITE_ y normal)
 const GROQ_API_KEYS: string[] = [
+  // Formato VITE (para compatibilidad con el frontend)
   process.env.VITE_GROQ_API_KEY,
   process.env.VITE_GROQ_API_KEY_2,
   process.env.VITE_GROQ_API_KEY_3,
   process.env.VITE_GROQ_API_KEY_4,
+  // Formato normal (estándar de backend)
+  process.env.GROQ_API_KEY,
+  process.env.GROQ_API_KEY_2,
+  process.env.GROQ_API_KEY_3,
+  process.env.GROQ_API_KEY_4,
 ].filter(Boolean) as string[];
+
+// Eliminar duplicados si los hay
+const UNIQUE_GROQ_KEYS = [...new Set(GROQ_API_KEYS)];
+
+console.log(`[AI Config] Backend cargado. Model: ${OLLAMA_MODEL}, Groq Keys: ${UNIQUE_GROQ_KEYS.length}`);
 
 let currentKeyIndex = 0;
 
@@ -65,19 +76,19 @@ async function generateAIResponse(params: {
           return { success: true, content: data.response, provider: 'ollama' };
         }
       }
-      console.warn(`[AI] ⚠️ Ollama en ${baseUrl} respondió con error: ${response.status}`);
+      console.warn(`[AI] ⚠️ Ollama en ${baseUrl} respondió con status: ${response.status}`);
     } catch (error) {
-      console.warn(`[AI] ⚠️ Fallo Ollama en ${baseUrl}: ${error instanceof Error ? error.message : 'Error'}`);
+      console.warn(`[AI] ⚠️ Fallo conexión Ollama en ${baseUrl}: ${error instanceof Error ? error.message : 'Error'}`);
     }
   }
 
   // 2. Fallback a GROQ
-  if (GROQ_API_KEYS.length > 0) {
-    console.log(`[AI] 🔄 Recurriendo a Groq (${GROQ_API_KEYS.length} llaves disponibles)`);
-    for (let attempt = 0; attempt < Math.min(2, GROQ_API_KEYS.length); attempt++) {
-      const apiKey = GROQ_API_KEYS[currentKeyIndex];
+  if (UNIQUE_GROQ_KEYS.length > 0) {
+    console.log(`[AI] 🔄 Recurriendo a Groq (${UNIQUE_GROQ_KEYS.length} llaves disponibles)`);
+    for (let attempt = 0; attempt < Math.min(2, UNIQUE_GROQ_KEYS.length); attempt++) {
+      const apiKey = UNIQUE_GROQ_KEYS[currentKeyIndex];
       const currentKeyNum = currentKeyIndex + 1;
-      currentKeyIndex = (currentKeyIndex + 1) % GROQ_API_KEYS.length;
+      currentKeyIndex = (currentKeyIndex + 1) % UNIQUE_GROQ_KEYS.length;
 
       try {
         console.log(`[AI] Intento Groq con llave #${currentKeyNum}`);
@@ -107,28 +118,37 @@ async function generateAIResponse(params: {
             console.log(`[AI] ✅ Éxito con Groq (llave #${currentKeyNum})`);
             return { success: true, content, provider: 'groq' };
           }
+        } else {
+          const errorData = await response.text();
+          console.warn(`[AI] ⚠️ Groq error (${response.status}): ${errorData.substring(0, 100)}`);
         }
-        console.warn(`[AI] ⚠️ Groq error con llave #${currentKeyNum}: ${response.status}`);
       } catch (error) {
-        console.error(`[AI] ❌ Error Groq con llave #${currentKeyNum}:`, error);
+        console.error(`[AI] ❌ Error crítico Groq con llave #${currentKeyNum}:`, error);
       }
     }
+  } else {
+    console.error('[AI] ❌ Error: No se encontraron llaves de Groq en el entorno (GROQ_API_KEY o VITE_GROQ_API_KEY)');
   }
 
   return {
     success: false,
-    content: 'No se pudo conectar con ningún servicio de IA. Por favor, verifica tu configuración en Easypanel o intenta más tarde.',
+    content: 'No se pudo conectar con ningún servicio de IA. Por favor, verifica que las API Keys estén bien escritas en Easypanel (ya sea como GROQ_API_KEY o VITE_GROQ_API_KEY).',
     provider: 'error'
   };
 }
 
 // Endpoint unificado
 router.post('/generate', async (req, res) => {
-  const result = await generateAIResponse(req.body);
-  if (result.success) {
-    res.json(result);
-  } else {
-    res.status(503).json(result);
+  try {
+    const result = await generateAIResponse(req.body);
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(503).json(result);
+    }
+  } catch (err) {
+    console.error('[AI Router] Error interno:', err);
+    res.status(500).json({ success: false, content: 'Error interno en el servidor de IA.', provider: 'error' });
   }
 });
 
@@ -138,7 +158,7 @@ router.post('/ollama/generate', async (req, res) => {
   res.json(result);
 });
 
-// Health check mejorado
+// Health check mejorado para diagnóstico en Easypanel
 router.get('/ollama/health', async (req, res) => {
   const check = async (url: string) => {
     try {
@@ -154,9 +174,15 @@ router.get('/ollama/health', async (req, res) => {
   results[OLLAMA_EXTERNAL_URL] = await check(OLLAMA_EXTERNAL_URL);
 
   res.json({
-    urls: results,
-    groqKeys: GROQ_API_KEYS.length,
-    model: OLLAMA_MODEL
+    status: UNIQUE_GROQ_KEYS.length > 0 || Object.values(results).some(v => v) ? 'ok' : 'error',
+    ollama_urls: results,
+    groq_keys_count: UNIQUE_GROQ_KEYS.length,
+    env_sample: {
+      has_groq_vite: !!process.env.VITE_GROQ_API_KEY,
+      has_groq_normal: !!process.env.GROQ_API_KEY,
+      ollama_external: OLLAMA_EXTERNAL_URL,
+      model: OLLAMA_MODEL
+    }
   });
 });
 

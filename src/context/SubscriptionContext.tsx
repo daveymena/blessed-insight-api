@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useAuth } from './AuthContext';
 
 interface SubscriptionContextType {
     isPremium: boolean;
@@ -21,14 +22,38 @@ const SubscriptionContext = createContext<SubscriptionContextType>({
 export const useSubscription = () => useContext(SubscriptionContext);
 
 export const SubscriptionProvider = ({ children }: { children: React.ReactNode }) => {
-    const [isPremium, setIsPremium] = useState(true);
-    const [isTrial, setIsTrial] = useState(true);
-    const [daysLeft, setDaysLeft] = useState(30);
+    const { user } = useAuth();
+    const [isPremium, setIsPremium] = useState(false);
+    const [isTrial, setIsTrial] = useState(false);
+    const [daysLeft, setDaysLeft] = useState(0);
     const [installDate, setInstallDate] = useState<Date | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // 1. Check for install date or set it
+        // 1. Prioridad: Usuario Autenticado
+        if (user) {
+            const now = new Date();
+            const isActuallyPremium = user.tier === 'PREMIUM' &&
+                (!user.premiumUntil || new Date(user.premiumUntil) > now);
+
+            if (isActuallyPremium) {
+                setIsPremium(true);
+                setIsTrial(false);
+                setDaysLeft(9999);
+            } else if (user.tier === 'TRIAL') {
+                setIsPremium(true);
+                setIsTrial(true);
+                setDaysLeft(30);
+            } else {
+                setIsPremium(false);
+                setIsTrial(false);
+                setDaysLeft(0);
+            }
+            setIsLoading(false);
+            return;
+        }
+
+        // 2. Fallback: Estado Local (Invitado)
         const storedDate = localStorage.getItem('bible_install_date');
         const storedPremium = localStorage.getItem('bible_is_premium_user');
 
@@ -42,34 +67,27 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
         }
         setInstallDate(start);
 
-        // 2. Calculate trial status
         const now = new Date();
         const diffTime = Math.abs(now.getTime() - start.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         const remaining = 30 - diffDays;
 
-        // 3. Determine status
-        // If user bought premium explicitly
         if (storedPremium === 'true') {
             setIsPremium(true);
             setIsTrial(false);
             setDaysLeft(9999);
-        }
-        // If within 30 days trial
-        else if (remaining > 0) {
-            setIsPremium(true); // Premium features active during trial
+        } else if (remaining > 0) {
+            setIsPremium(true);
             setIsTrial(true);
             setDaysLeft(remaining);
-        }
-        // Trial expired
-        else {
+        } else {
             setIsPremium(false);
             setIsTrial(false);
             setDaysLeft(0);
         }
 
         setIsLoading(false);
-    }, []);
+    }, [user]);
 
     const activatePremium = () => {
         localStorage.setItem('bible_is_premium_user', 'true');

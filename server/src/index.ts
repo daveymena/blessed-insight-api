@@ -5,6 +5,7 @@ import authRoutes from './routes/auth';
 import notesRoutes from './routes/notes';
 import conversationsRoutes from './routes/conversations';
 import aiRoutes from './routes/ai';
+import paymentsRoutes from './routes/payments';
 import { PrismaClient } from '@prisma/client';
 
 dotenv.config();
@@ -20,6 +21,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/notes', notesRoutes);
 app.use('/api/conversations', conversationsRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date() });

@@ -138,6 +138,10 @@ export function BibleSidebar({
             <BookSelector
               selectedBook={selectedBook}
               onSelectBook={handleBookSelect}
+              onSelectChapter={(chap) => {
+                onSelectChapter(chap);
+                setActiveTab('verses');
+              }}
             />
           )}
 

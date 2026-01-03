@@ -113,7 +113,14 @@ export function NavigationModal({
                                 className="h-full"
                             >
                                 {activeTab === 'book' && (
-                                    <BookSelector selectedBook={tempBook} onSelectBook={handleBookSelect} />
+                                    <BookSelector
+                                        selectedBook={tempBook}
+                                        onSelectBook={handleBookSelect}
+                                        onSelectChapter={(chap) => {
+                                            setTempChapter(chap);
+                                            setActiveTab('verse');
+                                        }}
+                                    />
                                 )}
 
                                 {activeTab === 'chapter' && tempBook && (

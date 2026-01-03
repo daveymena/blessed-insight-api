@@ -6,6 +6,7 @@ interface User {
     email: string;
     role: 'USER' | 'ADMIN';
     tier: 'FREE' | 'TRIAL' | 'PREMIUM';
+    premiumUntil?: string | null;
 }
 
 interface AuthContextType {

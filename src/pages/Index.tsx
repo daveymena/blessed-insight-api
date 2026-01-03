@@ -64,8 +64,12 @@ const Index = () => {
   }, []);
 
   const handleStartReading = () => {
-    setShowHome(false);
-    sessionStorage.setItem('bible_home_dismissed', 'true');
+    if (!selectedBook) {
+      setNavModalOpen(true);
+    } else {
+      setShowHome(false);
+      sessionStorage.setItem('bible_home_dismissed', 'true');
+    }
   };
 
   const handleGoHome = () => {

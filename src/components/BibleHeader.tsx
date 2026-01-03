@@ -1,4 +1,5 @@
 import { BookOpen, Menu, Sparkles, Search, Heart, Moon, Sun, Languages, GraduationCap, Palette, ChevronDown, Home, MoreVertical, X } from 'lucide-react';
+import { Logo } from './Logo';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { VersionSelector } from './VersionSelector';
@@ -99,11 +100,13 @@ export function BibleHeader({
           <Button
             variant="ghost"
             size="icon"
-            className={`flex-shrink-0 h-9 w-9 ${hasScenicBackground ? 'hover:bg-white/10 text-white' : ''}`}
+            className={`flex-shrink-0 h-10 w-10 p-0 overflow-hidden ${hasScenicBackground ? 'hover:bg-white/10' : ''}`}
             onClick={onHomeClick}
             title="Inicio"
           >
-            <Home className="h-5 w-5" />
+            <div className="scale-75">
+              <Logo size={40} />
+            </div>
           </Button>
 
           {/* Título del libro/capítulo */}

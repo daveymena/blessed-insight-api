@@ -1,0 +1,17 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="120" fill="url(#paint0_linear_logo)"/>
+  <defs>
+    <linearGradient id="paint0_linear_logo" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FBBF24"/>
+      <stop offset="1" stop-color="#EA580C"/>
+    </linearGradient>
+  </defs>
+  <path d="M100 150C100 133.431 113.431 120 130 120H256V400H130C113.431 400 100 386.569 100 370V150Z" fill="white" fill-opacity="0.2"/>
+  <path d="M412 150C412 133.431 398.569 120 382 120H256V400H382C398.569 400 412 386.569 412 370V150Z" fill="white" fill-opacity="0.2"/>
+  <path d="M120 150C120 133.431 133.431 120 150 120H256V380H150C133.431 380 120 366.569 120 350V150Z" fill="white"/>
+  <path d="M392 150C392 133.431 378.569 120 362 120H256V380H362C378.569 380 392 366.569 392 350V150Z" fill="white"/>
+  <circle cx="256" cy="250" r="60" fill="white" fill-opacity="0.1"/>
+  <path d="M256 180C200 180 160 250 160 250C160 250 200 320 256 320C312 320 352 250 352 250C352 250 312 180 256 180Z" stroke="#FDE68A" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="256" cy="250" r="30" fill="#FBBF24"/>
+  <path d="M256 140V120M256 380V360M150 250H130M382 250H362" stroke="#FDE68A" stroke-width="8" stroke-linecap="round"/>
+</svg>

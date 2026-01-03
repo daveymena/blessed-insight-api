@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -14,10 +14,25 @@ model User {
   name          String?
   role          Role           @default(USER)
   tier          Tier           @default(FREE)
+  premiumUntil  DateTime?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   conversations Conversation[]
   notes         Note[]
+  payments      Payment[]
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  amount        Float
+  currency      String
+  provider      String   // "paypal" or "mercadopago"
+  status        String   // "PENDING", "COMPLETED", "FAILED"
+  externalId    String?  @unique // ID de MP o PayPal
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Conversation {

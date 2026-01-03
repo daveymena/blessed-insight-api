@@ -24,9 +24,34 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
     const { isTrial, daysLeft, activatePremium, isPremium } = useSubscription();
     const [loading, setLoading] = useState(false);
 
+    const handlePayPalSuccess = async (orderID: string) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/api'}/payments/verify-paypal`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ orderID })
+            });
+
+            if (response.ok) {
+                toast.success("¡Pago exitoso! Bienvenido a Premium.");
+                activatePremium();
+                onClose();
+            } else {
+                toast.error("Error al verificar el pago con el servidor.");
+            }
+        } catch (error) {
+            console.error("PayPal verify error:", error);
+            toast.error("Error de conexión al verificar el pago.");
+        }
+    };
+
     // Cargar SDK de PayPal dinámicamente
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen && !isPremium) {
             const script = document.createElement("script");
             script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD`;
             script.async = true;
@@ -37,14 +62,17 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
                     window.paypal.Buttons({
                         createOrder: (data, actions) => {
                             return actions.order.create({
-                                purchase_units: [{ amount: { value: "3.00" } }]
+                                purchase_units: [{
+                                    amount: {
+                                        currency_code: 'USD',
+                                        value: "3.00"
+                                    }
+                                }]
                             });
                         },
-                        onApprove: (data, actions) => {
-                            return actions.order.capture().then((details) => {
-                                toast.success("¡Pago exitoso! Bienvenido a Premium.");
-                                activatePremium();
-                                onClose();
+                        onApprove: (data: any, actions: any) => {
+                            return actions.order.capture().then((details: any) => {
+                                handlePayPalSuccess(data.orderID);
                             });
                         }
                     }).render("#paypal-button-container");
@@ -55,18 +83,35 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
                 if (document.body.contains(script)) document.body.removeChild(script);
             };
         }
-    }, [isOpen]);
+    }, [isOpen, isPremium]);
 
-    const handleMercadoPago = () => {
+    const handleMercadoPago = async () => {
         setLoading(true);
-        // Simulación de redirección a MercadoPago Checkout Pro
-        // En producción, esto llamaría a tu backend para crear la preferencia
-        setTimeout(() => {
-            toast.info("Redirigiendo a Mercado Pago...");
-            // Aquí iría la lógica real de MP o un link de pago generado
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/api'}/payments/create-preference`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ plan: 'monthly' })
+            });
+
+            if (response.ok) {
+                const { init_point } = await response.json();
+                toast.info("Redirigiendo a Mercado Pago...");
+                window.location.href = init_point; // Redirección real
+            } else {
+                const error = await response.json();
+                toast.error(error.error || "Error al generar el pago");
+            }
+        } catch (error) {
+            console.error("MP Error:", error);
+            toast.error("Error de conexión con Mercado Pago");
+        } finally {
             setLoading(false);
-            // activatePremium(); // Descomentar para probar éxito inmediato
-        }, 1500);
+        }
     };
 
     return (

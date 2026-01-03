@@ -146,13 +146,36 @@ export function AIStudyPanel({ book, chapter, passage, isOpen, onClose, isSideba
             </TabsContent>
 
             {response && (
-              <div className="mt-6 p-4 bg-card rounded-2xl border border-border bg-gradient-to-b from-transparent to-muted/5 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border/50">
-                  <Sparkles className="h-4 w-4 text-indigo-600" />
-                  <span className="text-[10px] font-black uppercase tracking-wider text-indigo-600">Resultados del Análisis</span>
-                </div>
-                <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed">
-                  <FormattedAIResponse content={response.content} />
+              <div className="mt-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                <div className="relative group">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                  <div className="relative p-6 bg-card rounded-2xl border border-border shadow-xl">
+                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/50">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600">
+                          <Sparkles className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <span className="block text-[10px] font-black uppercase tracking-widest text-indigo-600/70">Biblo Insight</span>
+                          <span className="text-sm font-bold">Análisis Teológico Profundo</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="prose prose-sm dark:prose-invert max-w-none 
+                      prose-h3:text-lg prose-h3:font-bold prose-h3:font-serif prose-h3:text-primary 
+                      prose-p:text-base prose-p:leading-relaxed prose-p:text-foreground/80
+                      prose-strong:text-foreground prose-strong:font-bold">
+                      <FormattedAIResponse content={response.content} />
+                    </div>
+
+                    <div className="mt-8 pt-4 border-t border-border/50 flex items-center justify-between">
+                      <span className="text-[10px] text-muted-foreground italic">Basado en {response.source}</span>
+                      <Button variant="ghost" size="sm" className="text-[10px] uppercase font-bold tracking-wider hover:bg-primary/5" onClick={() => setResponse(null)}>
+                        Nueva Consulta
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
