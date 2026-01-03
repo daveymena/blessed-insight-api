@@ -93,7 +93,7 @@ export function BookSelector({ selectedBook, onSelectBook, onSelectChapter, onCl
 
   return (
     <div className="flex flex-col h-full bg-background/30 backdrop-blur-xl">
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-4 shrink-0 border-b border-border/10 bg-background/50">
         <div className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
           <Input
@@ -105,7 +105,7 @@ export function BookSelector({ selectedBook, onSelectBook, onSelectChapter, onCl
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-12 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto px-4 py-4 pb-12 custom-scrollbar">
         {oldTestament.length > 0 && renderBookList(oldTestament, "Antiguo Testamento")}
         {newTestament.length > 0 && renderBookList(newTestament, "Nuevo Testamento")}
 

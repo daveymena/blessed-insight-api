@@ -85,10 +85,10 @@ export function BibleSidebar({
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed md:sticky top-0 left-0 z-50 md:z-auto',
-          'w-80 h-screen bg-card border-r border-border',
+          'fixed md:relative top-0 left-0 z-50 md:z-auto',
+          'w-80 h-full bg-card border-r border-border',
           'transform transition-transform duration-300 ease-out',
-          'flex flex-col',
+          'flex flex-col overflow-hidden isolate',
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         )}
       >
@@ -105,7 +105,7 @@ export function BibleSidebar({
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-border bg-secondary/5">
+        <div className="flex shrink-0 border-b border-border bg-secondary/5">
           {[
             { id: 'books', icon: Book, label: 'Libros' },
             { id: 'chapters', icon: LayoutGrid, label: 'Caps.' },

@@ -228,8 +228,8 @@ export function ScriptureReader({
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
-      <div className={`flex items-center justify-between px-3 py-3 border-b transition-colors ${hasScenicBackground ? 'bg-black/20 border-white/10 text-white backdrop-blur-sm' : 'bg-card/50 backdrop-blur-sm'}`}>
+    <div className="flex-1 flex flex-col min-h-0 relative">
+      <div className={`sticky top-0 z-20 flex items-center justify-between px-3 py-3 border-b transition-all duration-300 ${hasScenicBackground ? 'bg-black/40 border-white/10 text-white backdrop-blur-md' : 'bg-background/80 backdrop-blur-md border-border'}`}>
         <div className="flex items-center">
           <Button
             variant={hasScenicBackground ? "outline" : "ghost"}
@@ -312,7 +312,7 @@ export function ScriptureReader({
         </div>
       </div>
 
-      <div className={`flex-1 overflow-auto ${!hasScenicBackground ? backgroundClass : ''}`}>
+      <div className={`flex-1 ${!hasScenicBackground ? backgroundClass : ''}`}>
         <div className={`max-w-3xl mx-auto px-4 py-8 relative ${hasScenicBackground ? 'bg-black/30 backdrop-blur-[2px] rounded-xl my-4 shadow-2xl border border-white/10' : ''}`}>
           <AnimatePresence mode="wait" initial={false}>
             {isLoading ? (

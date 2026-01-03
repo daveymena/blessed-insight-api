@@ -92,7 +92,7 @@ export function BibleHeader({
   };
 
   return (
-    <header className={`sticky top-0 z-40 border-b transition-all duration-500 ${hasScenicBackground ? 'bg-black/40 backdrop-blur-md shadow-sm border-white/10 text-white' : 'bg-background/95 backdrop-blur-sm border-border'}`}>
+    <header className={`sticky top-0 z-40 border-b transition-all duration-300 ${hasScenicBackground ? 'bg-black/40 backdrop-blur-md shadow-sm border-white/10 text-white' : 'bg-background/95 backdrop-blur-sm border-border'}`}>
       <div className="flex items-center justify-between h-14 px-3 md:px-6">
         {/* Lado izquierdo - Menú y Título */}
         <div className="flex items-center gap-2 min-w-0 flex-1">
