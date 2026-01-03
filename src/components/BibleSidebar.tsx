@@ -86,9 +86,9 @@ export function BibleSidebar({
       <aside
         className={cn(
           'fixed md:relative top-0 left-0 z-50 md:z-auto',
-          'w-80 h-full bg-card border-r border-border',
+          'w-80 h-[100dvh] md:h-full bg-card border-r border-border',
           'transform transition-transform duration-300 ease-out',
-          'flex flex-col overflow-hidden isolate',
+          'flex flex-col overflow-hidden isolate shadow-xl md:shadow-none',
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         )}
       >

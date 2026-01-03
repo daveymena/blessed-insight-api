@@ -7,16 +7,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Tier {
+  FREE
+  TRIAL
+  PREMIUM
+  GOLD
+}
+
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  password     String
-  name         String?
-  tier         String    @default("FREE")
-  premiumUntil DateTime?
-  createdAt    DateTime  @default(now())
-  notes        Note[]
-  payments     Payment[]
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  name          String?
+  role          Role           @default(USER)
+  tier          Tier           @default(FREE)
+  premiumUntil  DateTime?
+  trialUsed     Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  notes         Note[]
+  payments      Payment[]
+  subscriptions Subscription[]
 }
 
 model Note {
@@ -28,7 +45,18 @@ model Note {
   content   String
   color     String?
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id        String    @id @default(uuid())
+  userId    String
+  tier      Tier
+  startDate DateTime  @default(now())
+  endDate   DateTime?
+  status    String    @default("ACTIVE")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Payment {
@@ -39,6 +67,7 @@ model Payment {
   provider   String
   status     String
   externalId String   @unique
+  metadata   Json?
   createdAt  DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

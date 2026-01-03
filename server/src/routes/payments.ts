@@ -90,6 +90,16 @@ router.post('/verify-paypal', authenticateToken, async (req: AuthRequest, res: a
             }
         });
 
+        // Crear registro de suscripción histórica
+        await prisma.subscription.create({
+            data: {
+                userId,
+                tier: 'PREMIUM',
+                endDate: premiumUntil,
+                status: 'ACTIVE'
+            }
+        });
+
         await prisma.payment.create({
             data: {
                 userId,
@@ -139,16 +149,30 @@ router.post('/webhook', async (req, res) => {
                     }
                 });
 
+                // Crear o actualizar suscripción
+                await prisma.subscription.create({
+                    data: {
+                        userId,
+                        tier: 'PREMIUM',
+                        endDate: premiumUntil,
+                        status: 'ACTIVE'
+                    }
+                });
+
                 await prisma.payment.upsert({
                     where: { externalId: paymentId.toString() },
-                    update: { status: 'COMPLETED' },
+                    update: {
+                        status: 'COMPLETED',
+                        metadata: paymentData
+                    },
                     create: {
                         userId,
                         amount: paymentData.transaction_amount,
                         currency: paymentData.currency_id,
                         provider: 'mercadopago',
                         status: 'COMPLETED',
-                        externalId: paymentId.toString()
+                        externalId: paymentId.toString(),
+                        metadata: paymentData
                     }
                 });
             }

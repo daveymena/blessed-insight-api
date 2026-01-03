@@ -25,7 +25,8 @@ router.post('/register', async (req, res) => {
                 email,
                 password: hashedPassword,
                 name,
-                tier: 'FREE', // Nuevos usuarios empiezan en FREE
+                tier: 'FREE',
+                role: 'USER',
             },
         });
 

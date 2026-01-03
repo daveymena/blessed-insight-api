@@ -372,7 +372,7 @@ export function ScriptureReader({
                 </article>
 
                 {/* Bloque Publicitario al Final del Capítulo */}
-                <div className="mt-8 mb-4">
+                <div className="mt-8 mb-0">
                   <AdSlot variant="banner" label="Contenido Patrocinado" />
                 </div>
 

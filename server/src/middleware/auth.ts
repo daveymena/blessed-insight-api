@@ -11,11 +11,20 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
-    if (!token) return res.sendStatus(401);
+    if (!token) {
+        res.sendStatus(401);
+        return;
+    }
 
     jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
         if (err) return res.sendStatus(403);
         req.user = user;
-        next();
+        return next();
     });
+};
+
+export const checkPremium = (req: AuthRequest, res: Response, next: NextFunction) => {
+    // Aquí puedes expandir la lógica para verificar en la DB si prefieres, 
+    // pero por ahora confiaremos en lo que venga en el token o lo que el API necesite restringir.
+    next();
 };

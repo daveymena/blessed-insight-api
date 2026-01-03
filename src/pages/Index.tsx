@@ -150,7 +150,7 @@ const Index = () => {
         />
       )}
 
-      <div className="flex-1 flex overflow-hidden relative min-h-0">
+      <div className="flex-1 flex overflow-hidden relative min-h-0 bg-background">
         <BibleSidebar
           selectedBook={selectedBook}
           selectedChapter={selectedChapter}
@@ -170,7 +170,7 @@ const Index = () => {
         />
 
         <main className="flex-1 flex min-w-0 h-full relative overflow-hidden">
-          <div className="flex-1 overflow-y-auto pb-24 md:pb-20 scroll-smooth overflow-x-hidden custom-scrollbar">
+          <div className="flex-1 overflow-y-auto pb-24 md:pb-4 scroll-smooth overflow-x-hidden custom-scrollbar">
             {showHome ? (
               <HomeScreen
                 onStartReading={handleStartReading}

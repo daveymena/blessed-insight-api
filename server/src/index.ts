@@ -29,6 +29,33 @@ app.get('/health', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`Server running on port ${PORT}`);
+
+    // Auto-seed Admin User
+    try {
+        const bcrypt = require('bcryptjs');
+        const email = 'daveymena16@gmail.com';
+        const password = '6715320Dvd.'; // Password con el punto como pidió el usuario
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await (prisma as any).user.upsert({
+            where: { email },
+            update: {
+                password: hashedPassword,
+                role: 'ADMIN',
+                tier: 'GOLD'
+            },
+            create: {
+                email,
+                password: hashedPassword,
+                name: 'Davey Mena',
+                role: 'ADMIN',
+                tier: 'GOLD'
+            }
+        });
+        console.log('✅ Admin user ensured');
+    } catch (e) {
+        console.error('❌ Error ensuring admin user:', e);
+    }
 });
