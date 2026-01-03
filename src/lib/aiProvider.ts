@@ -2,7 +2,7 @@
 
 const OLLAMA_BASE_URL = import.meta.env.VITE_OLLAMA_BASE_URL || 'https://ollama-ollama.ginee6.easypanel.host';
 const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'gemma2:2b';
-const OLLAMA_TIMEOUT = 45000; // 45s timeout (reducido)
+const OLLAMA_TIMEOUT = 20000; // 20s timeout (más corto para fallback rápido)
 const OLLAMA_MAX_TOKENS = 300; // Tokens muy reducidos para respuestas rápidas
 
 // Groq es más rápido - usar como fallback
@@ -11,6 +11,7 @@ const GROQ_API_KEYS = [
   import.meta.env.VITE_GROQ_API_KEY_2,
   import.meta.env.VITE_GROQ_API_KEY_3,
   import.meta.env.VITE_GROQ_API_KEY_4,
+  import.meta.env.VITE_GROQ_API_KEY_6,
 ].filter(Boolean) as string[];
 const GROQ_MODEL = import.meta.env.VITE_GROQ_MODEL || 'llama-3.1-8b-instant';
 const GROQ_TIMEOUT = 30000; // 30s para Groq (es más rápido)
@@ -43,16 +44,16 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 // Llamar a Groq (rápido)
 async function callGroq(messages: AIMessage[], maxTokens: number): Promise<AIResponse | null> {
   if (GROQ_API_KEYS.length === 0) return null;
-  
+
   const startTime = Date.now();
-  
+
   for (let attempt = 0; attempt < Math.min(2, GROQ_API_KEYS.length); attempt++) {
     const apiKey = GROQ_API_KEYS[currentGroqKeyIndex];
     currentGroqKeyIndex = (currentGroqKeyIndex + 1) % GROQ_API_KEYS.length;
-    
+
     try {
       console.log(`📡 Groq (key ${currentGroqKeyIndex + 1}/${GROQ_API_KEYS.length})...`);
-      
+
       const response = await withTimeout(
         fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
@@ -90,7 +91,7 @@ async function callGroq(messages: AIMessage[], maxTokens: number): Promise<AIRes
       console.warn(`⚠️ Groq error: ${error instanceof Error ? error.message : 'Error'}`);
     }
   }
-  
+
   return null;
 }
 
@@ -99,10 +100,10 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
   const startTime = Date.now();
   const systemMessage = messages.find(m => m.role === 'system')?.content || '';
   const userMessage = messages.filter(m => m.role === 'user').map(m => m.content).join('\n');
-  
+
   try {
     console.log(`📡 Ollama: ${OLLAMA_BASE_URL}...`);
-    
+
     const response = await withTimeout(
       fetch(`${OLLAMA_BASE_URL}/api/generate`, {
         method: 'POST',
@@ -111,8 +112,8 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
           model: OLLAMA_MODEL,
           prompt: systemMessage ? `${systemMessage}\n\n${userMessage}` : userMessage,
           stream: false,
-          options: { 
-            temperature: 0.7, 
+          options: {
+            temperature: 0.7,
             num_predict: Math.min(maxTokens, OLLAMA_MAX_TOKENS) // Limitar tokens
           }
         })
@@ -135,7 +136,7 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
   } catch (error) {
     console.warn(`⚠️ Ollama error: ${error instanceof Error ? error.message : 'Error'}`);
   }
-  
+
   return null;
 }
 
@@ -144,7 +145,7 @@ async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIR
  */
 export async function callAI(messages: AIMessage[], maxTokens: number = 800): Promise<AIResponse> {
   const startTime = Date.now();
-  
+
   console.log(`🚀 Iniciando consulta IA (max ${maxTokens} tokens)...`);
 
   // 1. Ollama primero (gratis)
@@ -175,9 +176,9 @@ export async function callAIDetailed(messages: AIMessage[]): Promise<AIResponse>
 }
 
 export function getAIStatus() {
-  return { 
-    groqKeys: GROQ_API_KEYS.length, 
-    activeKey: currentGroqKeyIndex + 1, 
+  return {
+    groqKeys: GROQ_API_KEYS.length,
+    activeKey: currentGroqKeyIndex + 1,
     ollamaUrl: OLLAMA_BASE_URL,
     preferOllama: PREFER_OLLAMA
   };

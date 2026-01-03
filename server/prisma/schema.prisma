@@ -4,10 +4,41 @@
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://Postgres:61841369@147.93.28.169:5432/biblia-estudio?sslmode=disable"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id    String @id @default(uuid())
-  email String @unique
+  id           String    @id @default(uuid())
+  email        String    @unique
+  password     String
+  name         String?
+  tier         String    @default("FREE")
+  premiumUntil DateTime?
+  createdAt    DateTime  @default(now())
+  notes        Note[]
+  payments     Payment[]
+}
+
+model Note {
+  id        String   @id @default(uuid())
+  userId    String
+  bookId    String
+  chapter   Int
+  verse     Int
+  content   String
+  color     String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Payment {
+  id         String   @id @default(uuid())
+  userId     String
+  amount     Float
+  currency   String
+  provider   String
+  status     String
+  externalId String   @unique
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
 }
