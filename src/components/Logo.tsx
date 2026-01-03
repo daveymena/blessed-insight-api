@@ -1,11 +1,12 @@
 import { cn } from '@/lib/utils';
+import { memo } from 'react';
 
 interface LogoProps {
     className?: string;
     size?: number;
 }
 
-export function Logo({ className, size = 100 }: LogoProps) {
+export const Logo = memo(({ className, size = 100 }: LogoProps) => {
     return (
         <div
             className={cn("relative flex items-center justify-center overflow-hidden", className)}
@@ -18,4 +19,4 @@ export function Logo({ className, size = 100 }: LogoProps) {
             />
         </div>
     );
-}
+});

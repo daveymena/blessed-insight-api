@@ -313,8 +313,8 @@ export function ScriptureReader({
       </div>
 
       <div className={`flex-1 overflow-auto ${!hasScenicBackground ? backgroundClass : ''}`}>
-        <div className={`max-w-3xl mx-auto px-4 py-8 ${hasScenicBackground ? 'bg-black/30 backdrop-blur-[2px] rounded-xl my-4 shadow-2xl border border-white/10' : ''}`}>
-          <AnimatePresence mode="popLayout">
+        <div className={`max-w-3xl mx-auto px-4 py-8 relative ${hasScenicBackground ? 'bg-black/30 backdrop-blur-[2px] rounded-xl my-4 shadow-2xl border border-white/10' : ''}`}>
+          <AnimatePresence mode="wait" initial={false}>
             {isLoading ? (
               <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center py-20 min-h-[60vh]">
                 <Loader2 className="h-10 w-10 animate-spin mb-4 text-primary" />
@@ -328,11 +328,11 @@ export function ScriptureReader({
             ) : passage && passage.verses.length > 0 ? (
               <motion.div
                 key={`${book.id}-${chapter}-${currentVersionId}`}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.4 }}
-                className="min-h-[60vh]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="min-h-[60vh] will-change-transform"
               >
                 {showAudioPlayer && (
                   <div className="mb-8 border rounded-2xl overflow-hidden shadow-xl bg-card/50 backdrop-blur-md">
@@ -399,22 +399,24 @@ export function ScriptureReader({
         </div>
       </div>
       <VersionComparator isOpen={isComparatorOpen} onClose={() => setIsComparatorOpen(false)} book={book} chapter={chapter} />
-      {selectedVerseIndex >= 0 && passage?.verses[selectedVerseIndex] && (
-        <NoteDialog
-          isOpen={isNoteDialogOpen}
-          onClose={() => setIsNoteDialogOpen(false)}
-          bookId={book.id}
-          bookName={book.name}
-          chapter={chapter}
-          verse={passage.verses[selectedVerseIndex].verse}
-          existingContent={notes.find(n => n.verse === passage.verses[selectedVerseIndex].verse)?.content}
-          onSave={async () => {
-            const all = await personalStudyService.getNotes();
-            setNotes(all.filter(n => n.bookId === book.id && n.chapter === chapter));
-            setSelectedVerseIndex(-1);
-          }}
-        />
-      )}
-    </div>
+      {
+        selectedVerseIndex >= 0 && passage?.verses[selectedVerseIndex] && (
+          <NoteDialog
+            isOpen={isNoteDialogOpen}
+            onClose={() => setIsNoteDialogOpen(false)}
+            bookId={book.id}
+            bookName={book.name}
+            chapter={chapter}
+            verse={passage.verses[selectedVerseIndex].verse}
+            existingContent={notes.find(n => n.verse === passage.verses[selectedVerseIndex].verse)?.content}
+            onSave={async () => {
+              const all = await personalStudyService.getNotes();
+              setNotes(all.filter(n => n.bookId === book.id && n.chapter === chapter));
+              setSelectedVerseIndex(-1);
+            }}
+          />
+        )
+      }
+    </div >
   );
 }

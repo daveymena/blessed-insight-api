@@ -7,8 +7,13 @@ const router = Router();
 const prisma = new PrismaClient();
 
 // Mercado Pago Configuration
+const mpAccessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN || '';
+if (!mpAccessToken) {
+    console.warn("⚠️ ALERTA: MERCADO_PAGO_ACCESS_TOKEN no está configurado en .env");
+}
+
 const client = new MercadoPagoConfig({
-    accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN || ''
+    accessToken: mpAccessToken
 });
 
 // 1. Create Mercado Pago Preference
@@ -30,7 +35,7 @@ router.post('/create-preference', authenticateToken, async (req: AuthRequest, re
                         title: 'Blessed Insight Premium - 1 Mes',
                         unit_price: amount,
                         quantity: 1,
-                        currency_id: 'COP',
+                        currency_id: 'COP', // Puedes cambiarlo a USD si prefieres
                     }
                 ],
                 payer: {
@@ -60,9 +65,11 @@ router.post('/verify-paypal', authenticateToken, async (req: AuthRequest, res: a
     const userId = req.user.userId;
 
     try {
-        // Aquí deberías llamar a la API de PayPal para verificar que la orden fue pagada realmente. 
-        // Por simplicidad en este paso, activaremos directamente si recibimos el ID, 
-        // pero en producción se debe validar con fetch a https://api-m.paypal.com/v2/checkout/orders/
+        // En un entorno real, aquí verificaríamos con el API de PayPal:
+        // const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_SECRET}`).toString('base64');
+        // const verify = await fetch(`https://api-m.paypal.com/v2/checkout/orders/${orderID}`, { headers: { Authorization: `Basic ${auth}` } });
+        // const data = await verify.json(); 
+        // if (data.status !== 'COMPLETED') throw new Error('Payment not completed');
 
         const premiumUntil = new Date();
         premiumUntil.setMonth(premiumUntil.getMonth() + 1);
@@ -137,9 +144,9 @@ router.post('/webhook', async (req, res) => {
                     }
                 });
             }
+        } catch (error) {
+            console.error('Webhook Error:', error);
         }
-    } catch (error) {
-        console.error('Webhook Error:', error);
     }
     res.sendStatus(200);
 });

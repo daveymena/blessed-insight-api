@@ -23,6 +23,12 @@ interface PremiumModalProps {
 export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
     const { isTrial, daysLeft, activatePremium, isPremium } = useSubscription();
     const [loading, setLoading] = useState(false);
+    const [isGuest, setIsGuest] = useState(false);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        setIsGuest(!token);
+    }, [isOpen]);
 
     const handlePayPalSuccess = async (orderID: string) => {
         try {
@@ -168,30 +174,61 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
                     </div>
 
                     {/* Opciones de Pago */}
-                    {!isPremium || isTrial ? (
-                        <div className="space-y-3 pt-4 border-t">
-                            <div className="text-center mb-4">
+                    {(!isPremium || isTrial) && (
+                        <div className="space-y-4 pt-4 border-t">
+                            <div className="text-center mb-2">
                                 <span className="text-3xl font-bold">$3.00</span>
                                 <span className="text-muted-foreground text-sm"> / mes</span>
-                                <p className="text-[10px] text-muted-foreground mt-1">Cancela cuando quieras</p>
+                                <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-widest">Acceso Instantáneo</p>
                             </div>
 
-                            {/* PayPal Container */}
-                            <div id="paypal-button-container" className="min-h-[45px]"></div>
+                            {isGuest ? (
+                                <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl text-center">
+                                    <p className="text-sm text-amber-800 dark:text-amber-200 mb-3 font-medium">
+                                        Debes iniciar sesión para activar Premium en tu cuenta.
+                                    </p>
+                                    <Button
+                                        onClick={() => { onClose(); window.location.href = '/login'; }}
+                                        className="w-full bg-amber-600 hover:bg-amber-700 text-white rounded-xl"
+                                    >
+                                        Iniciar Sesión / Registrarse
+                                    </Button>
+                                </div>
+                            ) : (
+                                <>
+                                    {/* PayPal Container */}
+                                    <div className="space-y-3">
+                                        <p className="text-[10px] text-center text-muted-foreground uppercase font-bold">Tarjeta o PayPal</p>
+                                        <div id="paypal-button-container" className="min-h-[45px]"></div>
+                                    </div>
 
-                            {/* Mercado Pago Button */}
-                            <Button
-                                onClick={handleMercadoPago}
-                                className="w-full bg-[#009EE3] hover:bg-[#008CC9] text-white h-12 rounded-xl font-bold shadow-md transition-transform active:scale-[0.98]"
-                                disabled={loading}
-                            >
-                                {loading ? "Procesando..." : "Pagar con Mercado Pago"}
-                            </Button>
+                                    <div className="relative py-2">
+                                        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-dashed" /></div>
+                                        <div className="relative flex justify-center text-[10px] uppercase"><span className="bg-card px-2 text-muted-foreground">O también</span></div>
+                                    </div>
+
+                                    {/* Mercado Pago Button */}
+                                    <div className="space-y-3">
+                                        <p className="text-[10px] text-center text-muted-foreground uppercase font-bold">Efectivo o Transferencia</p>
+                                        <Button
+                                            onClick={handleMercadoPago}
+                                            className="w-full bg-[#009EE3] hover:bg-[#008CC9] text-white h-12 rounded-xl font-bold shadow-md transition-transform active:scale-[0.98] flex items-center justify-center gap-2"
+                                            disabled={loading}
+                                        >
+                                            {loading ? "Procesando..." : "Pagar con Mercado Pago"}
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
                         </div>
-                    ) : (
-                        <div className="text-center py-4">
-                            <p className="text-green-600 font-bold mb-2">¡Gracias por tu apoyo!</p>
-                            <Button variant="outline" onClick={onClose}>Cerrar</Button>
+                    )}
+
+                    {isPremium && !isTrial && (
+                        <div className="text-center py-6 bg-green-500/5 rounded-2xl border border-green-500/10">
+                            <Zap className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                            <p className="text-green-600 dark:text-green-400 font-bold">¡Tu cuenta es Premium!</p>
+                            <p className="text-xs text-muted-foreground mb-4">Gracias por apoyar este ministerio.</p>
+                            <Button variant="outline" onClick={onClose} className="rounded-xl px-8">Explorar</Button>
                         </div>
                     )}
                 </div>
