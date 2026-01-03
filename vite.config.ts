@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => ({
     mode === 'development' && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'robots.txt', 'icon-512.png'],
+      includeAssets: ['favicon.svg', 'robots.txt', 'logo.svg'],
       workbox: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB limit
         // Forzar actualización del SW
@@ -36,18 +36,15 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: 'Blessed Insight - Biblia de Estudio',
         short_name: 'Blessed',
-        description: 'Tu compañero espiritual con IA - v2.0',
-        theme_color: '#4f46e5',
+        description: 'Tu compañero espiritual con IA',
+        theme_color: '#1a1a2e',
+        background_color: '#1a1a2e',
         icons: [
           {
-            src: 'icon-192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'icon-512.png',
-            sizes: '512x512',
-            type: 'image/png'
+            src: 'logo.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'any maskable'
           }
         ]
       }
