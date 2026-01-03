@@ -4,8 +4,8 @@
   "description": "Tu compañero espiritual con Inteligencia Artificial, Biblias multi-versión y voces naturales.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4f46e5",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
   "icons": [
     {
       "src": "/logo.svg",
