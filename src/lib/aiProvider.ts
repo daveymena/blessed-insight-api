@@ -1,4 +1,7 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+// Proveedor de IA - Directo a Ollama (requiere OLLAMA_ORIGINS=* en el servicio Ollama)
+
+const OLLAMA_BASE_URL = import.meta.env.VITE_OLLAMA_BASE_URL || 'https://ollama-ollama.ginee6.easypanel.host';
+const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'gemma2:2b';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -13,49 +16,50 @@ export interface AIResponse {
 }
 
 /**
- * Función centralizada para llamar a la IA a través del backend
+ * Llamada directa a Ollama (sin backend)
  */
 export async function callAI(messages: AIMessage[], maxTokens: number = 2000): Promise<AIResponse> {
   const startTime = Date.now();
-  console.log('📡 [Frontend] Consultando a Biblo Asistente vía Servidor...');
+  
+  const systemMessage = messages.find(m => m.role === 'system')?.content || '';
+  const userMessage = messages.filter(m => m.role === 'user').map(m => m.content).join('\n');
+  
+  console.log(`📡 Conectando a Ollama: ${OLLAMA_BASE_URL}`);
 
   try {
-    const systemMessage = messages.find(m => m.role === 'system')?.content || '';
-    const lastUserMessage = [...messages].reverse().find(m => m.role === 'user')?.content || '';
-
-    const response = await fetch(`${API_BASE_URL}/ai/generate`, {
+    const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        messages,
-        prompt: lastUserMessage,
-        system: systemMessage,
-        maxTokens
+        model: OLLAMA_MODEL,
+        prompt: systemMessage ? `${systemMessage}\n\n${userMessage}` : userMessage,
+        stream: false,
+        options: { temperature: 0.7, num_predict: maxTokens }
       }),
     });
 
     if (response.ok) {
       const data = await response.json();
-      console.log(`✅ [Frontend] Respuesta recibida vía ${data.provider} (${Date.now() - startTime}ms)`);
+      console.log(`✅ Ollama respondió en ${Date.now() - startTime}ms`);
       return {
         success: true,
-        content: data.content,
-        provider: data.provider,
+        content: data.response,
+        provider: 'ollama',
         timeMs: Date.now() - startTime
       };
     } else {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.content || `Error ${response.status}`);
+      console.warn(`⚠️ Ollama error: ${response.status}`);
     }
   } catch (error) {
-    console.error('❌ [Frontend] Error de conexión con el servidor:', error);
-    return {
-      success: false,
-      content: 'No se pudo conectar con el servicio de IA. El navegador no puede alcanzar la red interna, redirigiendo a través del servidor...',
-      provider: 'error',
-      timeMs: Date.now() - startTime
-    };
+    console.error('❌ Error conectando a Ollama:', error);
   }
+
+  return {
+    success: false,
+    content: 'No se pudo conectar con Ollama. Verifica que OLLAMA_ORIGINS=* esté configurado en el servicio de Ollama en EasyPanel.',
+    provider: 'error',
+    timeMs: Date.now() - startTime
+  };
 }
 
 export async function callAIFast(messages: AIMessage[]): Promise<AIResponse> {
@@ -67,5 +71,5 @@ export async function callAIDetailed(messages: AIMessage[]): Promise<AIResponse>
 }
 
 export function getAIStatus() {
-  return { groqKeys: 4, activeKey: 1, failedKeys: 0 };
+  return { groqKeys: 0, activeKey: 0, failedKeys: 0 };
 }
