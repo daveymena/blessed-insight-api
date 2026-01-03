@@ -101,9 +101,10 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
     setSettings(speechService.getSettings());
   };
 
-  // Separar voces Edge (naturales) y del navegador
+  // Separar voces por calidad y proveedor
+  const openaiVoices = voices.filter(v => v.provider === 'openai');
   const edgeVoices = voices.filter(v => v.provider === 'edge');
-  const browserVoices = voices.filter(v => v.provider === 'browser');
+  const browserVoices = voices.filter(v => v.provider === 'browser'); // Se mantiene el filtro pero no se muestra en UI
 
   // Agrupar voces Edge por idioma
   const edgeSpanish = edgeVoices.filter(v => v.lang.startsWith('es'));
@@ -177,7 +178,7 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
         </div>
         {selectedVoice && (
           <p className="text-xs text-muted-foreground truncate">
-            {selectedVoice.name}
+            {selectedVoice.name} (Voz Humana)
           </p>
         )}
       </div>
@@ -204,9 +205,26 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
                   <SelectValue placeholder="Seleccionar voz" />
                 </SelectTrigger>
                 <SelectContent className="max-h-72">
+                  {/* Voces de Alta Fidelidad (OpenAI) */}
+                  {openaiVoices.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-[10px] font-bold text-amber-600 uppercase tracking-widest bg-amber-500/5 mt-1 border-t border-amber-500/10">
+                        ✨ Calidad Cinematográfica (Premium)
+                      </div>
+                      {openaiVoices.map(voice => (
+                        <SelectItem key={voice.id} value={voice.id} className="focus:bg-amber-50">
+                          <span className="flex items-center gap-2">
+                            {voice.gender === 'female' ? <UserCircle className="h-3.5 w-3.5 text-amber-500" /> : <User className="h-3.5 w-3.5 text-amber-500" />}
+                            <span className="font-semibold">{voice.name}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+
                   {/* Voces Edge - Naturales */}
-                  <div className="px-2 py-1.5 text-xs font-medium text-primary flex items-center gap-1 bg-primary/5">
-                    <Sparkles className="h-3 w-3" /> Voces Naturales (Recomendadas)
+                  <div className="px-2 py-1.5 text-[10px] font-bold text-primary uppercase tracking-widest bg-primary/5 mt-1 border-t border-primary/10">
+                    🎙️ Voces de Estudio (Recomendadas)
                   </div>
 
                   {edgeSpanish.length > 0 && (
@@ -257,22 +275,7 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
                     </>
                   )}
 
-                  {/* Voces del navegador */}
-                  {browserVoices.length > 0 && (
-                    <>
-                      <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground flex items-center gap-1 bg-muted/50 mt-2">
-                        <Monitor className="h-3 w-3" /> Voces del Sistema
-                      </div>
-                      {browserVoices.slice(0, 10).map(voice => (
-                        <SelectItem key={voice.id} value={voice.id}>
-                          <span className="flex items-center gap-2">
-                            <span className="truncate">{voice.name}</span>
-                            <span className="text-xs text-muted-foreground">({voice.lang})</span>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </>
-                  )}
+                  {/* Se han eliminado las voces del navegador por ser robóticas */}
                 </SelectContent>
               </Select>
             </div>
@@ -316,7 +319,7 @@ export function AudioPlayer({ verses, onVerseHighlight }: AudioPlayerProps) {
             </div>
 
             <p className="text-xs text-muted-foreground pt-2 border-t">
-              💡 Las voces naturales usan IA de Microsoft para una lectura más humana y agradable.
+              💡 Utilizamos tecnología de narración humana fluida para una lectura natural y sin distracciones.
             </p>
           </div>
         </PopoverContent>

@@ -22,18 +22,21 @@ const DEFAULT_SETTINGS: SpeechSettings = {
   rate: 0.95,
   pitch: 1,
   volume: 1,
-  voiceId: 'es-ES-AlvaroNeural',
+  voiceId: 'es-MX-JorgeNeural',
   provider: 'edge',
 };
 
 // Voces de Edge TTS (Microsoft) - Muy naturales y gratuitas
 const EDGE_VOICES: VoiceOption[] = [
+  // Español México (Muy naturales, estilo YouVersion)
+  { id: 'es-MX-JorgeNeural', name: 'Jorge (Narrador Clásico)', lang: 'es-MX', gender: 'male', provider: 'edge' },
+  { id: 'es-MX-RenatoNeural', name: 'Renato (Voz Profunda)', lang: 'es-MX', gender: 'male', provider: 'edge' },
+  { id: 'es-MX-DaliaNeural', name: 'Dalia (México)', lang: 'es-MX', gender: 'female', provider: 'edge' },
+  { id: 'es-MX-LibertadNeural', name: 'Libertad (México)', lang: 'es-MX', gender: 'female', provider: 'edge' },
+  { id: 'es-US-AlonsoNeural', name: 'Alonso (EE.UU.)', lang: 'es-US', gender: 'male', provider: 'edge' },
   // Español España
   { id: 'es-ES-AlvaroNeural', name: 'Álvaro (España)', lang: 'es-ES', gender: 'male', provider: 'edge' },
   { id: 'es-ES-ElviraNeural', name: 'Elvira (España)', lang: 'es-ES', gender: 'female', provider: 'edge' },
-  // Español México
-  { id: 'es-MX-JorgeNeural', name: 'Jorge (México)', lang: 'es-MX', gender: 'male', provider: 'edge' },
-  { id: 'es-MX-DaliaNeural', name: 'Dalia (México)', lang: 'es-MX', gender: 'female', provider: 'edge' },
   // Español Argentina
   { id: 'es-AR-TomasNeural', name: 'Tomás (Argentina)', lang: 'es-AR', gender: 'male', provider: 'edge' },
   { id: 'es-AR-ElenaNeural', name: 'Elena (Argentina)', lang: 'es-AR', gender: 'female', provider: 'edge' },
@@ -41,7 +44,7 @@ const EDGE_VOICES: VoiceOption[] = [
   { id: 'es-CO-GonzaloNeural', name: 'Gonzalo (Colombia)', lang: 'es-CO', gender: 'male', provider: 'edge' },
   { id: 'es-CO-SalomeNeural', name: 'Salomé (Colombia)', lang: 'es-CO', gender: 'female', provider: 'edge' },
   // Inglés
-  { id: 'en-US-GuyNeural', name: 'Guy (US)', lang: 'en-US', gender: 'male', provider: 'edge' },
+  { id: 'en-US-GuyNeural', name: 'Guy (US Surround)', lang: 'en-US', gender: 'male', provider: 'edge' },
   { id: 'en-US-JennyNeural', name: 'Jenny (US)', lang: 'en-US', gender: 'female', provider: 'edge' },
   { id: 'en-GB-RyanNeural', name: 'Ryan (UK)', lang: 'en-GB', gender: 'male', provider: 'edge' },
 ];
