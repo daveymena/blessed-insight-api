@@ -121,7 +121,12 @@ export function BibleHeader({
             </div>
             <div className="min-w-0">
               <h1 className={`text-base sm:text-lg font-serif font-semibold flex items-center gap-1 truncate ${hasScenicBackground ? 'text-white' : 'text-foreground'}`}>
-                {selectedBook ? `${selectedBook.abbrev} ${selectedChapter}` : 'Blessed Insight'}
+                {selectedBook ? `${selectedBook.abbrev} ${selectedChapter}` : (
+                  <span className="flex items-center gap-2">
+                    Blessed Insight
+                    <span className="text-[10px] bg-primary/20 px-1.5 py-0.5 rounded-full opacity-70 font-sans">v2.2-Stream</span>
+                  </span>
+                )}
                 <ChevronDown className={`h-4 w-4 flex-shrink-0 ${hasScenicBackground ? 'text-white/70' : 'text-muted-foreground'}`} />
               </h1>
             </div>
