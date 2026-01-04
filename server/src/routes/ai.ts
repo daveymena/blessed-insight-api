@@ -9,11 +9,9 @@ const GROQ_MODEL = process.env.VITE_GROQ_MODEL || process.env.GROQ_MODEL || 'lla
 
 // URLs internas para Easypanel/Docker
 const OLLAMA_INTERNAL_URLS = [
-  'http://localhost:11434',          // Local explícito (más importante para dev)
   'http://ollama.ollama:11434',      // EasyPanel interno
   'http://ollama_ollama:11434',      // Docker Compose style
   'http://ollama:11434',             // Simple name
-  'http://127.0.0.1:11434',          // IPv4 directo
 ];
 
 // Recolectar llaves de Groq (Probando ambos formatos: VITE_ y normal)
