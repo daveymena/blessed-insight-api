@@ -1,61 +1,42 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import bcrypt from 'bcryptjs';
 import authRoutes from './routes/auth';
 import notesRoutes from './routes/notes';
 import conversationsRoutes from './routes/conversations';
 import aiRoutes from './routes/ai';
 import paymentsRoutes from './routes/payments';
 import { PrismaClient } from '@prisma/client';
+import fs from 'fs';
 
-dotenv.config();
-
-const app = express();
 export const prisma = new PrismaClient();
 
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+try {
+    dotenv.config();
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/notes', notesRoutes);
-app.use('/api/conversations', conversationsRoutes);
-app.use('/api/ai', aiRoutes);
-app.use('/api/payments', paymentsRoutes);
+    const app = express();
 
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date() });
-});
+    app.use(cors());
+    app.use(express.json({ limit: '10mb' }));
 
-const PORT = process.env.PORT || 3000;
+    // Routes
+    app.use('/api/auth', authRoutes);
+    app.use('/api/notes', notesRoutes);
+    app.use('/api/conversations', conversationsRoutes);
+    app.use('/api/ai', aiRoutes);
+    app.use('/api/payments', paymentsRoutes);
 
-app.listen(PORT, async () => {
-    console.log(`Server running on port ${PORT}`);
+    app.get('/health', (req, res) => {
+        res.json({ status: 'ok', timestamp: new Date() });
+    });
 
-    // Auto-seed Admin User
-    try {
-        const bcrypt = require('bcryptjs');
-        const email = 'daveymena16@gmail.com';
-        const password = '6715320Dvd.'; // Password con el punto como pidió el usuario
-        const hashedPassword = await bcrypt.hash(password, 10);
+    const PORT = process.env.PORT || 3000;
 
-        await (prisma as any).user.upsert({
-            where: { email },
-            update: {
-                password: hashedPassword,
-                role: 'ADMIN',
-                tier: 'GOLD'
-            },
-            create: {
-                email,
-                password: hashedPassword,
-                name: 'Davey Mena',
-                role: 'ADMIN',
-                tier: 'GOLD'
-            }
-        });
-        console.log('✅ Admin user ensured');
-    } catch (e) {
-        console.error('❌ Error ensuring admin user:', e);
-    }
-});
+    app.listen(PORT, async () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+} catch (error: any) {
+    fs.writeFileSync('CRITICAL_ERROR.txt', error?.stack || error?.message || String(error));
+    process.exit(1);
+}

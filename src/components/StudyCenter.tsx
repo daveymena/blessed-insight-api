@@ -31,6 +31,7 @@ import {
   updatePlanProgress,
   cancelPlan,
   getPlanById,
+  askBiblo,
   type StudyNote,
   type ActivePlan,
   type ReadingPlan
@@ -114,7 +115,8 @@ interface StudyCenterProps {
 }
 
 export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar }: StudyCenterProps) {
-  const [activeTab, setActiveTab] = useState('exegesis');
+  const [activeTab, setActiveTab] = useState('menu');
+  const [tabHistory, setTabHistory] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingTime, setLoadingTime] = useState(0);
 
@@ -124,8 +126,10 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
   const [devotionalResponse, setDevotionalResponse] = useState<{ content: string | null; time: number | null; fromCache: boolean }>({ content: null, time: null, fromCache: false });
   const [questionsResponse, setQuestionsResponse] = useState<{ content: string | null; time: number | null; fromCache: boolean }>({ content: null, time: null, fromCache: false });
   const [planResponse, setPlanResponse] = useState<{ content: string | null; time: number | null; fromCache: boolean }>({ content: null, time: null, fromCache: false });
+  const [bibloResponse, setBibloResponse] = useState<{ content: string | null; time: number | null; fromCache: boolean }>({ content: null, time: null, fromCache: false });
 
   const [topic, setTopic] = useState('');
+  const [bibloQuestion, setBibloQuestion] = useState('');
   const [customReference, setCustomReference] = useState(''); // Nueva: referencia personalizada para exégesis
   const [noteContent, setNoteContent] = useState('');
   const [notes, setNotes] = useState<StudyNote[]>([]);
@@ -135,10 +139,43 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
   const [copied, setCopied] = useState(false);
   const [activePlan, setActivePlan] = useState<ActivePlan | null>(null);
   const [currentPlanData, setCurrentPlanData] = useState<ReadingPlan | null>(null);
+  const [aiOnline, setAiOnline] = useState<boolean | null>(null); // null = checking, true = ok, false = error
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const passageText = passage?.verses?.map(v => v.text).join(' ') || '';
   const verseOfDay = getVerseOfTheDay();
+
+  // Manejo de navegación interna para evitar salir de la app
+  const navigateTo = (tab: string) => {
+    setTabHistory(prev => [...prev, activeTab]);
+    setActiveTab(tab);
+  };
+
+  const goBack = () => {
+    if (tabHistory.length > 0) {
+      const lastTab = tabHistory[tabHistory.length - 1];
+      setTabHistory(prev => prev.slice(0, -1));
+      setActiveTab(lastTab);
+    } else {
+      onClose();
+    }
+  };
+
+  // Verificar salud de la IA al abrir
+  useEffect(() => {
+    if (isOpen) {
+      const checkAI = async () => {
+        try {
+          const resp = await fetch('/api/ai/ollama/health');
+          const data = await resp.json();
+          setAiOnline(data.status === 'ok');
+        } catch (e) {
+          setAiOnline(false);
+        }
+      };
+      checkAI();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (book && isOpen) {
@@ -280,6 +317,27 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
     setLoading(false);
   };
 
+  const handleAskBiblo = async () => {
+    if (!bibloQuestion.trim()) return;
+    const cacheKey = `biblo_${bibloQuestion.toLowerCase()}`;
+    const cached = getCachedResponse(cacheKey);
+
+    if (cached) {
+      setBibloResponse({ content: cached, time: 0, fromCache: true });
+      return;
+    }
+
+    setLoading(true);
+    setBibloResponse({ content: null, time: null, fromCache: false });
+    const startTime = Date.now();
+
+    const result = await askBiblo(bibloQuestion, passageText);
+
+    setBibloResponse({ content: result.content, time: Date.now() - startTime, fromCache: false });
+    setCachedResponse(cacheKey, result.content);
+    setLoading(false);
+  };
+
   const handleSaveNote = () => {
     if (!book || !noteContent.trim()) return;
     const note = saveStudyNote({
@@ -351,16 +409,42 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
       )}>
         <div className="absolute inset-0 bg-pattern-dots opacity-10 pointer-events-none" />
         <div className="flex items-center gap-3 text-primary-foreground relative z-10">
+          {activeTab !== 'menu' && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={goBack}
+              className="text-primary-foreground hover:bg-white/20 rounded-full h-8 w-8 transition-transform hover:scale-105"
+            >
+              <ChevronRight className="h-5 w-5 rotate-180" />
+            </Button>
+          )}
           <div className={cn("bg-white/10 rounded-xl backdrop-blur-sm border border-white/20 shadow-inner", isSidebar ? "p-1.5" : "p-2.5")}>
             <GraduationCap className={cn(isSidebar ? "h-5 w-5" : "h-7 w-7")} />
           </div>
           <div>
             <h1 className={cn("font-bold font-serif tracking-wide", isSidebar ? "text-lg" : "text-2xl")}>
-              {isSidebar ? "Estudio" : "Centro de Estudio Bíblico"}
+              {activeTab === 'menu' ? 'Centro de Estudio' :
+                activeTab === 'exegesis' ? 'Exégesis' :
+                  activeTab === 'thematic' ? 'Temático' :
+                    activeTab === 'devotional' ? 'Devocional' :
+                      activeTab === 'plans' ? 'Planes' :
+                        activeTab === 'notes' ? 'Notas' : 'Investigador'}
             </h1>
-            {!isSidebar && (
-              <p className="text-xs text-primary-foreground/80 font-medium uppercase tracking-wider">Investigación Teológica y Exegética</p>
-            )}
+            <div className="flex items-center gap-2 mt-0.5">
+              {!isSidebar && activeTab === 'menu' && (
+                <p className="text-xs text-primary-foreground/80 font-medium uppercase tracking-wider">Investigación Teológica y Exegética</p>
+              )}
+              <span className="text-[10px] flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
+                <span className={cn(
+                  "h-1.5 w-1.5 rounded-full animate-pulse",
+                  aiOnline === true ? "bg-green-400" : aiOnline === false ? "bg-red-400" : "bg-yellow-400"
+                )} />
+                <span className="text-white/90">
+                  {aiOnline === true ? 'AI Online' : aiOnline === false ? 'AI Offline' : 'Checking AI...'}
+                </span>
+              </span>
+            </div>
           </div>
         </div>
         <Button
@@ -413,7 +497,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
               { id: 'devotional', icon: Heart, label: 'Devocional' },
               { id: 'plans', icon: Calendar, label: 'Planes' },
               { id: 'notes', icon: PenLine, label: 'Notas' },
-              { id: 'questions', icon: MessageSquare, label: 'Reflexión' },
+              { id: 'biblo', icon: MessageSquare, label: 'Investigador' },
             ].map(tab => (
               <TabsTrigger
                 key={tab.id}
@@ -431,6 +515,70 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
 
           <ScrollArea className="flex-1">
             <div className={cn("p-4 sm:p-6 mx-auto", isSidebar ? "w-full" : "max-w-4xl")}>
+              {/* Menu Tab (Dashboard) */}
+              <TabsContent value="menu" className="mt-0 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { id: 'exegesis', icon: GraduationCap, label: 'Exégesis Profunda', desc: 'Análisis gramático, histórico y doctrinal del texto.', color: 'indigo' },
+                    { id: 'biblo', icon: MessageSquare, label: 'Biblo (Investigador)', desc: 'Preguntas teológicas complejas y escatología.', color: 'violet' },
+                    { id: 'thematic', icon: Target, label: 'Estudio Temático', desc: 'Explora temas desde Génesis hasta Apocalipsis.', color: 'emerald' },
+                    { id: 'devotional', icon: Heart, label: 'Devocional Personal', desc: 'Reflexión y oración basada en el pasaje.', color: 'rose' },
+                    { id: 'plans', icon: Calendar, label: 'Planes de Lectura', desc: 'Sigue o crea planes guiados por la IA.', color: 'blue' },
+                    { id: 'notes', icon: PenLine, label: 'Mis Diarios y Notas', desc: 'Registra tus descubrimientos personales.', color: 'amber' },
+                  ].map(tool => (
+                    <Card
+                      key={tool.id}
+                      className="group cursor-pointer hover:border-primary/50 hover:shadow-md transition-all active:scale-[0.98]"
+                      onClick={() => navigateTo(tool.id)}
+                    >
+                      <CardContent className="p-5 flex items-start gap-4">
+                        <div className={cn(
+                          "p-3 rounded-xl transition-colors",
+                          tool.color === 'indigo' && "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30",
+                          tool.color === 'violet' && "bg-violet-100 text-violet-600 dark:bg-violet-900/30",
+                          tool.color === 'emerald' && "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30",
+                          tool.color === 'rose' && "bg-rose-100 text-rose-600 dark:bg-rose-900/30",
+                          tool.color === 'blue' && "bg-blue-100 text-blue-600 dark:bg-blue-900/30",
+                          tool.color === 'amber' && "bg-amber-100 text-amber-600 dark:bg-amber-900/30",
+                        )}>
+                          <tool.icon className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-bold text-base group-hover:text-primary transition-colors">{tool.label}</h3>
+                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{tool.desc}</p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground/30 self-center group-hover:translate-x-1 transition-transform" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                <div className="mt-8 p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/10">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    <h4 className="font-bold text-sm uppercase tracking-wider">Tu Progreso de Estudio</h4>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="bg-background/60 p-3 rounded-xl border">
+                      <p className="text-[10px] text-muted-foreground uppercase font-bold">Racha</p>
+                      <p className="text-xl font-serif font-black">{stats.streak} días</p>
+                    </div>
+                    <div className="bg-background/60 p-3 rounded-xl border">
+                      <p className="text-[10px] text-muted-foreground uppercase font-bold">Capítulos</p>
+                      <p className="text-xl font-serif font-black">{stats.totalChapters}</p>
+                    </div>
+                    <div className="bg-background/60 p-3 rounded-xl border">
+                      <p className="text-[10px] text-muted-foreground uppercase font-bold">Notas</p>
+                      <p className="text-xl font-serif font-black">{notes.length}</p>
+                    </div>
+                    <div className="bg-background/60 p-3 rounded-xl border text-primary">
+                      <p className="text-[10px] opacity-70 uppercase font-bold text-primary">Nivel</p>
+                      <p className="text-xl font-serif font-black uppercase">Beréano</p>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
               {/* Exégesis Tab */}
               <TabsContent value="exegesis" className="mt-0 space-y-6">
                 <Card>
@@ -896,57 +1044,93 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
                 </Card>
               </TabsContent>
 
-              {/* Reflection Questions Tab */}
-              <TabsContent value="questions" className="mt-0 space-y-6">
-                <Card>
+
+              {/* Biblo Tab */}
+
+              {/* Biblo Tab */}
+              <TabsContent value="biblo" className="mt-0 space-y-6">
+                <Card className="border-violet-200 dark:border-violet-800 bg-gradient-to-br from-violet-50/50 to-white dark:from-violet-950/10 dark:to-background">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5 text-violet-600" />
-                      Preguntas de Reflexión
-                    </CardTitle>
-                    <CardDescription>
-                      Genera preguntas para profundizar en el estudio del pasaje
-                    </CardDescription>
+                    <div className="flex items-center gap-4">
+                      <div className="bg-violet-600 p-3 rounded-2xl shadow-lg shadow-violet-200 dark:shadow-none">
+                        <MessageSquare className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl font-serif">Biblo: Investigador Bíblico</CardTitle>
+                        <CardDescription>
+                          Consultas teológicas, escatología y hermenéutica profunda.
+                        </CardDescription>
+                      </div>
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="bg-violet-50 dark:bg-violet-900/20 p-4 rounded-lg">
-                      <p className="text-sm text-violet-800 dark:text-violet-200">
-                        📖 {book?.name || 'Selecciona un pasaje'} {chapter}
+                    <div className="bg-violet-100/50 dark:bg-violet-900/20 p-4 rounded-xl border border-violet-200 dark:border-violet-800">
+                      <p className="text-xs font-semibold text-violet-700 dark:text-violet-300 uppercase tracking-widest mb-2">Área de Investigación</p>
+                      <p className="text-sm text-violet-800 dark:text-violet-200 leading-relaxed italic">
+                        "Cualquier duda teológica o escatológica que tengas, puedes preguntarla aquí. Mis respuestas se basan estrictamente en la ortodoxia bíblica."
                       </p>
                     </div>
+
+                    <div className="space-y-3">
+                      <Input
+                        value={bibloQuestion}
+                        onChange={(e) => setBibloQuestion(e.target.value)}
+                        placeholder="Escribe tu pregunta bíblica aquí..."
+                        className="h-14 text-base border-violet-200 dark:border-violet-800 focus-visible:ring-violet-500 rounded-xl"
+                        onKeyDown={(e) => e.key === 'Enter' && handleAskBiblo()}
+                      />
+
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          '¿Cuál es la importancia del pacto abrahámico?',
+                          'Explica el mileniarismo de forma sencilla',
+                          '¿Qué significa la Sola Scriptura?',
+                          '¿Cómo entender la soberanía de Dios y el hombre?'
+                        ].map(q => (
+                          <button
+                            key={q}
+                            onClick={() => { setBibloQuestion(q); }}
+                            className="text-[10px] sm:text-xs bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-3 py-1.5 rounded-full hover:bg-violet-200 transition-colors border border-violet-200/50 dark:border-violet-800/50"
+                          >
+                            {q}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     <Button
-                      onClick={handleReflectionQuestions}
-                      disabled={loading || !book}
-                      className="w-full bg-violet-600 hover:bg-violet-700"
+                      onClick={handleAskBiblo}
+                      disabled={loading || !bibloQuestion.trim()}
+                      className="w-full h-12 bg-violet-600 hover:bg-violet-700 shadow-lg shadow-violet-200 dark:shadow-none text-white font-bold rounded-xl"
                     >
-                      {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <MessageSquare className="h-4 w-4 mr-2" />}
-                      Generar Preguntas
+                      {loading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Sparkles className="h-5 w-5 mr-2" />}
+                      Consultar al Investigador
                     </Button>
                   </CardContent>
                 </Card>
 
-                {/* Respuesta de Preguntas de Reflexión */}
-                {questionsResponse.content && (
-                  <Card className="border-2 border-violet-200 dark:border-violet-800">
-                    <CardHeader className="bg-violet-50 dark:bg-violet-900/20 flex flex-row items-center justify-between py-3">
-                      <CardTitle className="flex items-center gap-2 text-violet-700 dark:text-violet-300 text-base">
-                        <MessageSquare className="h-4 w-4" />
-                        Preguntas de Reflexión
-                        {questionsResponse.fromCache && <Badge variant="secondary" className="ml-2 text-xs"><Zap className="h-3 w-3 mr-1" />Cache</Badge>}
-                      </CardTitle>
-                      <div className="flex items-center gap-2">
-                        {questionsResponse.time !== null && <span className="text-xs text-muted-foreground">{questionsResponse.fromCache ? 'Instantáneo' : `${(questionsResponse.time / 1000).toFixed(1)}s`}</span>}
-                        <Button variant="ghost" size="sm" onClick={() => handleCopyResponse(questionsResponse.content!)} className="h-7">
-                          {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                {/* Respuesta de Biblo */}
+                {bibloResponse.content && (
+                  <Card className="border-2 border-violet-200 dark:border-violet-800 overflow-hidden rounded-2xl shadow-xl">
+                    <CardHeader className="bg-violet-600 text-white flex flex-row items-center justify-between py-4 px-6">
+                      <div className="flex items-center gap-3">
+                        <MessageSquare className="h-5 w-5 opacity-80" />
+                        <CardTitle className="text-base font-serif">Respuesta del Investigador</CardTitle>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {bibloResponse.time !== null && <span className="text-[10px] opacity-70">{bibloResponse.fromCache ? 'Instantáneo' : `${(bibloResponse.time / 1000).toFixed(1)}s`}</span>}
+                        <Button variant="ghost" size="sm" onClick={() => handleCopyResponse(bibloResponse.content!)} className="h-8 w-8 p-0 hover:bg-white/20 text-white">
+                          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-4">
-                      <FormattedAIResponse content={questionsResponse.content} />
+                    <CardContent className="p-6 bg-white dark:bg-slate-950">
+                      <FormattedAIResponse content={bibloResponse.content} />
                     </CardContent>
                   </Card>
                 )}
               </TabsContent>
+
             </div>
           </ScrollArea>
         </Tabs>

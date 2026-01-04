@@ -1,4 +1,4 @@
-﻿generator client {
+generator client {
   provider = "prisma-client-js"
 }
 
@@ -30,7 +30,6 @@ model User {
   trialUsed     Boolean        @default(false)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  
   notes         Note[]
   payments      Payment[]
   subscriptions Subscription[]

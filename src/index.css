@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700&display=swap');
+/* Fuentes clásicas estilo bíblico - legibles y elegantes */
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -51,8 +52,8 @@
     --gold-accent: 38 92% 50%;
     --warm-shadow: 220 14% 90%;
 
-    /* Tipografía */
-    --font-serif: 'Playfair Display', Georgia, serif;
+    /* Tipografía - Fuentes clásicas bíblicas */
+    --font-serif: 'Crimson Pro', 'EB Garamond', 'Libre Baskerville', Georgia, serif;
     --font-sans: 'Inter', system-ui, sans-serif;
 
     /* Sidebar */
@@ -445,4 +446,76 @@
 
 .animate-slide-in-top {
   animation: slide-in-top 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ========== ESTILOS PARA RESPUESTAS DE IA ========== */
+.scripture-response {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  line-height: 2;
+  letter-spacing: 0.02em;
+  font-feature-settings: "kern" 1, "liga" 1, "onum" 1;
+}
+
+.scripture-response p {
+  margin-bottom: 1.5rem;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+}
+
+.scripture-response strong {
+  font-weight: 600;
+  color: hsl(var(--primary));
+}
+
+/* Primera letra decorativa en párrafos principales */
+.scripture-response > div > p:first-of-type::first-letter {
+  font-size: 2.5em;
+  font-weight: 600;
+  float: left;
+  line-height: 1;
+  margin-right: 0.15em;
+  margin-top: 0.1em;
+  color: hsl(var(--primary));
+}
+
+/* Citas bíblicas destacadas */
+.scripture-quote {
+  position: relative;
+  padding: 1.5rem 2rem;
+  margin: 2rem 0;
+  background: linear-gradient(135deg, hsl(var(--muted) / 0.3), hsl(var(--muted) / 0.1));
+  border-left: 4px solid hsl(var(--primary) / 0.5);
+  border-radius: 0 1rem 1rem 0;
+  font-style: italic;
+}
+
+.scripture-quote::before {
+  content: '"';
+  position: absolute;
+  top: -0.5rem;
+  left: 0.5rem;
+  font-size: 4rem;
+  color: hsl(var(--primary) / 0.2);
+  font-family: Georgia, serif;
+  line-height: 1;
+}
+
+/* Separadores decorativos */
+.scripture-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 2rem 0;
+  color: hsl(var(--muted-foreground) / 0.4);
+}
+
+.scripture-divider::before,
+.scripture-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(var(--border)), transparent);
 }

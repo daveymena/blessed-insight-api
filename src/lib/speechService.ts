@@ -196,17 +196,20 @@ class SpeechService {
       return this.audioCache.get(cacheKey)!;
     }
 
-    // Usar servicio proxy de Edge TTS
-    const rate = Math.round((this.settings.rate - 1) * 100);
-    const rateStr = rate >= 0 ? `+${rate}%` : `${rate}%`;
-
     const url = `https://api.streamelements.com/kappa/v2/speech?voice=${voiceId}&text=${encodeURIComponent(cleanedText)}`;
 
     try {
+      console.log(`🔊 Generando audio via Edge Proxy: ${voiceId}`);
       const response = await fetch(url);
-      if (!response.ok) throw new Error('Edge TTS error');
+      if (!response.ok) {
+        console.error('Edge TTS Proxy error status:', response.status);
+        throw new Error('Edge TTS error');
+      }
 
       const blob = await response.blob();
+      if (blob.size < 100) { // Blob muy pequeño suele ser un error del proxy
+        throw new Error('Edge TTS returned empty/invalid blob');
+      }
       const audioUrl = URL.createObjectURL(blob);
 
       // Cache limitado (últimos 20)

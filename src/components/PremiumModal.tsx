@@ -10,13 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Check, Star, ShieldCheck, Zap, CreditCard, Banknote } from "lucide-react";
 import { useSubscription } from "@/context/SubscriptionContext";
 import { toast } from "sonner";
+import { API_BASE_URL } from '@/lib/constants';
 
 // Credenciales Públicas
 const MP_PUBLIC_KEY = import.meta.env.VITE_MP_PUBLIC_KEY || "APP_USR-23c2d74a-d01f-473e-a305-0e5999f023bc";
 const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID || "BAAtdQwVN8LvIoRstmHZWlo2ndcJBP8dFZdXLc8HJGdYUXstriO6mO0GJMZimkBCdZHotBkulELqeFm_R4";
 
 // Precios
-const PRICE_USD = "3.00";
+const PRICE_USD = 3.00;
 const PRICE_COP = "12000"; // ~12,000 COP
 
 interface PremiumModalProps {
@@ -113,16 +114,15 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
         setLoading(true);
         try {
             // Crear preferencia de pago con Mercado Pago
-            const token = localStorage.getItem('token');
-            const apiUrl = import.meta.env.VITE_API_BASE_URL || '/api';
-            
-            const response = await fetch(`${apiUrl}/payments/create-preference`, {
+            const token = localStorage.getItem('auth_token');
+
+            const response = await fetch(`${API_BASE_URL}/payments/create-preference`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(token && { 'Authorization': `Bearer ${token}` })
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     plan: 'monthly',
                     amount: PRICE_COP,
                     currency: 'COP'
@@ -205,7 +205,7 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
                     {/* Opciones de Pago */}
                     {(!isPremium || isTrial) && (
                         <div className="space-y-4 pt-4 border-t">
-                            
+
                             {isGuest ? (
                                 <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl text-center">
                                     <p className="text-sm text-amber-800 dark:text-amber-200 mb-3 font-medium">

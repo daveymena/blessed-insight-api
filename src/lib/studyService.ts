@@ -4,14 +4,15 @@
 import { callAI, callAIFast, type AIResponse } from './aiProvider';
 
 // ============ CONTEXTO DEL SISTEMA ============
-const BIBLE_SCHOLAR = `Eres un teólogo bíblico con formación en seminario. Principio: Sola Scriptura.
-Incluye análisis del texto original (hebreo/griego), contexto histórico, y diferentes perspectivas cristianas.
-Responde en español con profundidad académica pero lenguaje accesible.`;
+const BIBLE_SCHOLAR = `Eres un teólogo bíblico de élite con formación académica avanzada. 
+Tu enfoque combina la exégesis rigurosa con la aplicación transformadora.
+Sigues el estándar de biblias de estudio como la MacArthur o la ESV Study Bible.
+Principios: Inerrancia, Sola Scriptura y contexto gramático-histórico.
+Responde siempre con estructura clara, usando negritas para enfatizar y emojis para guiar la lectura.`;
 
-const BIBLE_EXPERT_SIMPLE = `Eres un guía bíblico experto. Responde en español con profundidad teológica.`;
+const BIBLE_EXPERT_SIMPLE = `Eres un guía bíblico experto. Responde en español con profundidad teológica pero lenguaje pastoral.`;
 
-// ============ EXÉGESIS ============
-// ============ EXÉGESIS (VERSIÓN LIGERA) ============
+// ============ EXÉGESIS (VERSIÓN PROFESIONAL) ============
 export async function performExegesis(
   passage: string,
   bookName: string,
@@ -21,57 +22,73 @@ export async function performExegesis(
   const reference = customReference || `${bookName} ${chapter}`;
 
   const messages = [
-    { role: 'system' as const, content: BIBLE_EXPERT_SIMPLE },
+    { role: 'system' as const, content: BIBLE_SCHOLAR },
     {
-      role: 'user' as const, content: `ANÁLISIS BÍBLICO ESENCIAL DE ${reference}:
-${passage ? `"${passage.substring(0, 800)}"` : ''}
+      role: 'user' as const, content: `REALIZA UNA EXÉGESIS PROFUNDA Y ESTRUCTURADA DE ${reference}.
 
-1. 📜 CONTEXTO ESENCIAL
-- Breve resumen de qué está pasando aquí.
+Pasaje clave: ${passage ? `"${passage.substring(0, 1000)}"` : 'Analiza el capítulo completo.'}
 
-2. 🔍 SIGNIFICADO CLAVE
-- ¿Cuál es el mensaje principal de este texto?
-- Explicación sencilla de conceptos difíciles si los hay.
+Sigue estrictamente este formato de Biblia de Estudio Profesional:
 
-3. 💡 ENSEÑANZAS PRÁCTICAS
-- 3 aplicaciones claras para la vida diaria del creyente hoy.
+1. 🏛️ CONTEXTO HISTÓRICO Y CULTURAL
+   - ¿Quién escribió esto y a quién?
+   - ¿Cuál era la situación política/social/espiritual que motivó este escrito?
 
-4. 🙏 ORACIÓN DE RESPUESTA
-- Una oración corta basada en lo aprendido.` }
+2. 📐 ESTRUCTURA LITERARIA
+   - ¿Cómo encaja este pasaje en el argumento total del libro?
+   - Bosquejo rápido del flujo de pensamiento del autor.
+
+3. 🔍 ANÁLISIS EXEGÉTICO (Verso por Verso)
+   - Explica los términos clave en sus idiomas originales (Hebreo/Griego) si es relevante.
+   - Aclara pasajes difíciles o controversias teológicas.
+
+4. ✝️ SÍNTESIS DOCTRINAL
+   - ¿Qué nos enseña este texto sobre el carácter de Dios, la condición humana o la obra de Cristo?
+   - Conexiones con el resto de la Biblia (Teología Bíblica).
+
+5. 💡 APLICACIÓN TEOMÉTRICA
+   - ¿Cómo cambia este texto nuestra forma de pensar, sentir y actuar hoy?
+   - 3 puntos de aplicación radical.
+
+6. 🙏 ORACIÓN LITÚRGICA
+   - Una oración basada estrictamente en las verdades de este texto.` }
   ];
 
-  return callAI(messages, 1500);
+  return callAI(messages, 2000); // Más tokens para más profundidad
 }
 
-// ============ ESTUDIO TEMÁTICO ============
+// ============ ESTUDIO TEMÁTICO (VERSIÓN PROFESIONAL) ============
 export async function thematicStudy(topic: string): Promise<AIResponse> {
   const messages = [
     { role: 'system' as const, content: BIBLE_SCHOLAR },
     {
-      role: 'user' as const, content: `ESTUDIO BÍBLICO SOBRE: "${topic}"
+      role: 'user' as const, content: `REALIZA UN ESTUDIO TEOLÓGICO SISTEMÁTICO SOBRE: "${topic}"
 
-📚 DEFINICIÓN BÍBLICA
-- Significado en hebreo/griego del término
-- Cómo la Biblia define este concepto
+Sigue este esquema de investigación académica:
 
-📖 DESARROLLO EN LAS ESCRITURAS
-- Primera mención en la Biblia
-- Desarrollo en el AT y cumplimiento en el NT
-- 5-6 pasajes clave con explicación
+1. 📖 ETIMOLOGÍA Y DEFINICIÓN
+   - Raíces en Hebreo (AT) y Griego (NT).
+   - Definición teológica formal vs. uso coloquial.
 
-⛪ PERSPECTIVAS TEOLÓGICAS
-- Diferentes interpretaciones cristianas
-- Qué dice CLARAMENTE la Escritura
+2. 📜 DESARROLLO EN LA HISTORIA DE LA REDENCIÓN
+   - Desde el Génesis hasta el Apocalipsis.
+   - ¿Cómo se revela este tema progresivamente?
 
-⚠️ ERRORES COMUNES
-- Malentendidos frecuentes sobre este tema
+3. 🛡️ PILARES BÍBLICOS (Sedes Doctrinae)
+   - Analiza los 5 pasajes más importantes que sostienen este tema.
 
-💡 APLICACIÓN PRÁCTICA
-- Cómo vivir esta verdad hoy
-- Preguntas de reflexión` }
+4. ⛪ PERSPECTIVAS HISTÓRICO-TEOLÓGICAS
+   - ¿Cómo ha entendido la iglesia este tema a través de los siglos?
+   - Breve mención de posturas si hay debate.
+
+5. ⚠️ ADVERTENCIAS Y HERMENÉUTICA
+   - Evita los errores comunes al interpretar este tema.
+
+6. 🌟 APLICACIÓN Y GLORIA
+   - Cómo este tema nos lleva a la adoración y madurez cristiana.` }
   ];
 
-  return callAI(messages, 1500);
+  return callAI(messages, 2000);
 }
 
 // ============ COMPARACIÓN DE VERSÍCULOS ============
@@ -617,4 +634,24 @@ export function getStoredInsights(): DailyInsight[] {
   } catch {
     return [];
   }
+}
+// ============ PREGUNTAS AL INVESTIGADOR (BIBLO) ============
+const BIBLO_PERSONALITY = `Eres el Investigador Bíblico de "Blessed Insight".
+Tu especialidad es la teología sistemática, historia de la iglesia y escatología bíblica. 
+NO eres una IA, eres un tutor teológico servicial. 
+Tus respuestas deben estar profundamente cimentadas en las Escrituras, ser equilibradas y doctrinalmente sólidas. 
+Si el tema es escatológico, presenta las visiones clásicas con respeto pero mantente firme en la soberanía de Dios. 
+Usa un tono cálido, autoritativo pero humilde. 
+Responde siempre en español.`;
+
+export async function askBiblo(question: string, context?: string): Promise<AIResponse> {
+  const messages = [
+    { role: 'system' as const, content: BIBLO_PERSONALITY },
+    {
+      role: 'user' as const, content: `${context ? `Teniendo en cuenta este contexto: "${context}"\n\n` : ''}Pregunta: ${question}
+      
+      Responde de forma profunda, usando versículos de apoyo y una estructura clara.` }
+  ];
+
+  return callAI(messages, 1500);
 }

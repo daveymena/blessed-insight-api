@@ -9,9 +9,11 @@ const GROQ_MODEL = process.env.VITE_GROQ_MODEL || process.env.GROQ_MODEL || 'lla
 
 // URLs internas para Easypanel/Docker
 const OLLAMA_INTERNAL_URLS = [
+  'http://localhost:11434',          // Local explícito (más importante para dev)
   'http://ollama.ollama:11434',      // EasyPanel interno
   'http://ollama_ollama:11434',      // Docker Compose style
   'http://ollama:11434',             // Simple name
+  'http://127.0.0.1:11434',          // IPv4 directo
 ];
 
 // Recolectar llaves de Groq (Probando ambos formatos: VITE_ y normal)
@@ -50,30 +52,39 @@ async function generateAIResponse(params: {
   for (const baseUrl of ollamaUrls) {
     try {
       console.log(`[AI] Intentando Ollama (${OLLAMA_MODEL}) en ${baseUrl}...`);
-      const fullPrompt = system ? `${system}\n\n${prompt}` : prompt;
+
+      const isChat = messages && messages.length > 0;
+      const endpoint = isChat ? '/api/chat' : '/api/generate';
+      const body: any = {
+        model: OLLAMA_MODEL,
+        stream: false,
+        options: { temperature: 0.7, num_predict: maxTokens },
+      };
+
+      if (isChat) {
+        body.messages = messages;
+      } else {
+        body.prompt = system ? `${system}\n\n${prompt}` : prompt;
+      }
 
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 120000); // 120s para modelos locales
+      const timeout = setTimeout(() => controller.abort(), 300000); // 5 minutos (300,000 ms)
 
-      const response = await fetch(`${baseUrl}/api/generate`, {
+      const response = await fetch(`${baseUrl}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
-        body: JSON.stringify({
-          model: OLLAMA_MODEL,
-          prompt: fullPrompt,
-          stream: false,
-          options: { temperature: 0.7, num_predict: maxTokens },
-        }),
+        body: JSON.stringify(body),
       });
 
       clearTimeout(timeout);
 
       if (response.ok) {
         const data = await response.json() as any;
-        if (data.response) {
+        const finalContent = isChat ? data.message?.content : data.response;
+        if (finalContent) {
           console.log(`[AI] ✅ Éxito con Ollama (${baseUrl})`);
-          return { success: true, content: data.response, provider: 'ollama' };
+          return { success: true, content: finalContent, provider: 'ollama' };
         }
       }
       console.warn(`[AI] ⚠️ Ollama en ${baseUrl} respondió con status: ${response.status}`);
@@ -148,7 +159,11 @@ router.post('/generate', async (req, res) => {
     }
   } catch (err) {
     console.error('[AI Router] Error interno:', err);
-    res.status(500).json({ success: false, content: 'Error interno en el servidor de IA.', provider: 'error' });
+    res.status(500).json({
+      success: false,
+      content: `Error interno en el servidor de IA: ${err instanceof Error ? err.message : String(err)}`,
+      provider: 'error'
+    });
   }
 });
 
@@ -162,7 +177,10 @@ router.post('/ollama/generate', async (req, res) => {
 router.get('/ollama/health', async (req, res) => {
   const check = async (url: string) => {
     try {
-      const resp = await fetch(`${url}/api/tags`, { signal: AbortSignal.timeout(5000) });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const resp = await fetch(`${url}/api/tags`, { signal: controller.signal });
+      clearTimeout(timeout);
       return resp.ok;
     } catch { return false; }
   };

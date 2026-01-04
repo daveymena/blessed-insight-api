@@ -1,9 +1,14 @@
-// Proveedor de IA - Ollama + Groq Fallback (optimizado para velocidad)
+import { Capacitor } from '@capacitor/core';
+import { API_BASE_URL } from './constants';
 
-const OLLAMA_BASE_URL = import.meta.env.VITE_OLLAMA_BASE_URL || 'https://ollama-ollama.ginee6.easypanel.host';
+// Usar proxy local para evitar CORS
+const OLLAMA_BASE_URL = '/api/ollama'; // Vite proxy configurado
 const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'gemma2:2b';
-const OLLAMA_TIMEOUT = 20000; // 20s timeout (más corto para fallback rápido)
-const OLLAMA_MAX_TOKENS = 300; // Tokens muy reducidos para respuestas rápidas
+const OLLAMA_TIMEOUT = 300000; // 5 minutos - Ollama puede ser lento en carga inicial
+const OLLAMA_MAX_TOKENS = 500; // Reducimos un poco para ganar velocidad pero mantener profundidad
+
+
+
 
 // Groq es más rápido - usar como fallback
 const GROQ_API_KEYS = [
@@ -95,73 +100,124 @@ async function callGroq(messages: AIMessage[], maxTokens: number): Promise<AIRes
   return null;
 }
 
-// Llamar a Ollama (local/self-hosted)
+// Llamar al Backend AI (que internamente usa Ollama)
 async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIResponse | null> {
   const startTime = Date.now();
   const systemMessage = messages.find(m => m.role === 'system')?.content || '';
   const userMessage = messages.filter(m => m.role === 'user').map(m => m.content).join('\n');
 
   try {
-    console.log(`📡 Ollama: ${OLLAMA_BASE_URL}...`);
+    console.log(`📡 Llamando al Backend AI (/api/ai/generate)...`);
+
+    // Timestamp para forzar a ignorar cualquier cache de service worker
+    const cacheBuster = `?t=${Date.now()}`;
 
     const response = await withTimeout(
-      fetch(`${OLLAMA_BASE_URL}/api/generate`, {
+      fetch(`/api/ai/generate${cacheBuster}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
         body: JSON.stringify({
-          model: OLLAMA_MODEL,
           prompt: systemMessage ? `${systemMessage}\n\n${userMessage}` : userMessage,
-          stream: false,
-          options: {
-            temperature: 0.7,
-            num_predict: Math.min(maxTokens, OLLAMA_MAX_TOKENS) // Limitar tokens
-          }
-        })
+          maxTokens: Math.min(maxTokens, OLLAMA_MAX_TOKENS)
+        }),
+        cache: 'no-cache'
       }),
       OLLAMA_TIMEOUT
     );
 
+    console.log(`📊 Response status: ${response.status} ${response.statusText}`);
+
     if (response.ok) {
-      const data = await response.json();
-      if (data.response) {
-        console.log(`✅ Ollama respondió en ${Date.now() - startTime}ms`);
+      const text = await response.text();
+      console.log('📝 Raw Response Body:', text);
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error('❌ Error parseando JSON:', text);
+        return null;
+      }
+
+      if (data.success && data.content) {
+        console.log(`✅ Backend AI respondió correctamente`);
         return {
           success: true,
-          content: data.response,
-          provider: 'ollama',
+          content: data.content,
+          provider: data.provider || 'backend',
           timeMs: Date.now() - startTime
         };
+      } else {
+        throw new Error(data.content || 'El backend respondió éxito:falso');
       }
+    } else {
+      const errorText = await response.text().catch(() => 'Sin detalle');
+      throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 50)}`);
     }
   } catch (error) {
-    console.warn(`⚠️ Ollama error: ${error instanceof Error ? error.message : 'Error'}`);
+    console.error(`❌ Fallo crítico en fetch:`, error);
+    throw error; // Lanzar el error para que callAI lo capture
   }
+}
 
+async function callBackendProxy(messages: AIMessage[], maxTokens: number): Promise<AIResponse | null> {
+  const startTime = Date.now();
+  try {
+    const response = await withTimeout(
+      fetch(`${API_BASE_URL}/ai/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: JSON.stringify({ messages, maxTokens })
+      }),
+      40000
+    );
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success) return { ...result, timeMs: Date.now() - startTime };
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Backend AI Error:', errorData.content || 'Error desconocido');
+    }
+  } catch (error) {
+    console.warn('Backend link failed');
+  }
   return null;
 }
 
+
 /**
- * Llamada principal a IA - Ollama primero (gratis), Groq como fallback
+ * Llamada principal a IA - SOLO Ollama (ilimitado)
  */
 export async function callAI(messages: AIMessage[], maxTokens: number = 800): Promise<AIResponse> {
   const startTime = Date.now();
 
-  console.log(`🚀 Iniciando consulta IA (max ${maxTokens} tokens)...`);
+  console.log(`🚀 Iniciando consulta IA con Ollama (max ${maxTokens} tokens)...`);
 
-  // 1. Ollama primero (gratis)
-  const ollamaResult = await callOllama(messages, maxTokens);
-  if (ollamaResult) return ollamaResult;
+  let errorMessage = 'Desconocido';
 
-  // 2. Fallback a Groq si Ollama falla
-  if (GROQ_API_KEYS.length > 0) {
-    console.log('⚠️ Ollama falló, intentando Groq...');
-    const groqResult = await callGroq(messages, maxTokens);
-    if (groqResult) return groqResult;
+  // Usar SOLO Ollama
+  try {
+    const ollamaResult = await callOllama(messages, maxTokens);
+    if (ollamaResult && ollamaResult.success) {
+      console.log(`✅ Respuesta exitosa de Ollama en ${Date.now() - startTime}ms`);
+      return ollamaResult;
+    }
+  } catch (e) {
+    console.error('❌ Error crítico en Ollama:', e);
+    errorMessage = e instanceof Error ? e.message : String(e);
   }
 
+  // Si Ollama falla, mostrar mensaje claro con el error
   return {
     success: false,
-    content: 'No se pudo conectar con ningún servicio de IA. Verifica tu conexión.',
+    content: `⚠️ Error de conexión: ${errorMessage}. \n\nPor favor verifica:\n1. Que el servidor 'server' esté corriendo (puerto 3000)\n2. Que Ollama esté accesible.`,
     provider: 'error',
     timeMs: Date.now() - startTime
   };
