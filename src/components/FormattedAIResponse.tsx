@@ -10,13 +10,13 @@ export function FormattedAIResponse({ content }: { content: string }) {
     if (!hasMarkdownHeaders && !content.includes('\n\n')) {
         return (
             <div className="scripture-response space-y-6 animate-in fade-in duration-500">
-                <p 
+                <p
                     className="text-lg leading-[2.2] tracking-wide text-foreground/90"
-                    dangerouslySetInnerHTML={{ 
+                    dangerouslySetInnerHTML={{
                         __html: content
                             .replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary font-semibold">$1</strong>')
-                            .replace(/\n/g, '<br/><br/>') 
-                    }} 
+                            .replace(/\n/g, '<br/><br/>')
+                    }}
                 />
             </div>
         );
@@ -29,21 +29,21 @@ export function FormattedAIResponse({ content }: { content: string }) {
     // Estilos por tipo de sección
     const getSectionStyle = (title: string) => {
         const t = title.toLowerCase();
-        if (t.includes('contexto') || t.includes('histórico')) 
+        if (t.includes('contexto') || t.includes('histórico'))
             return { bg: 'bg-amber-50/50 dark:bg-amber-950/20', border: 'border-amber-300 dark:border-amber-700', icon: '📜', accent: 'text-amber-700 dark:text-amber-400' };
-        if (t.includes('significado') || t.includes('clave') || t.includes('exégesis') || t.includes('análisis')) 
+        if (t.includes('significado') || t.includes('clave') || t.includes('exégesis') || t.includes('análisis'))
             return { bg: 'bg-sky-50/50 dark:bg-sky-950/20', border: 'border-sky-300 dark:border-sky-700', icon: '🔍', accent: 'text-sky-700 dark:text-sky-400' };
-        if (t.includes('enseñanza') || t.includes('práctica') || t.includes('aplicación')) 
+        if (t.includes('enseñanza') || t.includes('práctica') || t.includes('aplicación'))
             return { bg: 'bg-emerald-50/50 dark:bg-emerald-950/20', border: 'border-emerald-300 dark:border-emerald-700', icon: '💡', accent: 'text-emerald-700 dark:text-emerald-400' };
-        if (t.includes('oración') || t.includes('reflexión') || t.includes('meditación')) 
+        if (t.includes('oración') || t.includes('reflexión') || t.includes('meditación'))
             return { bg: 'bg-violet-50/50 dark:bg-violet-950/20', border: 'border-violet-300 dark:border-violet-700', icon: '🙏', accent: 'text-violet-700 dark:text-violet-400' };
-        if (t.includes('versículo') || t.includes('cita') || t.includes('escritura')) 
+        if (t.includes('versículo') || t.includes('cita') || t.includes('escritura'))
             return { bg: 'bg-rose-50/50 dark:bg-rose-950/20', border: 'border-rose-300 dark:border-rose-700', icon: '📖', accent: 'text-rose-700 dark:text-rose-400' };
         return { bg: 'bg-slate-50/50 dark:bg-slate-900/30', border: 'border-slate-200 dark:border-slate-700', icon: '✦', accent: 'text-primary' };
     };
 
     return (
-        <div className="scripture-response space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-8">
+        <div className="scripture-response space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-8 font-serif">
             {sections.map((section, idx) => {
                 const cleanSection = section.trim();
                 const lines = cleanSection.split('\n');
@@ -66,8 +66,8 @@ export function FormattedAIResponse({ content }: { content: string }) {
                 // Sección sin título - párrafo simple con estilo elegante
                 if (!title) {
                     return (
-                        <div 
-                            key={idx} 
+                        <div
+                            key={idx}
                             className={cn(
                                 "relative py-6 px-8 rounded-2xl",
                                 "bg-gradient-to-br from-slate-50/80 to-slate-100/50",
@@ -76,13 +76,13 @@ export function FormattedAIResponse({ content }: { content: string }) {
                                 "shadow-sm"
                             )}
                         >
-                            <p 
+                            <p
                                 className="text-lg leading-[2.2] tracking-wide text-foreground/85"
-                                dangerouslySetInnerHTML={{ 
+                                dangerouslySetInnerHTML={{
                                     __html: cleanSection
                                         .replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary font-semibold">$1</strong>')
-                                        .replace(/\n/g, '<br/><br/>') 
-                                }} 
+                                        .replace(/\n/g, '<br/><br/>')
+                                }}
                             />
                         </div>
                     );
@@ -90,8 +90,8 @@ export function FormattedAIResponse({ content }: { content: string }) {
 
                 // Sección con título - tarjeta decorada
                 return (
-                    <div 
-                        key={idx} 
+                    <div
+                        key={idx}
                         className={cn(
                             "group rounded-2xl overflow-hidden",
                             "border-2 shadow-md hover:shadow-lg transition-shadow duration-300",
@@ -145,12 +145,12 @@ export function FormattedAIResponse({ content }: { content: string }) {
                                             )}>
                                                 ✦
                                             </span>
-                                            <p 
+                                            <p
                                                 className="flex-1 text-lg leading-[2] tracking-wide text-foreground/85"
-                                                dangerouslySetInnerHTML={{ 
+                                                dangerouslySetInnerHTML={{
                                                     __html: trimmed
                                                         .replace(/^[-•\d\.]+\s*/, '')
-                                                        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary font-semibold">$1</strong>') 
+                                                        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary font-semibold">$1</strong>')
                                                 }}
                                             />
                                         </div>
@@ -159,11 +159,11 @@ export function FormattedAIResponse({ content }: { content: string }) {
 
                                 // Párrafo normal
                                 return (
-                                    <p 
-                                        key={i} 
+                                    <p
+                                        key={i}
                                         className="text-lg leading-[2.2] tracking-wide text-foreground/85 first-letter:text-2xl first-letter:font-semibold first-letter:text-primary/80"
-                                        dangerouslySetInnerHTML={{ 
-                                            __html: trimmed.replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary font-semibold">$1</strong>') 
+                                        dangerouslySetInnerHTML={{
+                                            __html: trimmed.replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary font-semibold">$1</strong>')
                                         }}
                                     />
                                 );

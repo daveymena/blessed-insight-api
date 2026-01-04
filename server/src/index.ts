@@ -2,41 +2,37 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
+import { PrismaClient } from '@prisma/client';
+
+// Importar rutas
 import authRoutes from './routes/auth';
 import notesRoutes from './routes/notes';
 import conversationsRoutes from './routes/conversations';
 import aiRoutes from './routes/ai';
 import paymentsRoutes from './routes/payments';
-import { PrismaClient } from '@prisma/client';
-import fs from 'fs';
 
+dotenv.config();
+
+const app = express();
 export const prisma = new PrismaClient();
 
-try {
-    dotenv.config();
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
 
-    const app = express();
+// Health Check
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date() });
+});
 
-    app.use(cors());
-    app.use(express.json({ limit: '10mb' }));
+// Registrar Rutas
+app.use('/api/auth', authRoutes);
+app.use('/api/notes', notesRoutes);
+app.use('/api/conversations', conversationsRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/payments', paymentsRoutes);
 
-    // Routes
-    app.use('/api/auth', authRoutes);
-    app.use('/api/notes', notesRoutes);
-    app.use('/api/conversations', conversationsRoutes);
-    app.use('/api/ai', aiRoutes);
-    app.use('/api/payments', paymentsRoutes);
+const PORT = process.env.PORT || 3000;
 
-    app.get('/health', (req, res) => {
-        res.json({ status: 'ok', timestamp: new Date() });
-    });
-
-    const PORT = process.env.PORT || 3000;
-
-    app.listen(PORT, async () => {
-        console.log(`Server running on port ${PORT}`);
-    });
-} catch (error: any) {
-    fs.writeFileSync('CRITICAL_ERROR.txt', error?.stack || error?.message || String(error));
-    process.exit(1);
-}
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor Blessed corriendo en puerto ${PORT}`);
+});
