@@ -17,7 +17,8 @@ export async function performExegesis(
   passage: string,
   bookName: string,
   chapter: number,
-  customReference?: string
+  customReference?: string,
+  onProgress?: (content: string) => void
 ): Promise<AIResponse> {
   const reference = customReference || `${bookName} ${chapter}`;
 
@@ -54,11 +55,11 @@ Sigue estrictamente este formato de Biblia de Estudio Profesional:
    - Una oración basada estrictamente en las verdades de este texto.` }
   ];
 
-  return callAI(messages, 2000); // Más tokens para más profundidad
+  return callAI(messages, 2000, onProgress); // Más tokens para más profundidad
 }
 
 // ============ ESTUDIO TEMÁTICO (VERSIÓN PROFESIONAL) ============
-export async function thematicStudy(topic: string): Promise<AIResponse> {
+export async function thematicStudy(topic: string, onProgress?: (content: string) => void): Promise<AIResponse> {
   const messages = [
     { role: 'system' as const, content: BIBLE_SCHOLAR },
     {
@@ -88,7 +89,7 @@ Sigue este esquema de investigación académica:
    - Cómo este tema nos lleva a la adoración y madurez cristiana.` }
   ];
 
-  return callAI(messages, 2000);
+  return callAI(messages, 2000, onProgress);
 }
 
 // ============ COMPARACIÓN DE VERSÍCULOS ============
@@ -119,7 +120,8 @@ Analiza:
 export async function generateReflectionQuestions(
   passage: string,
   bookName: string,
-  chapter: number
+  chapter: number,
+  onProgress?: (content: string) => void
 ): Promise<AIResponse> {
   const messages = [
     { role: 'system' as const, content: BIBLE_EXPERT_SIMPLE },
@@ -146,7 +148,7 @@ Genera 8 preguntas profundas:
 Las preguntas deben provocar reflexión profunda, no respuestas superficiales.` }
   ];
 
-  return callAI(messages, 1200);
+  return callAI(messages, 1200, onProgress);
 }
 
 
@@ -316,7 +318,8 @@ export async function generateDailyDevotional(
   passage: string,
   bookName: string,
   chapter: number,
-  verse?: number
+  verse?: number,
+  onProgress?: (content: string) => void
 ): Promise<AIResponse> {
   const reference = verse ? `${bookName} ${chapter}:${verse}` : `${bookName} ${chapter}`;
 
@@ -351,7 +354,7 @@ Una oración sincera que responda al texto
 El versículo más impactante del pasaje` }
   ];
 
-  return callAI(messages, 1500);
+  return callAI(messages, 1500, onProgress);
 }
 
 // ============ VERSÍCULO DEL DÍA ============
@@ -644,7 +647,7 @@ Si el tema es escatológico, presenta las visiones clásicas con respeto pero ma
 Usa un tono cálido, autoritativo pero humilde. 
 Responde siempre en español.`;
 
-export async function askBiblo(question: string, context?: string): Promise<AIResponse> {
+export async function askBiblo(question: string, context?: string, onProgress?: (content: string) => void): Promise<AIResponse> {
   const messages = [
     { role: 'system' as const, content: BIBLO_PERSONALITY },
     {
@@ -653,5 +656,5 @@ export async function askBiblo(question: string, context?: string): Promise<AIRe
       Responde de forma profunda, usando versículos de apoyo y una estructura clara.` }
   ];
 
-  return callAI(messages, 1500);
+  return callAI(messages, 1500, onProgress);
 }

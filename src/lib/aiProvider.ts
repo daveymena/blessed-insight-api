@@ -4,7 +4,7 @@ import { API_BASE_URL } from './constants';
 // Usar proxy local para evitar CORS
 const OLLAMA_BASE_URL = '/api/ollama'; // Vite proxy configurado
 const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'gemma2:2b';
-const OLLAMA_TIMEOUT = 300000; // 5 minutos - Ollama puede ser lento en carga inicial
+const OLLAMA_TIMEOUT = 0; // Tiempo indeterminado para producciones largas con IA
 const OLLAMA_MAX_TOKENS = 500; // Reducimos un poco para ganar velocidad pero mantener profundidad
 
 
@@ -101,66 +101,87 @@ async function callGroq(messages: AIMessage[], maxTokens: number): Promise<AIRes
 }
 
 // Llamar al Backend AI (que internamente usa Ollama)
-async function callOllama(messages: AIMessage[], maxTokens: number): Promise<AIResponse | null> {
+async function callOllama(
+  messages: AIMessage[],
+  maxTokens: number,
+  onProgress?: (content: string) => void
+): Promise<AIResponse | null> {
   const startTime = Date.now();
   const systemMessage = messages.find(m => m.role === 'system')?.content || '';
   const userMessage = messages.filter(m => m.role === 'user').map(m => m.content).join('\n');
 
   try {
-    console.log(`📡 Llamando al Backend AI (/api/ai/generate)...`);
+    console.log(`📡 Llamando al Backend AI (/api/ai/generate)... ${onProgress ? '(STREAMING)' : ''}`);
 
     // Timestamp para forzar a ignorar cualquier cache de service worker
     const cacheBuster = `?t=${Date.now()}`;
 
-    const response = await withTimeout(
-      fetch(`/api/ai/generate${cacheBuster}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        },
-        body: JSON.stringify({
-          prompt: systemMessage ? `${systemMessage}\n\n${userMessage}` : userMessage,
-          maxTokens: Math.min(maxTokens, OLLAMA_MAX_TOKENS)
-        }),
-        cache: 'no-cache'
+    const response = await fetch(`/api/ai/generate${cacheBuster}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      },
+      body: JSON.stringify({
+        prompt: systemMessage ? `${systemMessage}\n\n${userMessage}` : userMessage,
+        maxTokens: Math.min(maxTokens, OLLAMA_MAX_TOKENS),
+        stream: !!onProgress
       }),
-      OLLAMA_TIMEOUT
-    );
-
-    console.log(`📊 Response status: ${response.status} ${response.statusText}`);
+      cache: 'no-cache'
+    });
 
     if (response.ok) {
-      const text = await response.text();
-      console.log('📝 Raw Response Body:', text);
+      if (onProgress && response.body) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullContent = '';
 
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        console.error('❌ Error parseando JSON:', text);
-        return null;
-      }
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-      if (data.success && data.content) {
-        console.log(`✅ Backend AI respondió correctamente`);
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6).trim();
+              if (data === '[DONE]') break;
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.content) {
+                  fullContent += parsed.content;
+                  onProgress(fullContent);
+                }
+              } catch (e) { }
+            }
+          }
+        }
+
         return {
           success: true,
-          content: data.content,
-          provider: data.provider || 'backend',
+          content: fullContent,
+          provider: 'ollama',
           timeMs: Date.now() - startTime
         };
       } else {
-        throw new Error(data.content || 'El backend respondió éxito:falso');
+        const data = await response.json();
+        if (data.success && data.content) {
+          return {
+            success: true,
+            content: data.content,
+            provider: data.provider || 'backend',
+            timeMs: Date.now() - startTime
+          };
+        }
       }
-    } else {
-      const errorText = await response.text().catch(() => 'Sin detalle');
-      throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 50)}`);
     }
+
+    throw new Error(`HTTP ${response.status}`);
   } catch (error) {
     console.error(`❌ Fallo crítico en fetch:`, error);
-    throw error; // Lanzar el error para que callAI lo capture
+    throw error;
   }
 }
 
@@ -193,9 +214,13 @@ async function callBackendProxy(messages: AIMessage[], maxTokens: number): Promi
 
 
 /**
- * Llamada principal a IA - SOLO Ollama (ilimitado)
+ * Llamada principal a IA - SOLO Ollama (ilimitado) con soporte para Streaming
  */
-export async function callAI(messages: AIMessage[], maxTokens: number = 800): Promise<AIResponse> {
+export async function callAI(
+  messages: AIMessage[],
+  maxTokens: number = 800,
+  onProgress?: (content: string) => void
+): Promise<AIResponse> {
   const startTime = Date.now();
 
   console.log(`🚀 Iniciando consulta IA con Ollama (max ${maxTokens} tokens)...`);
@@ -204,7 +229,7 @@ export async function callAI(messages: AIMessage[], maxTokens: number = 800): Pr
 
   // Usar SOLO Ollama
   try {
-    const ollamaResult = await callOllama(messages, maxTokens);
+    const ollamaResult = await callOllama(messages, maxTokens, onProgress);
     if (ollamaResult && ollamaResult.success) {
       console.log(`✅ Respuesta exitosa de Ollama en ${Date.now() - startTime}ms`);
       return ollamaResult;
@@ -214,7 +239,13 @@ export async function callAI(messages: AIMessage[], maxTokens: number = 800): Pr
     errorMessage = e instanceof Error ? e.message : String(e);
   }
 
-  // Si Ollama falla, mostrar mensaje claro con el error
+  // Si Ollama falla, intentar Groq como fallback (Groq no soporta streaming aquí por ahora)
+  if (!onProgress) {
+    const groqResult = await callGroq(messages, maxTokens);
+    if (groqResult && groqResult.success) return groqResult;
+  }
+
+  // Si todo falla
   return {
     success: false,
     content: `⚠️ Error de conexión: ${errorMessage}. \n\nPor favor verifica:\n1. Que el servidor 'server' esté corriendo (puerto 3000)\n2. Que Ollama esté accesible.`,

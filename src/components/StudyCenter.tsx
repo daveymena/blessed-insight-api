@@ -226,7 +226,17 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
     setExegesisResponse({ content: null, time: null, fromCache: false });
     const startTime = Date.now();
 
-    const result = await performExegesis(textToAnalyze, book.name, chapter, customReference.trim());
+    const result = await performExegesis(
+      textToAnalyze,
+      book.name,
+      chapter,
+      customReference.trim(),
+      (content) => {
+        setExegesisResponse(prev => ({ ...prev, content }));
+        // Quitar el overlay de carga pesada cuando empezamos a recibir texto
+        if (content.length > 5) setLoading(false);
+      }
+    );
 
     setExegesisResponse({ content: result.content, time: Date.now() - startTime, fromCache: false });
     setCachedResponse(cacheKey, result.content);
@@ -247,7 +257,10 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
     setThematicResponse({ content: null, time: null, fromCache: false });
     const startTime = Date.now();
 
-    const result = await thematicStudy(topic);
+    const result = await thematicStudy(topic, (content) => {
+      setThematicResponse(prev => ({ ...prev, content }));
+      if (content.length > 5) setLoading(false);
+    });
 
     setThematicResponse({ content: result.content, time: Date.now() - startTime, fromCache: false });
     setCachedResponse(cacheKey, result.content);
@@ -268,7 +281,10 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
     setQuestionsResponse({ content: null, time: null, fromCache: false });
     const startTime = Date.now();
 
-    const result = await generateReflectionQuestions(passageText, book.name, chapter);
+    const result = await generateReflectionQuestions(passageText, book.name, chapter, (content) => {
+      setQuestionsResponse(prev => ({ ...prev, content }));
+      if (content.length > 5) setLoading(false);
+    });
 
     setQuestionsResponse({ content: result.content, time: Date.now() - startTime, fromCache: false });
     setCachedResponse(cacheKey, result.content);
@@ -289,7 +305,10 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
     setDevotionalResponse({ content: null, time: null, fromCache: false });
     const startTime = Date.now();
 
-    const result = await generateDailyDevotional(passageText, book.name, chapter);
+    const result = await generateDailyDevotional(passageText, book.name, chapter, undefined, (content) => {
+      setDevotionalResponse(prev => ({ ...prev, content }));
+      if (content.length > 5) setLoading(false);
+    });
 
     setDevotionalResponse({ content: result.content, time: Date.now() - startTime, fromCache: false });
     setCachedResponse(cacheKey, result.content);
@@ -331,7 +350,10 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
     setBibloResponse({ content: null, time: null, fromCache: false });
     const startTime = Date.now();
 
-    const result = await askBiblo(bibloQuestion, passageText);
+    const result = await askBiblo(bibloQuestion, passageText, (content) => {
+      setBibloResponse(prev => ({ ...prev, content }));
+      if (content.length > 5) setLoading(false);
+    });
 
     setBibloResponse({ content: result.content, time: Date.now() - startTime, fromCache: false });
     setCachedResponse(cacheKey, result.content);

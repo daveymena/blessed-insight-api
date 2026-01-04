@@ -15,6 +15,8 @@ export default defineConfig(({ mode }) => ({
         target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
+        timeout: 0, // Indeterminado
+        proxyTimeout: 0, // Indeterminado
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
             console.log('proxy error', err);

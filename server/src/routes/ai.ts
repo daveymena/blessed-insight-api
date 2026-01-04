@@ -9,6 +9,8 @@ const GROQ_MODEL = process.env.VITE_GROQ_MODEL || process.env.GROQ_MODEL || 'lla
 
 // URLs internas para Easypanel/Docker
 const OLLAMA_INTERNAL_URLS = [
+  'http://localhost:11434',          // Local
+  'http://127.0.0.1:11434',          // Local alternate
   'http://ollama.ollama:11434',      // EasyPanel interno
   'http://ollama_ollama:11434',      // Docker Compose style
   'http://ollama:11434',             // Simple name
@@ -65,17 +67,11 @@ async function generateAIResponse(params: {
         body.prompt = system ? `${system}\n\n${prompt}` : prompt;
       }
 
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 300000); // 5 minutos (300,000 ms)
-
       const response = await fetch(`${baseUrl}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
         body: JSON.stringify(body),
       });
-
-      clearTimeout(timeout);
 
       if (response.ok) {
         const data = await response.json() as any;
@@ -148,20 +144,92 @@ async function generateAIResponse(params: {
 
 // Endpoint unificado
 router.post('/generate', async (req, res) => {
-  try {
-    const result = await generateAIResponse(req.body);
-    if (result.success) {
-      res.json(result);
-    } else {
-      res.status(503).json(result);
+  const { stream = false } = req.body;
+
+  if (stream) {
+    // Configurar cabeceras de streaming
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const { prompt, system, messages, maxTokens = 2000 } = req.body;
+    const isChat = messages && messages.length > 0;
+    const ollamaUrls = [...OLLAMA_INTERNAL_URLS, OLLAMA_EXTERNAL_URL];
+
+    // Intentar Ollama Stream
+    for (const baseUrl of ollamaUrls) {
+      try {
+        console.log(`[AI Stream] Intentando ${baseUrl}...`);
+        const endpoint = isChat ? '/api/chat' : '/api/generate';
+        const body: any = {
+          model: OLLAMA_MODEL,
+          stream: true,
+          options: { temperature: 0.7, num_predict: maxTokens },
+        };
+
+        if (isChat) body.messages = messages;
+        else body.prompt = system ? `${system}\n\n${prompt}` : prompt;
+
+        const response = await fetch(`${baseUrl}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+
+        if (response.ok && response.body) {
+          console.log(`[AI Stream] ✅ Éxito con Ollama (${baseUrl})`);
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n').filter(Boolean);
+
+            for (const line of lines) {
+              try {
+                const json = JSON.parse(line);
+                const content = isChat ? json.message?.content : json.response;
+                if (content) {
+                  res.write(`data: ${JSON.stringify({ content })}\n\n`);
+                }
+                if (json.done) break;
+              } catch (e) { }
+            }
+          }
+          res.write('data: [DONE]\n\n');
+          res.end();
+          return;
+        }
+      } catch (error) {
+        console.warn(`[AI Stream] ⚠️ Fallo en ${baseUrl}`);
+      }
     }
-  } catch (err) {
-    console.error('[AI Router] Error interno:', err);
-    res.status(500).json({
-      success: false,
-      content: `Error interno en el servidor de IA: ${err instanceof Error ? err.message : String(err)}`,
-      provider: 'error'
-    });
+
+    // Fallback simple si falla el stream (Groq no implementado en stream aquí por simplicidad)
+    const result = await generateAIResponse(req.body);
+    res.write(`data: ${JSON.stringify({ content: result.content })}\n\n`);
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } else {
+    try {
+      const result = await generateAIResponse(req.body);
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(503).json(result);
+      }
+    } catch (err) {
+      console.error('[AI Router] Error interno:', err);
+      res.status(500).json({
+        success: false,
+        content: `Error interno en el servidor de IA: ${err instanceof Error ? err.message : String(err)}`,
+        provider: 'error'
+      });
+    }
   }
 });
 
