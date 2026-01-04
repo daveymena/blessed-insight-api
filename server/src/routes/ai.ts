@@ -1,6 +1,8 @@
 import { Router } from 'express';
 
 const router = Router();
+// v2.1.0 - Streaming e Indeterminado
+
 
 // Configuración desde variables de entorno - Tolerante a fallos de Nomenclatura
 const OLLAMA_EXTERNAL_URL = process.env.VITE_OLLAMA_BASE_URL || process.env.OLLAMA_BASE_URL || 'https://ollama-ollama.ginee6.easypanel.host';
