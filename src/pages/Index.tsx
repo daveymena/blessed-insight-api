@@ -27,18 +27,14 @@ const Index = () => {
   const [themeOpen, setThemeOpen] = useState(false);
   const [navModalOpen, setNavModalOpen] = useState(false);
   const [showHome, setShowHome] = useState(true);
-  const [activeTab, setActiveTab] = useState<'home' | 'bible' | 'plans' | 'search' | 'favorites'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'bible' | 'study' | 'biblo' | 'search' | 'favorites'>('home');
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const toggleRightPanel = (type: 'biblo' | 'study') => {
-    if (rightPanelOpen && rightPanelType === type) {
-      setRightPanelOpen(false);
-      setRightPanelType('none');
-    } else {
-      setRightPanelOpen(true);
-      setRightPanelType(type);
-    }
+  const toggleFullView = (type: 'biblo' | 'study') => {
+    setActiveTab(type);
+    setShowHome(false);
+    setRightPanelOpen(false); // Cerramos el panel lateral si estaba abierto
   };
 
   // Inicializar tema al cargar
@@ -68,13 +64,16 @@ const Index = () => {
       setNavModalOpen(true);
     } else {
       setShowHome(false);
+      setActiveTab('bible');
       sessionStorage.setItem('bible_home_dismissed', 'true');
     }
   };
 
   const handleGoHome = () => {
     setShowHome(true);
+    setActiveTab('home');
     sessionStorage.removeItem('bible_home_dismissed');
+    setRightPanelOpen(false);
   };
 
   const {
@@ -100,6 +99,8 @@ const Index = () => {
 
   const handleSearchSelect = (book: BibleBook, chapter?: number) => {
     navigateTo(book, chapter || 1);
+    setActiveTab('bible');
+    setShowHome(false);
     setSearchOpen(false);
   };
 
@@ -132,10 +133,10 @@ const Index = () => {
       {!showHome && (
         <BibleHeader
           onMenuClick={() => setSidebarOpen(true)}
-          onAIClick={() => toggleRightPanel('biblo')}
+          onAIClick={() => toggleFullView('biblo')}
           onSearchClick={() => setSearchOpen(true)}
           onFavoritesClick={() => setFavoritesOpen(true)}
-          onStudyClick={() => toggleRightPanel('study')}
+          onStudyClick={() => toggleFullView('study')}
           onThemeClick={() => setThemeOpen(true)}
           onHomeClick={handleGoHome}
           onVersionChange={handleVersionChange}
@@ -170,66 +171,56 @@ const Index = () => {
         />
 
         <main className="flex-1 flex min-w-0 h-full relative overflow-hidden">
-          <div className="flex-1 overflow-y-auto pb-24 md:pb-4 scroll-smooth overflow-x-hidden custom-scrollbar">
-            {showHome ? (
-              <HomeScreen
-                onStartReading={handleStartReading}
-                onOpenSearch={() => setSearchOpen(true)}
-                onOpenStudyCenter={() => toggleRightPanel('study')}
-                onOpenFavorites={() => setFavoritesOpen(true)}
-                onOpenAI={() => toggleRightPanel('biblo')}
-                onOpenPlans={() => toggleRightPanel('study')}
-                onOpenTheme={() => setThemeOpen(true)}
-                onOpenMenu={() => setSidebarOpen(true)}
-              />
-            ) : (
-              <ScriptureReader
-                book={selectedBook}
-                chapter={selectedChapter}
-                passage={passage}
-                isLoading={isLoading}
-                error={error as Error | null}
-                canGoNext={!!canGoNext}
-                canGoPrevious={!!canGoPrevious}
-                onNext={goToNextChapter}
-                onPrevious={goToPreviousChapter}
-                onVersionChange={handleVersionChange}
-              />
-            )}
-          </div>
+          {activeTab === 'study' ? (
+            <StudyCenter
+              book={selectedBook}
+              chapter={selectedChapter}
+              passage={passage}
+              isOpen={true}
+              onClose={handleGoHome}
+              isSidebar={false}
+            />
+          ) : activeTab === 'biblo' ? (
+            <AIStudyPanel
+              book={selectedBook}
+              chapter={selectedChapter}
+              passage={passage}
+              isOpen={true}
+              onClose={handleGoHome}
+              isSidebar={false}
+            />
+          ) : (
+            <div className="flex-1 overflow-y-auto pb-24 md:pb-4 scroll-smooth overflow-x-hidden custom-scrollbar">
+              {showHome || activeTab === 'home' ? (
+                <HomeScreen
+                  onStartReading={handleStartReading}
+                  onOpenSearch={() => setSearchOpen(true)}
+                  onOpenStudyCenter={() => toggleFullView('study')}
+                  onOpenFavorites={() => setFavoritesOpen(true)}
+                  onOpenAI={() => toggleFullView('biblo')}
+                  onOpenPlans={() => toggleFullView('study')}
+                  onOpenTheme={() => setThemeOpen(true)}
+                  onOpenMenu={() => setSidebarOpen(true)}
+                />
+              ) : (
+                <ScriptureReader
+                  book={selectedBook}
+                  chapter={selectedChapter}
+                  passage={passage}
+                  isLoading={isLoading}
+                  error={error as Error | null}
+                  canGoNext={!!canGoNext}
+                  canGoPrevious={!!canGoPrevious}
+                  onNext={goToNextChapter}
+                  onPrevious={goToPreviousChapter}
+                  onVersionChange={handleVersionChange}
+                />
+              )}
+            </div>
+          )}
 
           {/* Panel Derecho Persistente (Estilo Logos/Premium) */}
-          <AnimatePresence>
-            {rightPanelOpen && (
-              <motion.div
-                initial={{ x: '100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="hidden lg:block w-[450px] border-l bg-card/80 backdrop-blur-xl z-30 shadow-2xl overflow-hidden"
-              >
-                {rightPanelType === 'biblo' ? (
-                  <AIStudyPanel
-                    book={selectedBook}
-                    chapter={selectedChapter}
-                    passage={passage}
-                    isOpen={true}
-                    onClose={() => setRightPanelOpen(false)}
-                    isSidebar={true}
-                  />
-                ) : (
-                  <StudyCenter
-                    book={selectedBook}
-                    chapter={selectedChapter}
-                    passage={passage}
-                    isOpen={true}
-                    onClose={() => setRightPanelOpen(false)}
-                    isSidebar={true}
-                  />
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Panel Lateral removido para usar vista completa centralizada */}
         </main>
       </div>
 
@@ -240,8 +231,8 @@ const Index = () => {
         onMenuClick={() => { setActiveTab('bible'); setShowHome(false); setSidebarOpen(true); }}
         onSearchClick={() => { setActiveTab('search'); setSearchOpen(true); }}
         onFavoritesClick={() => { setActiveTab('favorites'); setFavoritesOpen(true); }}
-        onAIClick={() => toggleRightPanel('biblo')}
-        onStudyClick={() => toggleRightPanel('study')}
+        onAIClick={() => toggleFullView('biblo')}
+        onStudyClick={() => toggleFullView('study')}
       />
 
       {/* Panels and Modals */}
@@ -261,23 +252,7 @@ const Index = () => {
       />
 
       {/* Modales para Móvil (Mismo contenido, diferente presentación) */}
-      <div className="lg:hidden">
-        <AIStudyPanel
-          book={selectedBook}
-          chapter={selectedChapter}
-          passage={passage}
-          isOpen={rightPanelOpen && rightPanelType === 'biblo'}
-          onClose={() => setRightPanelOpen(false)}
-        />
-
-        <StudyCenter
-          book={selectedBook}
-          chapter={selectedChapter}
-          passage={passage}
-          isOpen={rightPanelOpen && rightPanelType === 'study'}
-          onClose={() => setRightPanelOpen(false)}
-        />
-      </div>
+      {/* Modales para Móvil removidos ya que ahora son vistas principales */}
 
       <ThemeCustomizer
         isOpen={themeOpen}

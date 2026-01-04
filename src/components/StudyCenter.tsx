@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   X, BookOpen, GraduationCap, Calendar, Heart, MessageSquare,
   Sparkles, Loader2, ChevronRight, Users, User, BookMarked,
-  PenLine, Clock, Flame, Target, FileText, Zap, Copy, Check
+  PenLine, Clock, Flame, Target, FileText, Zap, Copy, Check, Home
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -474,8 +474,9 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
           size="icon"
           onClick={onClose}
           className="text-primary-foreground hover:bg-white/20 rounded-full h-8 w-8 sm:h-10 sm:w-10 transition-transform hover:scale-105 active:scale-95"
+          title={isSidebar ? "Cerrar" : "Volver a Inicio"}
         >
-          <X className="h-5 w-5 sm:h-6 sm:w-6" />
+          {isSidebar ? <X className="h-5 w-5 sm:h-6 sm:w-6" /> : <Home className="h-5 w-5 sm:h-6 sm:w-6" />}
         </Button>
       </header>
 
@@ -1169,7 +1170,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
   if (isSidebar) return panelContent;
 
   return (
-    <div className="fixed inset-0 bg-background z-50 flex flex-col items-stretch overflow-hidden">
+    <div className={cn("flex flex-col h-full w-full bg-background animate-in fade-in duration-500", !isOpen && "hidden")}>
       {panelContent}
     </div>
   );

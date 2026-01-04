@@ -9,7 +9,7 @@ interface MobileBottomNavProps {
   onFavoritesClick: () => void;
   onAIClick: () => void;
   onStudyClick: () => void;
-  activeTab: 'home' | 'bible' | 'plans' | 'search' | 'favorites';
+  activeTab: 'home' | 'bible' | 'study' | 'biblo' | 'search' | 'favorites';
 }
 
 export function MobileBottomNav({
@@ -24,7 +24,7 @@ export function MobileBottomNav({
   const items = [
     { id: 'home', icon: Sun, label: 'Inicio', onClick: onHomeClick },
     { id: 'bible', icon: BookOpen, label: 'Biblia', onClick: onMenuClick },
-    { id: 'plans', icon: GraduationCap, label: 'Planes', onClick: onStudyClick },
+    { id: 'study', icon: GraduationCap, label: 'Planes', onClick: onStudyClick },
     { id: 'search', icon: Search, label: 'Buscar', onClick: onSearchClick },
     { id: 'biblo', icon: Sparkles, label: 'Biblo', onClick: onAIClick, isSpecial: true },
   ];

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Microscope, GraduationCap, Calendar, Send, Loader2 } from 'lucide-react';
+import { Sparkles, X, Microscope, GraduationCap, Calendar, Send, Loader2, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -68,8 +68,8 @@ export function AIStudyPanel({ book, chapter, passage, isOpen, onClose, isSideba
           <Sparkles className="h-5 w-5" />
           <span className="font-semibold text-sm sm:text-base">Asistente de Estudio</span>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20 h-8 w-8">
-          <X className="h-5 w-5" />
+        <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20 h-8 w-8" title={isSidebar ? "Cerrar" : "Volver a Inicio"}>
+          {isSidebar ? <X className="h-5 w-5" /> : <Home className="h-5 w-5" />}
         </Button>
       </div>
 
@@ -188,18 +188,8 @@ export function AIStudyPanel({ book, chapter, passage, isOpen, onClose, isSideba
   if (isSidebar) return panelContent;
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ x: '100%', opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: '100%', opacity: 0 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-y-0 right-0 w-full sm:w-96 bg-card border-l border-border shadow-2xl z-50 flex flex-col"
-        >
-          {panelContent}
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div className={cn("flex flex-col h-full w-full bg-background animate-in fade-in duration-500", !isOpen && "hidden")}>
+      {panelContent}
+    </div>
   );
 }
