@@ -1170,7 +1170,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
   if (isSidebar) return panelContent;
 
   return (
-    <div className={cn("flex flex-col h-full w-full bg-background animate-in fade-in duration-500", !isOpen && "hidden")}>
+    <div className={cn("flex flex-col h-full w-full bg-background animate-in fade-in duration-500 pb-20 md:pb-0", !isOpen && "hidden")}>
       {panelContent}
     </div>
   );
