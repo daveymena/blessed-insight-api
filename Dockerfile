@@ -1,7 +1,7 @@
 # ============================================
 # STAGE 1: Build Frontend
 # ============================================
-FROM node:20-alpine AS frontend-builder
+FROM node:20-slim AS frontend-builder
 
 WORKDIR /app
 
@@ -42,9 +42,12 @@ RUN npm run build
 # ============================================
 # STAGE 2: Build Backend
 # ============================================
-FROM node:20-alpine AS backend-builder
+FROM node:20-slim AS backend-builder
 
 WORKDIR /app/server
+
+# Install OpenSSL (required for Prisma build)
+RUN apt-get update -y && apt-get install -y openssl
 
 # Copy server package files
 COPY server/package*.json ./
@@ -62,10 +65,12 @@ RUN npm run build
 # ============================================
 # STAGE 3: Production
 # ============================================
-FROM node:20-alpine
+FROM node:20-slim
 
-# Install nginx and supervisor
-RUN apk add --no-cache nginx supervisor
+# Install nginx, supervisor, and openssl
+RUN apt-get update -y && \
+    apt-get install -y nginx supervisor openssl ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -75,42 +80,18 @@ COPY --from=frontend-builder /app/dist /usr/share/nginx/html
 # Copy nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy backend
+# Copy backend artifacts
 COPY --from=backend-builder /app/server/dist ./server/dist
 COPY --from=backend-builder /app/server/node_modules ./server/node_modules
 COPY --from=backend-builder /app/server/package.json ./server/
 COPY --from=backend-builder /app/server/prisma ./server/prisma
 
 # Create supervisor config
-RUN mkdir -p /etc/supervisor.d
-COPY <<EOF /etc/supervisor.d/app.ini
-[supervisord]
-nodaemon=true
-logfile=/dev/stdout
-logfile_maxbytes=0
-
-[program:nginx]
-command=nginx -g "daemon off;"
-autostart=true
-autorestart=true
-stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
-
-[program:backend]
-command=node /app/server/dist/index.js
-directory=/app/server
-autostart=true
-autorestart=true
-stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
-EOF
+RUN mkdir -p /var/log/supervisor
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Expose ports
 EXPOSE 80 3000
 
 # Start supervisor (runs both nginx and node)
-CMD ["supervisord", "-c", "/etc/supervisor.d/app.ini"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
