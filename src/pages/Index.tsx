@@ -27,7 +27,7 @@ const Index = () => {
   const [themeOpen, setThemeOpen] = useState(false);
   const [navModalOpen, setNavModalOpen] = useState(false);
   const [showHome, setShowHome] = useState(true);
-  const [activeTab, setActiveTab] = useState<'home' | 'bible' | 'study' | 'biblo' | 'search' | 'favorites'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'bible' | 'study' | 'biblo' | 'chat' | 'search' | 'favorites'>('home');
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -74,6 +74,10 @@ const Index = () => {
     setActiveTab('home');
     sessionStorage.removeItem('bible_home_dismissed');
     setRightPanelOpen(false);
+  };
+
+  const handleChat = () => {
+    navigate('/chat');
   };
 
   const {
@@ -139,6 +143,7 @@ const Index = () => {
           onStudyClick={() => toggleFullView('study')}
           onThemeClick={() => setThemeOpen(true)}
           onHomeClick={handleGoHome}
+          onChatClick={handleChat}
           onVersionChange={handleVersionChange}
           showSpanishEquivalent={showSpanishEquivalent}
           onSpanishToggle={setShowSpanishEquivalent}
@@ -233,6 +238,7 @@ const Index = () => {
         onFavoritesClick={() => { setActiveTab('favorites'); setFavoritesOpen(true); }}
         onAIClick={() => toggleFullView('biblo')}
         onStudyClick={() => toggleFullView('study')}
+        onChatClick={handleChat}
       />
 
       {/* Panels and Modals */}

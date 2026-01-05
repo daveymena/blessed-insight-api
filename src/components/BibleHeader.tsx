@@ -1,4 +1,4 @@
-import { BookOpen, Menu, Sparkles, Search, Heart, Moon, Sun, Languages, GraduationCap, Palette, ChevronDown, Home, MoreVertical, X } from 'lucide-react';
+import { BookOpen, Menu, Sparkles, Search, Heart, Moon, Sun, Languages, GraduationCap, Palette, ChevronDown, Home, MoreVertical, X, MessageCircle } from 'lucide-react';
 import { Logo } from './Logo';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
@@ -22,6 +22,7 @@ interface BibleHeaderProps {
   onStudyClick?: () => void;
   onThemeClick?: () => void;
   onHomeClick?: () => void;
+  onChatClick?: () => void; // Nuevo: Botón de Chat Bíblico
   onVersionChange?: () => void;
   showSpanishEquivalent?: boolean;
   onSpanishToggle?: (value: boolean) => void;
@@ -41,6 +42,7 @@ export function BibleHeader({
   onStudyClick,
   onThemeClick,
   onHomeClick,
+  onChatClick, // Nuevo
   onVersionChange,
   showSpanishEquivalent = false,
   onSpanishToggle,
@@ -140,6 +142,17 @@ export function BibleHeader({
             <VersionSelector onVersionChange={onVersionChange} />
           </div>
 
+          {/* Botón Chat Bíblico - Siempre visible */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onChatClick}
+            className={`h-9 w-9 ${hasScenicBackground ? 'text-blue-300 hover:bg-white/10' : 'text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30'}`}
+            title="Chat Bíblico"
+          >
+            <MessageCircle className="h-5 w-5" />
+          </Button>
+
           {/* Botón IA - Siempre visible */}
           <Button
             variant="ghost"
@@ -163,6 +176,11 @@ export function BibleHeader({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={onChatClick}>
+                <MessageCircle className="h-4 w-4 mr-3" />
+                Chat Bíblico
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onMenuClick}>
                 <Menu className="h-4 w-4 mr-3" />
                 Libros de la Biblia

@@ -5,7 +5,7 @@ import { API_BASE_URL } from './constants';
 const OLLAMA_BASE_URL = '/api/ollama'; // Vite proxy configurado
 const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'gemma2:2b';
 const OLLAMA_TIMEOUT = 0; // Tiempo indeterminado para producciones largas con IA
-const OLLAMA_MAX_TOKENS = 500; // Reducimos un poco para ganar velocidad pero mantener profundidad
+const OLLAMA_MAX_TOKENS = -1; // -1 = ILIMITADO para respuestas completas sin cortes
 
 
 
@@ -125,7 +125,7 @@ async function callOllama(
       },
       body: JSON.stringify({
         prompt: systemMessage ? `${systemMessage}\n\n${userMessage}` : userMessage,
-        maxTokens: Math.min(maxTokens, OLLAMA_MAX_TOKENS),
+        maxTokens: OLLAMA_MAX_TOKENS === -1 ? maxTokens : Math.min(maxTokens, OLLAMA_MAX_TOKENS),
         stream: !!onProgress
       }),
       cache: 'no-cache'
@@ -218,7 +218,7 @@ async function callBackendProxy(messages: AIMessage[], maxTokens: number): Promi
  */
 export async function callAI(
   messages: AIMessage[],
-  maxTokens: number = 800,
+  maxTokens: number = 4000, // Aumentado para respuestas más completas
   onProgress?: (content: string) => void
 ): Promise<AIResponse> {
   const startTime = Date.now();
@@ -259,7 +259,7 @@ export async function callAIFast(messages: AIMessage[]): Promise<AIResponse> {
 }
 
 export async function callAIDetailed(messages: AIMessage[]): Promise<AIResponse> {
-  return callAI(messages, 800); // Respuestas moderadas
+  return callAI(messages, 6000); // Respuestas extensas y detalladas
 }
 
 export function getAIStatus() {

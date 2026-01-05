@@ -1,4 +1,4 @@
-import { BookOpen, Search, Heart, Sparkles, GraduationCap, Sun } from 'lucide-react';
+import { BookOpen, Search, Heart, Sparkles, GraduationCap, Sun, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -9,7 +9,8 @@ interface MobileBottomNavProps {
   onFavoritesClick: () => void;
   onAIClick: () => void;
   onStudyClick: () => void;
-  activeTab: 'home' | 'bible' | 'study' | 'biblo' | 'search' | 'favorites';
+  onChatClick?: () => void; // Nuevo
+  activeTab: 'home' | 'bible' | 'study' | 'biblo' | 'chat' | 'search' | 'favorites';
 }
 
 export function MobileBottomNav({
@@ -19,11 +20,13 @@ export function MobileBottomNav({
   onFavoritesClick,
   onAIClick,
   onStudyClick,
+  onChatClick,
   activeTab,
 }: MobileBottomNavProps) {
   const items = [
     { id: 'home', icon: Sun, label: 'Inicio', onClick: onHomeClick },
     { id: 'bible', icon: BookOpen, label: 'Biblia', onClick: onMenuClick },
+    { id: 'chat', icon: MessageCircle, label: 'Chat', onClick: onChatClick || (() => { }) },
     { id: 'study', icon: GraduationCap, label: 'Planes', onClick: onStudyClick },
     { id: 'search', icon: Search, label: 'Buscar', onClick: onSearchClick },
     { id: 'biblo', icon: Sparkles, label: 'Biblo', onClick: onAIClick, isSpecial: true },

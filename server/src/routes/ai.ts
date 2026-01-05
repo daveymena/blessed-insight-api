@@ -45,7 +45,7 @@ async function generateAIResponse(params: {
   messages?: any[],
   maxTokens?: number
 }) {
-  const { prompt, system, messages, maxTokens = 2000 } = params;
+  const { prompt, system, messages, maxTokens = 8000 } = params; // Aumentado para respuestas completas
 
   // Lista de URLs para intentar conectarse a Ollama (internas primero, luego externa)
   const ollamaUrls = [...OLLAMA_INTERNAL_URLS, OLLAMA_EXTERNAL_URL];
@@ -158,7 +158,7 @@ router.post('/generate', async (req, res) => {
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
 
-    const { prompt, system, messages, maxTokens = 2000 } = req.body;
+    const { prompt, system, messages, maxTokens = 8000 } = req.body; // Aumentado para respuestas completas
     const isChat = messages && messages.length > 0;
     const ollamaUrls = [...OLLAMA_INTERNAL_URLS, OLLAMA_EXTERNAL_URL];
 
