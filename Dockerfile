@@ -72,8 +72,13 @@ RUN apt-get update -y && \
     apt-get install -y nginx supervisor openssl ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
+# Remove default Nginx site
+RUN rm -f /etc/nginx/sites-enabled/default
+
 WORKDIR /app
 
+# Setup Nginx
+RUN rm -rf /usr/share/nginx/html/*
 # Copy frontend build
 COPY --from=frontend-builder /app/dist /usr/share/nginx/html
 
