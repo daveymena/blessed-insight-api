@@ -60,7 +60,10 @@ async function generateAIResponse(params: {
       const body: any = {
         model: OLLAMA_MODEL,
         stream: false,
-        options: { temperature: 0.7, num_predict: maxTokens },
+        options: {
+          temperature: 0.7,
+          num_predict: maxTokens
+        },
       };
 
       if (isChat) {
@@ -167,7 +170,10 @@ router.post('/generate', async (req, res) => {
         const body: any = {
           model: OLLAMA_MODEL,
           stream: true,
-          options: { temperature: 0.7, num_predict: maxTokens },
+          options: {
+            temperature: 0.7,
+            num_predict: maxTokens
+          },
         };
 
         if (isChat) body.messages = messages;
