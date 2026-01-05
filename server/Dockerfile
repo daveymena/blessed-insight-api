@@ -28,6 +28,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install system dependencies (OpenSSL is required for Prisma)
+RUN apk add --no-cache openssl
+
 # Copy package files ensuring production deps only
 COPY package*.json ./
 RUN npm ci --only=production
