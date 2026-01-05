@@ -55,7 +55,7 @@ Sigue estrictamente este formato de Biblia de Estudio Profesional:
    - Una oración basada estrictamente en las verdades de este texto.` }
   ];
 
-  return callAI(messages, 2000, onProgress); // Más tokens para más profundidad
+  return callAI(messages, 4000, onProgress); // Increased for deep exegesis
 }
 
 // ============ ESTUDIO TEMÁTICO (VERSIÓN PROFESIONAL) ============
@@ -89,7 +89,7 @@ Sigue este esquema de investigación académica:
    - Cómo este tema nos lleva a la adoración y madurez cristiana.` }
   ];
 
-  return callAI(messages, 2000, onProgress);
+  return callAI(messages, 4000, onProgress); // Increased for thematic depth
 }
 
 // ============ COMPARACIÓN DE VERSÍCULOS ============
@@ -113,7 +113,7 @@ Analiza:
 6. Aplicación práctica combinada` }
   ];
 
-  return callAIFast(messages);
+  return callAIFast(messages); // Keep fast comparison as is, or increase if needed later
 }
 
 // ============ PREGUNTAS DE REFLEXIÓN ============
@@ -148,7 +148,7 @@ Genera 8 preguntas profundas:
 Las preguntas deben provocar reflexión profunda, no respuestas superficiales.` }
   ];
 
-  return callAI(messages, 1200, onProgress);
+  return callAI(messages, 2000, onProgress); // Increased slightly for better questions
 }
 
 
@@ -310,7 +310,7 @@ Para cada día:
 Sé específico con las referencias.` }
   ];
 
-  return callAI(messages, 1000);
+  return callAI(messages, 2000); // Increased for complete plans
 }
 
 // ============ DEVOCIONAL DIARIO ============
@@ -354,7 +354,7 @@ Una oración sincera que responda al texto
 El versículo más impactante del pasaje` }
   ];
 
-  return callAI(messages, 1500, onProgress);
+  return callAI(messages, 2500, onProgress); // Increased for complete reflection
 }
 
 // ============ VERSÍCULO DEL DÍA ============
@@ -656,5 +656,5 @@ export async function askBiblo(question: string, context?: string, onProgress?: 
       Responde de forma profunda, usando versículos de apoyo y una estructura clara.` }
   ];
 
-  return callAI(messages, 1500, onProgress);
+  return callAI(messages, 3000, onProgress); // Increased for complete Biblo answers
 }
