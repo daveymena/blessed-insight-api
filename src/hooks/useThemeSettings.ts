@@ -10,10 +10,10 @@ export interface ExtendedThemeSettings {
 }
 
 const DEFAULT_SETTINGS: ExtendedThemeSettings = {
-    activeThemeId: 'pure-light',
-    fontSize: 22,
-    lineHeight: 2,
-    font: 'serif',
+    activeThemeId: 'royal-sepia', // Sepia como las biblias físicas
+    fontSize: 18, // Tamaño cómodo de lectura bíblica
+    lineHeight: 1.8, // Interlineado típico de biblias
+    font: 'serif', // Tipografía clásica
     spanishEquivalent: false
 };
 
@@ -39,8 +39,8 @@ export function useThemeSettings() {
                         document.documentElement.classList.remove('dark');
                     }
                 } else {
-                    // Fallback a herencia del sistema o primer tema
-                    setActiveTheme(BIBLE_THEMES.find(t => t.id === 'pure-light') || BIBLE_THEMES[0]);
+                    // Fallback a tema sepia (papel bíblico) por defecto
+                    setActiveTheme(BIBLE_THEMES.find(t => t.id === 'royal-sepia') || BIBLE_THEMES[0]);
                 }
             } catch (e) {
                 console.error('Error loading theme settings:', e);

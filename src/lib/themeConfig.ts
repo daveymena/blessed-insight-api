@@ -95,12 +95,12 @@ export const BIBLE_THEMES: ThemeConfig[] = [
     },
     {
         id: 'royal-sepia',
-        name: 'Sepia Real',
-        type: 'solid',
-        background: '#fdf6e3',
-        textColor: '#433422',
+        name: 'Papel Bíblico',
+        type: 'texture',
+        background: 'https://www.transparenttextures.com/patterns/cream-paper.png',
+        textColor: '#2c1810', // Marrón oscuro como tinta de biblia
         uiMode: 'light',
-        accentColor: '#92400e',
+        accentColor: '#8b4513',
         overlayOpacity: 1,
         blurAmount: '0px'
     },
