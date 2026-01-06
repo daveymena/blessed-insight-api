@@ -163,16 +163,16 @@ export function HomeScreen({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <p className="text-white/80 text-xs md:text-sm font-bold uppercase tracking-[0.2em] mb-2">{greeting}</p>
-            <h2 className="text-3xl sm:text-4xl md:text-6xl font-serif font-black text-white mb-6 drop-shadow-2xl leading-[1.1]">
+            <p className="text-white/80 text-[10px] sm:text-xs md:text-sm font-bold uppercase tracking-[0.2em] mb-2">{greeting}</p>
+            <h2 className="text-2xl sm:text-4xl md:text-6xl font-serif font-black text-white mb-4 sm:mb-6 drop-shadow-2xl leading-[1.1]">
               Tu espacio de<br />encuentro espiritual
             </h2>
             <Button
               onClick={onStartReading}
               size="lg"
-              className="bg-white text-slate-950 hover:bg-slate-100 rounded-2xl h-16 px-10 font-black uppercase tracking-widest shadow-2xl hover:scale-[1.02] transition-transform"
+              className="bg-white text-slate-950 hover:bg-slate-100 rounded-xl sm:rounded-2xl h-12 sm:h-16 px-6 sm:px-10 text-xs sm:text-base font-black uppercase tracking-widest shadow-2xl hover:scale-[1.02] transition-transform"
             >
-              <BookOpen className="h-5 w-5 mr-3" />
+              <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
               Comenzar
             </Button>
           </motion.div>
@@ -204,11 +204,11 @@ export function HomeScreen({
               <Sparkles size={120} strokeWidth={1} />
             </div>
             <div className="relative z-10">
-              <div className="w-16 h-16 bg-gradient-to-br from-violet-500 via-indigo-600 to-purple-600 text-white rounded-3xl flex items-center justify-center mb-6 shadow-xl group-hover:rotate-6 transition-transform">
-                <Sparkles className="h-8 w-8" />
+              <div className="w-10 h-10 sm:w-16 sm:h-16 bg-gradient-to-br from-violet-500 via-indigo-600 to-purple-600 text-white rounded-2xl sm:rounded-3xl flex items-center justify-center mb-3 sm:mb-6 shadow-xl group-hover:rotate-6 transition-transform">
+                <Sparkles className="h-5 w-5 sm:h-8 sm:w-8" />
               </div>
-              <h3 className="text-2xl font-serif font-black mb-1" style={{ color: activeTheme.textColor }}>Biblo IA</h3>
-              <p className="text-sm font-bold opacity-90" style={{ color: activeTheme.textColor }}>Asistente Inteligente</p>
+              <h3 className="text-lg sm:text-2xl font-serif font-black mb-0.5 sm:mb-1" style={{ color: activeTheme.textColor }}>Biblo IA</h3>
+              <p className="text-[10px] sm:text-sm font-bold opacity-90" style={{ color: activeTheme.textColor }}>Asistente Inteligente</p>
             </div>
           </button>
 
@@ -224,11 +224,11 @@ export function HomeScreen({
               <GraduationCap size={120} strokeWidth={1} />
             </div>
             <div className="relative z-10">
-              <div className="w-16 h-16 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-600 text-white rounded-3xl flex items-center justify-center mb-6 shadow-xl group-hover:-rotate-6 transition-transform">
-                <GraduationCap className="h-8 w-8" />
+              <div className="w-10 h-10 sm:w-16 sm:h-16 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-600 text-white rounded-2xl sm:rounded-3xl flex items-center justify-center mb-3 sm:mb-6 shadow-xl group-hover:-rotate-6 transition-transform">
+                <GraduationCap className="h-5 w-5 sm:h-8 sm:w-8" />
               </div>
-              <h3 className="text-2xl font-serif font-black mb-1" style={{ color: activeTheme.textColor }}>Estudio</h3>
-              <p className="text-sm font-bold opacity-90" style={{ color: activeTheme.textColor }}>Cursos y Planes</p>
+              <h3 className="text-lg sm:text-2xl font-serif font-black mb-0.5 sm:mb-1" style={{ color: activeTheme.textColor }}>Estudio</h3>
+              <p className="text-[10px] sm:text-sm font-bold opacity-90" style={{ color: activeTheme.textColor }}>Cursos y Planes</p>
             </div>
           </button>
         </motion.div>
@@ -318,18 +318,18 @@ export function HomeScreen({
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
                 className={cn(
-                  "rounded-2xl sm:rounded-[2rem] p-4 sm:p-6 border transition-all group hover:shadow-xl",
+                  "rounded-2xl sm:rounded-[2rem] p-4 sm:p-6 border transition-all group hover:shadow-xl w-full",
                   cardBaseClass
                 )}
               >
-                <div className="flex items-start gap-5">
+                <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-5">
                   <div className={cn(
-                    "p-4 rounded-2xl shrink-0 shadow-xl",
+                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0 shadow-xl",
                     insight.type === 'promise' ? 'bg-amber-500 text-white' :
                       insight.type === 'fact' ? 'bg-emerald-500 text-white' : 'bg-blue-500 text-white'
                   )}>
-                    {insight.type === 'promise' ? <Gift className="h-6 w-6" /> :
-                      insight.type === 'fact' ? <Zap className="h-6 w-6" /> : <User className="h-6 w-6" />}
+                    {insight.type === 'promise' ? <Gift className="h-5 w-5 sm:h-6 sm:w-6" /> :
+                      insight.type === 'fact' ? <Zap className="h-5 w-5 sm:h-6 sm:w-6" /> : <User className="h-5 w-5 sm:h-6 sm:w-6" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-xs font-black uppercase tracking-widest opacity-70" style={{ color: activeTheme.textColor }}>
