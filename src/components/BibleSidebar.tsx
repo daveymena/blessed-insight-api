@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Book, LayoutGrid, ArrowLeft, MapPin } from 'lucide-react';
+import { Book, LayoutGrid, ArrowLeft, MapPin, Languages } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { BookSelector } from './BookSelector';
 import { ChapterSelector } from './ChapterSelector';
 import { VerseSelector } from './VerseSelector';
+import { VersionSelector } from './VersionSelector';
 import { type BibleBook, getVerseCount } from '@/lib/bibleApi';
 import { PremiumModal } from './PremiumModal';
 import { Crown } from 'lucide-react';
@@ -17,6 +18,7 @@ interface BibleSidebarProps {
   onSelectBook: (book: BibleBook) => void;
   onSelectChapter: (chapter: number) => void;
   onSelectVerse?: (verse: number) => void;
+  onVersionChange?: () => void;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -30,6 +32,7 @@ export function BibleSidebar({
   onSelectBook,
   onSelectChapter,
   onSelectVerse,
+  onVersionChange,
   isOpen,
   onClose,
 }: BibleSidebarProps) {
@@ -173,6 +176,15 @@ export function BibleSidebar({
               verseCount={verseCount}
             />
           )}
+        </div>
+
+        {/* Version Selector */}
+        <div className={cn("p-4 border-t border-border", activeTheme.type === 'scenic' ? 'bg-transparent' : 'bg-sidebar')}>
+          <div className="flex items-center gap-2 mb-3">
+            <Languages className="h-4 w-4 text-primary" />
+            <span className="text-xs font-black uppercase tracking-widest opacity-70">Versión Bíblica</span>
+          </div>
+          <VersionSelector onVersionChange={onVersionChange} />
         </div>
 
         {/* Premium Banner */}

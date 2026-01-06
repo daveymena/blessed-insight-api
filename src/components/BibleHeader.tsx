@@ -113,6 +113,13 @@ export function BibleHeader({
                 <DropdownMenuItem onClick={onMenuClick}><BookOpen className="h-4 w-4 mr-2" /> Libros</DropdownMenuItem>
                 <DropdownMenuItem onClick={onSearchClick}><Search className="h-4 w-4 mr-2" /> Buscar</DropdownMenuItem>
                 <DropdownMenuItem onClick={onThemeClick}><Palette className="h-4 w-4 mr-2" /> Temas</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <div className="px-2 py-1.5">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Versión</span>
+                  <div className="mt-2">
+                    <VersionSelector onVersionChange={onVersionChange} />
+                  </div>
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

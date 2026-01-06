@@ -157,6 +157,7 @@ const Index = () => {
               setSidebarOpen(false);
             }
           }}
+          onVersionChange={handleVersionChange}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
         />
