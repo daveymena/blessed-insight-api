@@ -20,7 +20,7 @@ export const BIBLE_THEMES: ThemeConfig[] = [
         textColor: '#2d241c', // Marrón oscuro profundo
         uiMode: 'light',
         accentColor: '#b45309',
-        overlayOpacity: 0.35,
+        overlayOpacity: 0.55,
         blurAmount: '0px'
     },
     {
@@ -31,7 +31,7 @@ export const BIBLE_THEMES: ThemeConfig[] = [
         textColor: '#f8fafc', // Letras Blancas
         uiMode: 'dark',       // Fondo más oscuro para contrastar
         accentColor: '#10b981',
-        overlayOpacity: 0.5,  // Más velo oscuro
+        overlayOpacity: 0.65,  // Más velo oscuro
         blurAmount: '0px'
     },
     {
@@ -42,7 +42,7 @@ export const BIBLE_THEMES: ThemeConfig[] = [
         textColor: '#1c1917', // Letras Negras
         uiMode: 'light',
         accentColor: '#84cc16',
-        overlayOpacity: 0.3,
+        overlayOpacity: 0.5,
         blurAmount: '0px'
     },
     {
@@ -53,7 +53,7 @@ export const BIBLE_THEMES: ThemeConfig[] = [
         textColor: '#f1f5f9', // Letras Blancas
         uiMode: 'dark',
         accentColor: '#3b82f6',
-        overlayOpacity: 0.6,
+        overlayOpacity: 0.75,
         blurAmount: '1px'
     },
     {
@@ -64,7 +64,7 @@ export const BIBLE_THEMES: ThemeConfig[] = [
         textColor: '#1e293b',
         uiMode: 'light',
         accentColor: '#eab308',
-        overlayOpacity: 0.4,
+        overlayOpacity: 0.6,
         blurAmount: '0px'
     },
 

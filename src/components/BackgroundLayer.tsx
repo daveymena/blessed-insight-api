@@ -17,7 +17,7 @@ export function BackgroundLayer() {
                     className="absolute inset-0 animate-ken-burns bg-cover bg-center scale-110"
                     style={{
                         backgroundImage: `url(${activeTheme.background})`,
-                        filter: `blur(${activeTheme.blurAmount})`
+                        filter: `blur(${activeTheme.blurAmount}) brightness(${isDarkMode ? '0.7' : '0.9'})`
                     }}
                 />
 

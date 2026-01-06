@@ -118,8 +118,11 @@ export function HomeScreen({
     checkAndGenerate();
   }, []);
 
+  const isDarkMode = activeTheme?.uiMode === 'dark';
   const cardBaseClass = hasScenicBackground
-    ? "bg-white/60 backdrop-blur-xl border-white/40 shadow-sm"
+    ? isDarkMode
+      ? "bg-black/50 backdrop-blur-2xl border-white/10 shadow-2xl"
+      : "bg-white/75 backdrop-blur-2xl border-white/40 shadow-lg"
     : "bg-card border-border";
 
   return (
@@ -140,8 +143,8 @@ export function HomeScreen({
               <BookOpen className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-serif font-black text-white drop-shadow-xl tracking-tight italic">Blessed Insight</h1>
-              <p className="text-[10px] text-white/70 font-black uppercase tracking-widest">Estudio Profundo</p>
+              <h1 className="text-2xl font-serif font-black text-white drop-shadow-xl tracking-tight italic">Blessed Insight</h1>
+              <p className="text-xs text-white/70 font-black uppercase tracking-widest">Estudio Profundo</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -161,7 +164,7 @@ export function HomeScreen({
             transition={{ duration: 0.6 }}
           >
             <p className="text-white/80 text-sm font-bold uppercase tracking-[0.2em] mb-2">{greeting}</p>
-            <h2 className="text-4xl md:text-5xl font-serif font-black text-white mb-6 drop-shadow-2xl leading-[1.1]">
+            <h2 className="text-5xl md:text-6xl font-serif font-black text-white mb-6 drop-shadow-2xl leading-[1.1]">
               Tu espacio de<br />encuentro espiritual
             </h2>
             <Button
@@ -177,7 +180,10 @@ export function HomeScreen({
       </div>
 
       {/* Contenido Principal */}
-      <div className="px-5 py-8 space-y-10 max-w-2xl mx-auto -mt-10 relative z-10">
+      <div className={cn(
+        "px-5 py-8 space-y-10 max-w-2xl mx-auto -mt-10 relative z-10",
+        hasScenicBackground && (isDarkMode ? "bg-gradient-to-b from-black/20 to-black/60 rounded-t-[3rem] backdrop-blur-sm" : "bg-gradient-to-b from-white/10 to-white/40 rounded-t-[3rem] backdrop-blur-sm")
+      )}>
 
         {/* Grid de Acciones Principales */}
         <motion.div
@@ -201,8 +207,8 @@ export function HomeScreen({
               <div className="w-16 h-16 bg-gradient-to-br from-violet-500 via-indigo-600 to-purple-600 text-white rounded-3xl flex items-center justify-center mb-6 shadow-xl group-hover:rotate-6 transition-transform">
                 <Sparkles className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-serif font-black mb-1" style={{ color: activeTheme.textColor }}>Biblo IA</h3>
-              <p className="text-xs font-medium opacity-60" style={{ color: activeTheme.textColor }}>Asistente Inteligente</p>
+              <h3 className="text-2xl font-serif font-black mb-1" style={{ color: activeTheme.textColor }}>Biblo IA</h3>
+              <p className="text-sm font-bold opacity-90" style={{ color: activeTheme.textColor }}>Asistente Inteligente</p>
             </div>
           </button>
 
@@ -221,8 +227,8 @@ export function HomeScreen({
               <div className="w-16 h-16 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-600 text-white rounded-3xl flex items-center justify-center mb-6 shadow-xl group-hover:-rotate-6 transition-transform">
                 <GraduationCap className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-serif font-black mb-1" style={{ color: activeTheme.textColor }}>Estudio</h3>
-              <p className="text-xs font-medium opacity-60" style={{ color: activeTheme.textColor }}>Cursos y Planes</p>
+              <h3 className="text-2xl font-serif font-black mb-1" style={{ color: activeTheme.textColor }}>Estudio</h3>
+              <p className="text-sm font-bold opacity-90" style={{ color: activeTheme.textColor }}>Cursos y Planes</p>
             </div>
           </button>
         </motion.div>
@@ -272,12 +278,17 @@ export function HomeScreen({
                   Maná del Día
                 </Badge>
               </div>
-              <CardContent className={cn("p-8 relative", hasScenicBackground ? "bg-white/40" : "bg-card text-card-foreground")}>
+              <CardContent className={cn(
+                "p-8 relative",
+                hasScenicBackground
+                  ? (isDarkMode ? "bg-black/60 backdrop-blur-2xl" : "bg-white/80 backdrop-blur-2xl")
+                  : "bg-card text-card-foreground"
+              )}>
                 <blockquote className="text-2xl font-serif italic leading-[1.4] mb-8" style={{ color: activeTheme.textColor }}>
                   "{currentVerse.text}"
                 </blockquote>
                 <div className="flex items-center justify-between pt-6 border-t border-black/10">
-                  <p className="text-sm font-black uppercase tracking-widest opacity-80" style={{ color: activeTheme.textColor }}>
+                  <p className="text-base font-black uppercase tracking-widest opacity-80" style={{ color: activeTheme.textColor }}>
                     {currentVerse.book} {currentVerse.chapter}:{currentVerse.verse}
                   </p>
                   <Button size="icon" variant="ghost" className="rounded-full bg-white/5 hover:bg-white/10 text-white">
@@ -293,8 +304,8 @@ export function HomeScreen({
         <section className="space-y-6">
           <div className="flex items-center justify-between px-2">
             <div>
-              <h2 className="text-2xl font-serif font-black tracking-tight" style={{ color: activeTheme.textColor }}>Inspiración</h2>
-              <p className="text-xs font-medium opacity-60" style={{ color: activeTheme.textColor }}>Para meditar en tu camino</p>
+              <h2 className="text-3xl font-serif font-black tracking-tight drop-shadow-lg" style={{ color: activeTheme.textColor }}>Inspiración</h2>
+              <p className="text-xs font-bold opacity-80 drop-shadow-md" style={{ color: activeTheme.textColor }}>Para meditar en tu camino</p>
             </div>
           </div>
 
@@ -321,11 +332,11 @@ export function HomeScreen({
                       insight.type === 'fact' ? <Zap className="h-6 w-6" /> : <User className="h-6 w-6" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-[10px] font-black uppercase tracking-widest opacity-50" style={{ color: activeTheme.textColor }}>
+                    <span className="text-xs font-black uppercase tracking-widest opacity-70" style={{ color: activeTheme.textColor }}>
                       {insight.type === 'promise' ? 'Promesa' : insight.type === 'fact' ? 'Dato' : 'Personaje'}
                     </span>
                     <h3 className="font-serif font-black leading-tight mt-1 text-lg" style={{ color: activeTheme.textColor }}>{insight.title}</h3>
-                    <p className="leading-relaxed text-sm mt-3 opacity-80" style={{ color: activeTheme.textColor }}>
+                    <p className="leading-relaxed text-sm mt-3 font-medium" style={{ color: activeTheme.textColor }}>
                       {insight.content}
                     </p>
                     {insight.reference && (

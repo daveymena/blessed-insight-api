@@ -386,20 +386,41 @@
   line-height: 1;
 }
 
-/* Separadores decorativos */
-.scripture-divider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin: 2rem 0;
-  color: hsl(var(--muted-foreground) / 0.4);
+/* ========== OPTIMIZACIÓN DE LECTURA SOBRE FONDOS DINÁMICOS ========== */
+.bible-text {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.scripture-divider::before,
-.scripture-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, hsl(var(--border)), transparent);
+.bible-text sup {
+  font-feature-settings: "sups" 1;
+}
+
+/* Efecto de 'Resalte Natural' para letras sobre paisajes */
+.has-scenic-bg .bible-text span {
+  position: relative;
+  z-index: 1;
+}
+
+.has-scenic-bg .bible-text div:hover span {
+  text-shadow: 0 0 1px currentColor;
+}
+
+/* Garantizar que el sidebar y otros elementos fluyan bien */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.4);
 }

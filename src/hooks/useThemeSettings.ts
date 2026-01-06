@@ -11,7 +11,7 @@ export interface ExtendedThemeSettings {
 
 const DEFAULT_SETTINGS: ExtendedThemeSettings = {
     activeThemeId: 'pure-light',
-    fontSize: 18,
+    fontSize: 22,
     lineHeight: 2,
     font: 'serif',
     spanishEquivalent: false

@@ -243,7 +243,7 @@ Usa ESTRICTAMENTE este formato visual:
                 <article
                   className={cn(
                     "bible-text max-w-none transition-all",
-                    hasScenicBackground && (isDarkMode ? "drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" : "drop-shadow-[0_1px_1px_rgba(255,255,255,0.9)]")
+                    hasScenicBackground && (isDarkMode ? "drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]" : "drop-shadow-[0_1px_4px_rgba(255,255,255,1)] drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]")
                   )}
                   style={textStyle}
                 >
