@@ -161,16 +161,22 @@ Usa ESTRICTAMENTE este formato visual:
 
   const fontFamily = FONT_FAMILIES[themeSettings.font] || FONT_FAMILIES.serif;
 
-  // Colores dinámicos
+  // Colores dinámicos - SIEMPRE blanco para fondos escénicos
   const isDarkMode = activeTheme.uiMode === 'dark';
-  const readerTextColor = activeTheme.textColor;
+  const isScenic = activeTheme.type === 'scenic';
+  
+  // Para fondos escénicos siempre usar blanco con sombra fuerte
+  const readerTextColor = isScenic ? '#FFFFFF' : activeTheme.textColor;
 
   const textStyle = {
     fontFamily,
     fontSize: `${themeSettings.fontSize}px`,
     lineHeight: themeSettings.lineHeight,
     color: readerTextColor,
-    fontWeight: isDarkMode ? 400 : 600
+    fontWeight: isScenic ? 500 : (isDarkMode ? 400 : 600),
+    textShadow: isScenic 
+      ? '0 2px 4px rgba(0,0,0,0.8), 0 4px 12px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)' 
+      : 'none'
   };
 
   if (!book) {
@@ -241,10 +247,7 @@ Usa ESTRICTAMENTE este formato visual:
                 )}
 
                 <article
-                  className={cn(
-                    "bible-text max-w-none transition-all",
-                    hasScenicBackground && (isDarkMode ? "drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]" : "drop-shadow-[0_1px_4px_rgba(255,255,255,1)] drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]")
-                  )}
+                  className="bible-text max-w-none transition-all"
                   style={textStyle}
                 >
                   {passage?.verses.map((verse, index) => (

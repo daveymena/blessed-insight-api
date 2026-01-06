@@ -17,10 +17,10 @@ export const BIBLE_THEMES: ThemeConfig[] = [
         name: 'Desierto de Judea',
         type: 'scenic',
         background: '/images/judaean_desert.png',
-        textColor: '#2d241c', // Marrón oscuro profundo
-        uiMode: 'light',
+        textColor: '#FFFFFF', // Blanco Puro
+        uiMode: 'dark',        // Cambiado a Dark para mejor contraste
         accentColor: '#b45309',
-        overlayOpacity: 0.55,
+        overlayOpacity: 0.65,
         blurAmount: '0px'
     },
     {
@@ -28,10 +28,10 @@ export const BIBLE_THEMES: ThemeConfig[] = [
         name: 'Montes de Galilea',
         type: 'scenic',
         background: '/images/galilee_mountains.png',
-        textColor: '#f8fafc', // Letras Blancas
-        uiMode: 'dark',       // Fondo más oscuro para contrastar
+        textColor: '#FFFFFF',
+        uiMode: 'dark',
         accentColor: '#10b981',
-        overlayOpacity: 0.65,  // Más velo oscuro
+        overlayOpacity: 0.65,
         blurAmount: '0px'
     },
     {
@@ -39,10 +39,10 @@ export const BIBLE_THEMES: ThemeConfig[] = [
         name: 'Huerto de Olivos',
         type: 'scenic',
         background: '/images/olive_garden.png',
-        textColor: '#1c1917', // Letras Negras
-        uiMode: 'light',
+        textColor: '#FFFFFF',
+        uiMode: 'dark',
         accentColor: '#84cc16',
-        overlayOpacity: 0.5,
+        overlayOpacity: 0.65,
         blurAmount: '0px'
     },
     {
@@ -50,7 +50,7 @@ export const BIBLE_THEMES: ThemeConfig[] = [
         name: 'Montañas de Sión',
         type: 'scenic',
         background: '/images/landscape_misty_mountains.png',
-        textColor: '#f1f5f9', // Letras Blancas
+        textColor: '#FFFFFF',
         uiMode: 'dark',
         accentColor: '#3b82f6',
         overlayOpacity: 0.75,
@@ -61,10 +61,10 @@ export const BIBLE_THEMES: ThemeConfig[] = [
         name: 'Jerusalén Dorada',
         type: 'scenic',
         background: 'https://images.unsplash.com/photo-1549419139-49c63c5d63f0?q=80&w=1600',
-        textColor: '#1e293b',
-        uiMode: 'light',
+        textColor: '#FFFFFF',
+        uiMode: 'dark',
         accentColor: '#eab308',
-        overlayOpacity: 0.6,
+        overlayOpacity: 0.7,
         blurAmount: '0px'
     },
 

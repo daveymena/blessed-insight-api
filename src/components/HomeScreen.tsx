@@ -119,6 +119,12 @@ export function HomeScreen({
   }, []);
 
   const isDarkMode = activeTheme?.uiMode === 'dark';
+  const isScenic = activeTheme?.type === 'scenic';
+  
+  // Para fondos escénicos siempre usar blanco
+  const textColor = isScenic ? '#FFFFFF' : activeTheme?.textColor || '#000000';
+  const textShadow = isScenic ? '0 2px 8px rgba(0,0,0,0.8)' : 'none';
+  
   const cardBaseClass = hasScenicBackground
     ? isDarkMode
       ? "bg-black/50 backdrop-blur-2xl border-white/10 shadow-2xl"
