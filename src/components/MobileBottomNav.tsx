@@ -36,7 +36,7 @@ export function MobileBottomNav({
 
   return (
     <nav className={cn(
-      "fixed bottom-0 left-0 right-0 z-50 border-t border-border safe-area-bottom md:hidden shadow-[0_-8px_40px_rgba(0,0,0,0.15)] transition-all duration-300",
+      "fixed bottom-0 left-0 right-0 z-50 border-t border-border safe-area-bottom lg:hidden shadow-[0_-8px_40px_rgba(0,0,0,0.15)] transition-all duration-300",
       activeTheme?.type === 'scenic'
         ? (activeTheme.uiMode === 'dark' ? "bg-black/60 backdrop-blur-2xl border-white/10" : "bg-white/70 backdrop-blur-xl")
         : "bg-card"

@@ -187,7 +187,7 @@ export function HomeScreen({
 
       {/* Contenido Principal */}
       <div className={cn(
-        "px-4 sm:px-5 py-8 space-y-8 md:space-y-10 max-w-2xl mx-auto -mt-12 sm:-mt-10 relative z-10 w-full overflow-x-hidden",
+        "px-4 sm:px-5 lg:px-12 py-8 space-y-8 md:space-y-10 max-w-2xl lg:max-w-6xl xl:max-w-7xl mx-auto -mt-12 sm:-mt-10 relative z-10 w-full overflow-x-hidden",
         hasScenicBackground && (isDarkMode ? "bg-gradient-to-b from-black/20 to-black/60 rounded-t-[2.5rem] sm:rounded-t-[3rem] backdrop-blur-sm" : "bg-gradient-to-b from-white/10 to-white/40 rounded-t-[2.5rem] sm:rounded-t-[3rem] backdrop-blur-sm")
       )}>
 
@@ -196,25 +196,25 @@ export function HomeScreen({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 gap-5"
+          className="grid grid-cols-2 gap-5 lg:gap-10"
         >
           {/* Card IA Biblo */}
           <button
             onClick={onOpenAI}
             className={cn(
-              "group relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-6 text-left transition-all duration-500 hover:shadow-2xl active:scale-[0.97]",
+              "group relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] lg:rounded-[3rem] p-4 sm:p-6 lg:p-12 text-left transition-all duration-500 hover:shadow-2xl active:scale-[0.97]",
               cardBaseClass
             )}
           >
             <div className="absolute -right-6 -bottom-6 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Sparkles size={120} strokeWidth={1} />
+              <Sparkles size={120} className="lg:w-48 lg:h-48" strokeWidth={1} />
             </div>
             <div className="relative z-10">
-              <div className="w-10 h-10 sm:w-16 sm:h-16 bg-gradient-to-br from-violet-500 via-indigo-600 to-purple-600 text-white rounded-2xl sm:rounded-3xl flex items-center justify-center mb-3 sm:mb-6 shadow-xl group-hover:rotate-6 transition-transform">
-                <Sparkles className="h-5 w-5 sm:h-8 sm:w-8" />
+              <div className="w-10 h-10 sm:w-16 sm:h-16 lg:w-24 lg:h-24 bg-gradient-to-br from-violet-500 via-indigo-600 to-purple-600 text-white rounded-2xl sm:rounded-3xl lg:rounded-[2rem] flex items-center justify-center mb-3 sm:mb-6 lg:mb-8 shadow-xl group-hover:rotate-6 transition-transform">
+                <Sparkles className="h-5 w-5 sm:h-8 sm:w-8 lg:h-12 lg:w-12" />
               </div>
-              <h3 className="text-lg sm:text-2xl font-serif font-black mb-0.5 sm:mb-1" style={{ color: activeTheme.textColor }}>Biblo IA</h3>
-              <p className="text-[10px] sm:text-sm font-bold opacity-90" style={{ color: activeTheme.textColor }}>Asistente Inteligente</p>
+              <h3 className="text-lg sm:text-2xl lg:text-4xl font-serif font-black mb-0.5 sm:mb-1 lg:mb-2" style={{ color: textColor, textShadow }}>Biblo IA</h3>
+              <p className="text-[10px] sm:text-sm lg:text-lg font-bold opacity-90" style={{ color: textColor, textShadow }}>Asistente Inteligente</p>
             </div>
           </button>
 
@@ -222,19 +222,19 @@ export function HomeScreen({
           <button
             onClick={onOpenStudyCenter}
             className={cn(
-              "group relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-6 text-left transition-all duration-500 hover:shadow-2xl active:scale-[0.97]",
+              "group relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] lg:rounded-[3rem] p-4 sm:p-6 lg:p-12 text-left transition-all duration-500 hover:shadow-2xl active:scale-[0.97]",
               cardBaseClass
             )}
           >
             <div className="absolute -right-6 -bottom-6 opacity-10 group-hover:opacity-20 transition-opacity">
-              <GraduationCap size={120} strokeWidth={1} />
+              <GraduationCap size={120} className="lg:w-48 lg:h-48" strokeWidth={1} />
             </div>
             <div className="relative z-10">
-              <div className="w-10 h-10 sm:w-16 sm:h-16 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-600 text-white rounded-2xl sm:rounded-3xl flex items-center justify-center mb-3 sm:mb-6 shadow-xl group-hover:-rotate-6 transition-transform">
-                <GraduationCap className="h-5 w-5 sm:h-8 sm:w-8" />
+              <div className="w-10 h-10 sm:w-16 sm:h-16 lg:w-24 lg:h-24 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-600 text-white rounded-2xl sm:rounded-3xl lg:rounded-[2rem] flex items-center justify-center mb-3 sm:mb-6 lg:mb-8 shadow-xl group-hover:-rotate-6 transition-transform">
+                <GraduationCap className="h-5 w-5 sm:h-8 sm:w-8 lg:h-12 lg:w-12" />
               </div>
-              <h3 className="text-lg sm:text-2xl font-serif font-black mb-0.5 sm:mb-1" style={{ color: activeTheme.textColor }}>Estudio</h3>
-              <p className="text-[10px] sm:text-sm font-bold opacity-90" style={{ color: activeTheme.textColor }}>Cursos y Planes</p>
+              <h3 className="text-lg sm:text-2xl lg:text-4xl font-serif font-black mb-0.5 sm:mb-1 lg:mb-2" style={{ color: textColor, textShadow }}>Estudio</h3>
+              <p className="text-[10px] sm:text-sm lg:text-lg font-bold opacity-90" style={{ color: textColor, textShadow }}>Cursos y Planes</p>
             </div>
           </button>
         </motion.div>
@@ -244,7 +244,7 @@ export function HomeScreen({
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 lg:gap-8"
         >
           {[
             { icon: Heart, label: 'Favoritos', onClick: onOpenFavorites, color: 'text-rose-500', bg: 'bg-rose-500/10' },
@@ -255,15 +255,15 @@ export function HomeScreen({
               key={i}
               onClick={action.onClick}
               className={cn(
-                "flex flex-row sm:flex-col items-center justify-start sm:justify-center gap-4 sm:gap-3 p-4 sm:p-5 rounded-2xl sm:rounded-[2rem] border transition-all active:scale-95 group",
+                "flex flex-row sm:flex-col items-center justify-start sm:justify-center gap-4 sm:gap-3 lg:gap-5 p-4 sm:p-5 lg:p-8 rounded-2xl sm:rounded-[2rem] lg:rounded-[2.5rem] border transition-all active:scale-95 group",
                 cardBaseClass,
                 "hover:border-primary/40"
               )}
             >
-              <div className={cn("p-2.5 sm:p-3 rounded-xl sm:rounded-2xl transition-transform group-hover:scale-110 shadow-inner shrink-0", action.bg)}>
-                <action.icon className={cn("h-5 w-5 sm:h-6 sm:w-6", action.color)} />
+              <div className={cn("p-2.5 sm:p-3 lg:p-5 rounded-xl sm:rounded-2xl lg:rounded-3xl transition-transform group-hover:scale-110 shadow-inner shrink-0", action.bg)}>
+                <action.icon className={cn("h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8", action.color)} />
               </div>
-              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] opacity-80" style={{ color: activeTheme.textColor }}>{action.label}</span>
+              <span className="text-[10px] sm:text-[11px] lg:text-sm font-black uppercase tracking-[0.2em] opacity-80" style={{ color: activeTheme.textColor }}>{action.label}</span>
             </button>
           ))}
         </motion.div>
@@ -275,30 +275,30 @@ export function HomeScreen({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <Card className={cn("rounded-[2.5rem] border-0 overflow-hidden shadow-2xl group", cardBaseClass, "bg-transparent")}>
+            <Card className={cn("rounded-[2.5rem] lg:rounded-[3rem] border-0 overflow-hidden shadow-2xl group", cardBaseClass, "bg-transparent")}>
               <div className="relative">
-                <img src={bibleStudy} alt="Biblia abierta" className="w-full h-56 object-cover" />
+                <img src={bibleStudy} alt="Biblia abierta" className="w-full h-56 lg:h-80 object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                <Badge className="absolute top-6 left-6 bg-white/10 text-white border-white/20 backdrop-blur-md px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest">
-                  <Sun className="h-3.5 w-3.5 mr-2 text-amber-400" />
+                <Badge className="absolute top-6 left-6 lg:top-8 lg:left-8 bg-white/10 text-white border-white/20 backdrop-blur-md px-5 py-2 lg:px-6 lg:py-3 rounded-full text-[10px] lg:text-xs font-black uppercase tracking-widest">
+                  <Sun className="h-3.5 w-3.5 lg:h-4 lg:w-4 mr-2 text-amber-400" />
                   Maná del Día
                 </Badge>
               </div>
               <CardContent className={cn(
-                "p-6 sm:p-8 relative",
+                "p-6 sm:p-8 lg:p-12 relative",
                 hasScenicBackground
                   ? (isDarkMode ? "bg-black/60 backdrop-blur-2xl" : "bg-white/80 backdrop-blur-2xl")
                   : "bg-card text-card-foreground"
               )}>
-                <blockquote className="text-xl sm:text-2xl font-serif italic leading-[1.4] mb-8" style={{ color: activeTheme.textColor }}>
+                <blockquote className="text-xl sm:text-2xl lg:text-3xl font-serif italic leading-[1.4] mb-8 lg:mb-10" style={{ color: activeTheme.textColor }}>
                   "{currentVerse.text}"
                 </blockquote>
-                <div className="flex items-center justify-between pt-6 border-t border-black/10">
-                  <p className="text-base font-black uppercase tracking-widest opacity-80" style={{ color: activeTheme.textColor }}>
+                <div className="flex items-center justify-between pt-6 lg:pt-8 border-t border-black/10">
+                  <p className="text-base lg:text-lg font-black uppercase tracking-widest opacity-80" style={{ color: activeTheme.textColor }}>
                     {currentVerse.book} {currentVerse.chapter}:{currentVerse.verse}
                   </p>
-                  <Button size="icon" variant="ghost" className="rounded-full bg-white/5 hover:bg-white/10 text-white">
-                    <Share2 className="h-5 w-5" />
+                  <Button size="icon" variant="ghost" className="rounded-full bg-white/5 hover:bg-white/10 text-white lg:h-12 lg:w-12">
+                    <Share2 className="h-5 w-5 lg:h-6 lg:w-6" />
                   </Button>
                 </div>
               </CardContent>
@@ -307,15 +307,15 @@ export function HomeScreen({
         )}
 
         {/* Sección Reflexiones */}
-        <section className="space-y-6">
+        <section className="space-y-6 lg:space-y-8">
           <div className="flex items-center justify-between px-2">
             <div>
-              <h2 className="text-3xl font-serif font-black tracking-tight drop-shadow-lg" style={{ color: activeTheme.textColor }}>Inspiración</h2>
-              <p className="text-xs font-bold opacity-80 drop-shadow-md" style={{ color: activeTheme.textColor }}>Para meditar en tu camino</p>
+              <h2 className="text-3xl lg:text-4xl font-serif font-black tracking-tight drop-shadow-lg" style={{ color: activeTheme.textColor }}>Inspiración</h2>
+              <p className="text-xs lg:text-sm font-bold opacity-80 drop-shadow-md" style={{ color: activeTheme.textColor }}>Para meditar en tu camino</p>
             </div>
           </div>
 
-          <div className="grid gap-5">
+          <div className="grid gap-5 lg:gap-8 lg:grid-cols-2">
             {dynamicInsights.slice(0, 4).map((insight, idx) => (
               <motion.article
                 key={insight.id}
@@ -324,38 +324,38 @@ export function HomeScreen({
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
                 className={cn(
-                  "rounded-2xl sm:rounded-[2rem] p-4 sm:p-6 border transition-all group hover:shadow-xl w-full",
+                  "rounded-2xl sm:rounded-[2rem] lg:rounded-[2.5rem] p-4 sm:p-6 lg:p-8 border transition-all group hover:shadow-xl w-full",
                   cardBaseClass
                 )}
               >
-                <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-5">
+                <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-5 lg:gap-6">
                   <div className={cn(
-                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0 shadow-xl",
+                    "p-3 sm:p-4 lg:p-5 rounded-xl sm:rounded-2xl lg:rounded-3xl shrink-0 shadow-xl",
                     insight.type === 'promise' ? 'bg-amber-500 text-white' :
                       insight.type === 'fact' ? 'bg-emerald-500 text-white' : 'bg-blue-500 text-white'
                   )}>
-                    {insight.type === 'promise' ? <Gift className="h-5 w-5 sm:h-6 sm:w-6" /> :
-                      insight.type === 'fact' ? <Zap className="h-5 w-5 sm:h-6 sm:w-6" /> : <User className="h-5 w-5 sm:h-6 sm:w-6" />}
+                    {insight.type === 'promise' ? <Gift className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8" /> :
+                      insight.type === 'fact' ? <Zap className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8" /> : <User className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-xs font-black uppercase tracking-widest opacity-70" style={{ color: activeTheme.textColor }}>
+                    <span className="text-xs lg:text-sm font-black uppercase tracking-widest opacity-70" style={{ color: activeTheme.textColor }}>
                       {insight.type === 'promise' ? 'Promesa' : insight.type === 'fact' ? 'Dato' : 'Personaje'}
                     </span>
-                    <h3 className="font-serif font-black leading-tight mt-1 text-lg" style={{ color: activeTheme.textColor }}>{insight.title}</h3>
-                    <p className="leading-relaxed text-sm mt-3 font-medium" style={{ color: activeTheme.textColor }}>
+                    <h3 className="font-serif font-black leading-tight mt-1 text-lg lg:text-xl" style={{ color: activeTheme.textColor }}>{insight.title}</h3>
+                    <p className="leading-relaxed text-sm lg:text-base mt-3 font-medium" style={{ color: activeTheme.textColor }}>
                       {insight.content}
                     </p>
                     {insight.reference && (
                       <div className="mt-5 flex items-center justify-between">
-                        <span className="text-[10px] font-black uppercase tracking-widest py-2 px-4 bg-white/5 rounded-full border border-white/5" style={{ color: activeTheme.textColor }}>
+                        <span className="text-[10px] lg:text-xs font-black uppercase tracking-widest py-2 px-4 bg-white/5 rounded-full border border-white/5" style={{ color: activeTheme.textColor }}>
                           {insight.reference}
                         </span>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-white/5" style={{ color: activeTheme.textColor }}>
-                            <Heart className="h-5 w-5" />
+                          <Button variant="ghost" size="icon" className="h-10 w-10 lg:h-12 lg:w-12 rounded-full hover:bg-white/5" style={{ color: activeTheme.textColor }}>
+                            <Heart className="h-5 w-5 lg:h-6 lg:w-6" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-white/5" style={{ color: activeTheme.textColor }}>
-                            <Bookmark className="h-5 w-5" />
+                          <Button variant="ghost" size="icon" className="h-10 w-10 lg:h-12 lg:w-12 rounded-full hover:bg-white/5" style={{ color: activeTheme.textColor }}>
+                            <Bookmark className="h-5 w-5 lg:h-6 lg:w-6" />
                           </Button>
                         </div>
                       </div>
@@ -368,22 +368,22 @@ export function HomeScreen({
         </section>
 
         {/* CTA Final */}
-        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="pb-8">
+        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="pb-8 lg:pb-12">
           <button
             onClick={onOpenStudyCenter}
-            className="w-full group relative overflow-hidden rounded-[2.5rem] p-10 transition-all hover:shadow-2xl active:scale-[0.98]"
+            className="w-full group relative overflow-hidden rounded-[2.5rem] lg:rounded-[3rem] p-10 lg:p-14 transition-all hover:shadow-2xl active:scale-[0.98]"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-primary to-rose-600" />
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxjaXJjbGUgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIgY3g9IjIwIiBjeT0iMjAiIHI9IjEiLz48L2c+PC9zdmc+')] opacity-30" />
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 lg:gap-10">
               <div className="text-center md:text-left">
-                <h3 className="text-3xl font-serif font-black text-white mb-2 leading-tight">
+                <h3 className="text-3xl lg:text-4xl xl:text-5xl font-serif font-black text-white mb-2 lg:mb-4 leading-tight">
                   Explora las<br />Profundidades
                 </h3>
-                <p className="text-white/70 text-sm font-medium uppercase tracking-widest">Centro de Estudio Avanzado</p>
+                <p className="text-white/70 text-sm lg:text-base font-medium uppercase tracking-widest">Centro de Estudio Avanzado</p>
               </div>
-              <div className="bg-white/20 p-5 rounded-3xl backdrop-blur-md border border-white/30 group-hover:rotate-12 transition-transform">
-                <ArrowRight className="h-8 w-8 text-white" />
+              <div className="bg-white/20 p-5 lg:p-7 rounded-3xl lg:rounded-[2rem] backdrop-blur-md border border-white/30 group-hover:rotate-12 transition-transform">
+                <ArrowRight className="h-8 w-8 lg:h-10 lg:w-10 text-white" />
               </div>
             </div>
           </button>

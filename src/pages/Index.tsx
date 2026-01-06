@@ -162,10 +162,10 @@ const Index = () => {
           onClose={() => setSidebarOpen(false)}
         />
 
-        <main className="flex-1 flex flex-col relative min-w-0 overflow-hidden">
+        <main className="flex-1 flex flex-col relative min-w-0 overflow-hidden pb-16 md:pb-0">
           <AnimatePresence mode="wait">
             {activeTab === 'study' ? (
-              <motion.div key="study" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-20 bg-background">
+              <motion.div key="study" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 overflow-auto bg-background">
                 <StudyCenter
                   book={selectedBook}
                   chapter={selectedChapter}
@@ -176,7 +176,7 @@ const Index = () => {
                 />
               </motion.div>
             ) : activeTab === 'biblo' ? (
-              <motion.div key="biblo" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-20 bg-background">
+              <motion.div key="biblo" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 overflow-auto bg-background">
                 <AIStudyPanel
                   book={selectedBook}
                   chapter={selectedChapter}
