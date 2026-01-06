@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Book, LayoutGrid, ArrowLeft, MapPin } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { BookSelector } from './BookSelector';
 import { ChapterSelector } from './ChapterSelector';
@@ -7,6 +8,7 @@ import { VerseSelector } from './VerseSelector';
 import { type BibleBook, getVerseCount } from '@/lib/bibleApi';
 import { PremiumModal } from './PremiumModal';
 import { Crown } from 'lucide-react';
+import { useThemeSettings } from '@/hooks/useThemeSettings';
 
 interface BibleSidebarProps {
   selectedBook: BibleBook | null;
@@ -34,6 +36,7 @@ export function BibleSidebar({
   const [activeTab, setActiveTab] = useState<TabType>('books');
   const [verseCount, setVerseCount] = useState(0);
   const [showPremium, setShowPremium] = useState(false);
+  const { activeTheme } = useThemeSettings();
 
   // Reset tab to books when sidebar opens if no book is selected
   useEffect(() => {
@@ -74,38 +77,46 @@ export function BibleSidebar({
 
   return (
     <>
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 md:hidden"
-          onClick={onClose}
-        />
-      )}
+      {/* Mobile Overlay - Only show if sidebar is technically an overlay */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-white/10 backdrop-blur-[2px] z-30 md:hidden pointer-events-auto"
+            onClick={onClose}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Sidebar */}
+      {/* Sidebar - TRANSLUCENT PREMIUM GLASS */}
       <aside
         className={cn(
           'fixed md:relative top-0 left-0 z-50 md:z-auto',
-          'w-80 h-[100dvh] md:h-full bg-card border-r border-border',
+          'w-80 h-[100dvh] md:h-full border-r border-border shadow-2xl md:shadow-none',
           'transform transition-transform duration-300 ease-out',
-          'flex flex-col overflow-hidden isolate shadow-xl md:shadow-none',
+          'flex flex-col overflow-hidden isolate',
+          activeTheme.type === 'scenic'
+            ? (activeTheme.uiMode === 'dark' ? 'bg-black/60 backdrop-blur-2xl' : 'bg-white/75 backdrop-blur-xl')
+            : 'bg-sidebar',
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         )}
       >
         {/* Mobile Header with Close Button */}
-        <div className="flex items-center justify-between p-4 border-b border-border md:hidden">
-          <span className="font-bold text-lg">Navegación</span>
+        <div className={cn("flex-center justify-between p-5 border-b border-border md:hidden", activeTheme.type === 'scenic' ? 'bg-transparent' : 'bg-sidebar')}>
+          <span className="font-serif font-black text-xl tracking-tight">Menú Bíblico</span>
           <button
             onClick={onClose}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all active:scale-95"
           >
-            <span className="text-xs font-medium">Cerrar</span>
+            <span className="text-xs font-black uppercase tracking-widest">Cerrar</span>
             <ArrowLeft className="h-4 w-4" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex shrink-0 border-b border-border bg-secondary/5">
+        <div className="flex shrink-0 border-b border-border bg-muted/20">
           {[
             { id: 'books', icon: Book, label: 'Libros' },
             { id: 'chapters', icon: LayoutGrid, label: 'Caps.' },
@@ -116,24 +127,24 @@ export function BibleSidebar({
               onClick={() => setActiveTab(tab.id as TabType)}
               disabled={tab.id !== 'books' && !selectedBook}
               className={cn(
-                'flex-1 flex items-center justify-center gap-2 py-4 text-xs font-bold uppercase tracking-wider transition-colors relative',
+                'flex-1 flex flex-col items-center justify-center gap-1.5 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative',
                 activeTab === tab.id
                   ? 'text-primary bg-primary/5'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/30',
-                (tab.id !== 'books' && !selectedBook) && 'opacity-50 cursor-not-allowed'
+                (tab.id !== 'books' && !selectedBook) && 'opacity-30 cursor-not-allowed grayscale'
               )}
             >
-              <tab.icon className="h-4 w-4" />
+              <tab.icon className={cn("h-5 w-5", activeTab === tab.id && "animate-pulse")} />
               {tab.label}
               {activeTab === tab.id && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                <motion.div layoutId="activeTabUnderline" className="absolute bottom-0 left-0 right-0 h-1 bg-primary" />
               )}
             </button>
           ))}
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-h-0 relative">
+        <div className={cn("flex-1 min-h-0 relative", activeTheme.type === 'scenic' ? 'bg-transparent' : 'bg-sidebar')}>
           {activeTab === 'books' && (
             <BookSelector
               selectedBook={selectedBook}
@@ -165,13 +176,17 @@ export function BibleSidebar({
         </div>
 
         {/* Premium Banner */}
-        <div className="p-4 border-t border-border bg-gradient-to-r from-amber-500/10 to-orange-500/10">
+        <div className={cn("p-5 border-t border-border shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)]", activeTheme.type === 'scenic' ? 'bg-transparent' : 'bg-sidebar')}>
           <button
             onClick={() => setShowPremium(true)}
-            className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
+            className="w-full group relative overflow-hidden rounded-2xl h-14 transition-all active:scale-[0.98]"
           >
-            <Crown className="w-5 h-5 fill-white" />
-            Hazte Premium
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-600" />
+            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+            <div className="relative flex items-center justify-center gap-3 text-white">
+              <Crown className="w-5 h-5 fill-white animate-bounce" />
+              <span className="font-serif font-black text-sm uppercase tracking-widest">Hacerse Premium</span>
+            </div>
           </button>
         </div>
 
@@ -180,4 +195,3 @@ export function BibleSidebar({
     </>
   );
 }
-

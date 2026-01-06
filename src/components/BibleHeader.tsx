@@ -1,9 +1,10 @@
-import { BookOpen, Menu, Sparkles, Search, Heart, Moon, Sun, Languages, GraduationCap, Palette, ChevronDown, Home, MoreVertical, X, MessageCircle } from 'lucide-react';
+import { BookOpen, Menu, Sparkles, Search, Heart, Moon, Sun, Languages, GraduationCap, Palette, ChevronDown, Home, MoreVertical, X, MessageCircle, Share2 } from 'lucide-react';
 import { Logo } from './Logo';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { VersionSelector } from './VersionSelector';
 import { useThemeSettings } from '@/hooks/useThemeSettings';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
+import { cn } from '@/lib/utils';
 import type { BibleBook } from '@/lib/bibleApi';
 
 interface BibleHeaderProps {
@@ -22,7 +23,7 @@ interface BibleHeaderProps {
   onStudyClick?: () => void;
   onThemeClick?: () => void;
   onHomeClick?: () => void;
-  onChatClick?: () => void; // Nuevo: Botón de Chat Bíblico
+  onChatClick?: () => void;
   onVersionChange?: () => void;
   showSpanishEquivalent?: boolean;
   onSpanishToggle?: (value: boolean) => void;
@@ -42,259 +43,87 @@ export function BibleHeader({
   onStudyClick,
   onThemeClick,
   onHomeClick,
-  onChatClick, // Nuevo
+  onChatClick,
   onVersionChange,
-  showSpanishEquivalent = false,
-  onSpanishToggle,
-  isSpanishVersion = true,
   user,
   onLoginClick,
   onTitleClick,
   selectedBook,
   selectedChapter
 }: BibleHeaderProps) {
-  const { hasScenicBackground } = useThemeSettings();
+  const { hasScenicBackground, activeTheme } = useThemeSettings();
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    // Comprobar si el modo oscuro está activo en el HTML
-    if (document.documentElement.classList.contains('dark')) {
-      setDarkMode(true);
-    }
-
-    // Y también cargar de localstorage
-    const saved = localStorage.getItem('bible_darkMode');
-    if (saved) {
-      setDarkMode(JSON.parse(saved));
-    }
+    if (document.documentElement.classList.contains('dark')) setDarkMode(true);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('bible_darkMode', JSON.stringify(darkMode));
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
-  const handleFontSizeChange = (delta: number) => {
-    try {
-      const saved = localStorage.getItem('bible_theme_settings');
-      let settings = saved ? JSON.parse(saved) : { fontSize: 18 };
-
-      const newSize = Math.max(14, Math.min(60, (settings.fontSize || 18) + delta));
-      const newSettings = { ...settings, fontSize: newSize };
-
-      localStorage.setItem('bible_theme_settings', JSON.stringify(newSettings));
-      window.dispatchEvent(new Event('storage'));
-    } catch (e) {
-      console.error('Error changing font size:', e);
-    }
+  const handleDarkModeToggle = () => {
+    const newVal = !darkMode;
+    setDarkMode(newVal);
+    if (newVal) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
   };
 
+  const isDarkMode = activeTheme.uiMode === 'dark';
+
   return (
-    <header className={`sticky top-0 z-40 border-b transition-all duration-300 ${hasScenicBackground ? 'bg-black/40 backdrop-blur-md shadow-sm border-white/10 text-white' : 'bg-background/95 backdrop-blur-sm border-border'}`}>
+    <header className={cn(
+      "sticky top-0 z-40 w-full border-b shadow-sm text-foreground overflow-hidden transition-all duration-500",
+      activeTheme.type === 'scenic'
+        ? (isDarkMode ? "bg-black/40 backdrop-blur-xl border-white/10" : "bg-white/60 backdrop-blur-xl border-black/5")
+        : "bg-card border-border"
+    )}>
       <div className="flex items-center justify-between h-14 px-3 md:px-6">
-        {/* Lado izquierdo - Menú y Título */}
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          {/* Botón Home (Visible en todas las resoluciones) */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`flex-shrink-0 h-10 w-10 p-0 overflow-hidden ${hasScenicBackground ? 'hover:bg-white/10' : ''}`}
-            onClick={onHomeClick}
-            title="Inicio"
-          >
-            <div className="scale-75">
-              <Logo size={40} />
-            </div>
+        {/* Lado izquierdo */}
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <Button variant="ghost" size="icon" className="shrink-0" onClick={onHomeClick}>
+            <Logo size={32} />
           </Button>
 
-          {/* Título del libro/capítulo */}
-          <div
-            className={`flex items-center gap-2 cursor-pointer p-1.5 rounded-lg transition-colors min-w-0 ${hasScenicBackground ? 'hover:bg-white/10' : 'hover:bg-secondary/50'}`}
-            onClick={onTitleClick}
-          >
-            <div className="hidden sm:block">
-              <div className={`p-1.5 rounded-lg ${hasScenicBackground ? 'bg-white/20' : 'bg-primary/10'}`}>
-                <BookOpen className={`h-4 w-4 ${hasScenicBackground ? 'text-white' : 'text-primary'}`} />
-              </div>
-            </div>
-            <div className="min-w-0">
-              <h1 className={`text-base sm:text-lg font-serif font-semibold flex items-center gap-1 truncate ${hasScenicBackground ? 'text-white' : 'text-foreground'}`}>
-                {selectedBook ? `${selectedBook.abbrev} ${selectedChapter}` : (
-                  <span className="flex items-center gap-2">
-                    Blessed Insight
-                    <span className="text-[10px] bg-primary/20 px-1.5 py-0.5 rounded-full opacity-70 font-sans">v2.2-Stream</span>
-                  </span>
-                )}
-                <ChevronDown className={`h-4 w-4 flex-shrink-0 ${hasScenicBackground ? 'text-white/70' : 'text-muted-foreground'}`} />
-              </h1>
-            </div>
+          <div className="flex items-center gap-1 cursor-pointer hover:bg-secondary/50 p-1.5 rounded-lg truncate" onClick={onTitleClick}>
+            <h1 className="text-sm md:text-base font-serif font-black flex items-center gap-1 truncate">
+              {selectedBook ? `${selectedBook.abbrev} ${selectedChapter}` : "Blessed Insight"}
+              <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+            </h1>
           </div>
         </div>
 
-        {/* Lado derecho - Acciones */}
-        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-          {/* Versión - Solo en tablet/desktop */}
+        {/* Lado derecho */}
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           <div className="hidden sm:block">
             <VersionSelector onVersionChange={onVersionChange} />
           </div>
 
-          {/* Botón Chat Bíblico - Siempre visible */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onChatClick}
-            className={`h-9 w-9 ${hasScenicBackground ? 'text-blue-300 hover:bg-white/10' : 'text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30'}`}
-            title="Chat Bíblico"
-          >
+          <Button variant="ghost" size="icon" onClick={onChatClick} className="text-blue-600 dark:text-blue-400">
             <MessageCircle className="h-5 w-5" />
           </Button>
 
-          {/* Botón IA - Siempre visible */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onAIClick}
-            className={`h-9 w-9 ${hasScenicBackground ? 'text-purple-300 hover:bg-white/10' : 'text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30'}`}
-            title="Asistente Biblo"
-          >
+          <Button variant="ghost" size="icon" onClick={onAIClick} className="text-purple-600 dark:text-purple-400">
             <Sparkles className="h-5 w-5" />
           </Button>
 
-          {/* MÓVIL: Menú hamburguesa con todas las opciones */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`sm:hidden h-9 w-9 ${hasScenicBackground ? 'hover:bg-white/10 text-white' : ''}`}
-              >
-                <MoreVertical className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={onChatClick}>
-                <MessageCircle className="h-4 w-4 mr-3" />
-                Chat Bíblico
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onMenuClick}>
-                <Menu className="h-4 w-4 mr-3" />
-                Libros de la Biblia
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onSearchClick}>
-                <Search className="h-4 w-4 mr-3" />
-                Buscar
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onFavoritesClick}>
-                <Heart className="h-4 w-4 mr-3" />
-                Favoritos
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onStudyClick}>
-                <GraduationCap className="h-4 w-4 mr-3" />
-                Centro de Estudio
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onThemeClick}>
-                <Palette className="h-4 w-4 mr-3" />
-                Personalizar Tema
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setDarkMode(!darkMode)}>
-                {darkMode ? <Sun className="h-4 w-4 mr-3" /> : <Moon className="h-4 w-4 mr-3" />}
-                {darkMode ? 'Modo Claro' : 'Modo Oscuro'}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleFontSizeChange(2)}>
-                <span className="w-4 h-4 mr-3 flex items-center justify-center font-bold text-xs">A+</span>
-                Aumentar Texto
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleFontSizeChange(-2)}>
-                <span className="w-4 h-4 mr-3 flex items-center justify-center font-bold text-xs">A-</span>
-                Reducir Texto
-              </DropdownMenuItem>
-              {!user && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={onLoginClick}>
-                    Iniciar Sesión
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Menú Móvil */}
+          <div className="sm:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon"><MoreVertical className="h-5 w-5" /></Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={onMenuClick}><BookOpen className="h-4 w-4 mr-2" /> Libros</DropdownMenuItem>
+                <DropdownMenuItem onClick={onSearchClick}><Search className="h-4 w-4 mr-2" /> Buscar</DropdownMenuItem>
+                <DropdownMenuItem onClick={onThemeClick}><Palette className="h-4 w-4 mr-2" /> Temas</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
-          {/* DESKTOP: Controles individuales */}
+          {/* Versión Tablet/Desktop */}
           <div className="hidden sm:flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onMenuClick}
-              className={`h-9 w-9 ${hasScenicBackground ? 'text-white hover:bg-white/10' : ''}`}
-              title="Libros de la Biblia"
-            >
-              <BookOpen className="h-5 w-5" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onSearchClick}
-              className={`h-9 w-9 ${hasScenicBackground ? 'text-white hover:bg-white/10' : ''}`}
-              title="Buscar"
-            >
-              <Search className="h-5 w-5" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onFavoritesClick}
-              className={`h-9 w-9 ${hasScenicBackground ? 'text-white hover:bg-white/10' : ''}`}
-              title="Favoritos"
-            >
-              <Heart className="h-5 w-5" />
-            </Button>
-
-            <div className={`w-[1px] h-6 mx-1 ${hasScenicBackground ? 'bg-white/20' : 'bg-border'}`} />
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onThemeClick}
-              className={`h-9 w-9 ${hasScenicBackground ? 'text-white hover:bg-white/10' : 'text-muted-foreground'}`}
-              title="Tema"
-            >
-              <Palette className="h-5 w-5" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDarkMode(!darkMode)}
-              className={`h-9 w-9 ${hasScenicBackground ? 'text-white hover:bg-white/10' : 'text-muted-foreground'}`}
-              title={darkMode ? 'Modo Claro' : 'Modo Oscuro'}
-            >
+            <Button variant="ghost" size="icon" onClick={onMenuClick}><BookOpen className="h-5 w-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={onThemeClick}><Palette className="h-5 w-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={handleDarkModeToggle}>
               {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
-
-            {user ? (
-              <div className={`h-8 w-8 rounded-full flex items-center justify-center font-bold text-sm border ml-1 ${hasScenicBackground ? 'bg-white/20 border-white/30 text-white' : 'bg-primary/20 border-primary/30 text-primary'}`}>
-                {user.name ? user.name[0].toUpperCase() : 'U'}
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onLoginClick}
-                className={`ml-1 ${hasScenicBackground ? 'border-white/30 text-white hover:bg-white/10' : 'border-primary/20 text-primary hover:bg-primary/5'}`}
-              >
-                Acceder
-              </Button>
-            )}
           </div>
         </div>
       </div>

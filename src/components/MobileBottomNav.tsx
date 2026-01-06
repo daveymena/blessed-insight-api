@@ -1,6 +1,7 @@
 import { BookOpen, Search, Heart, Sparkles, GraduationCap, Sun, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { useThemeSettings } from '@/hooks/useThemeSettings';
 
 interface MobileBottomNavProps {
   onHomeClick: () => void;
@@ -23,6 +24,7 @@ export function MobileBottomNav({
   onChatClick,
   activeTab,
 }: MobileBottomNavProps) {
+  const { activeTheme } = useThemeSettings();
   const items = [
     { id: 'home', icon: Sun, label: 'Inicio', onClick: onHomeClick },
     { id: 'bible', icon: BookOpen, label: 'Biblia', onClick: onMenuClick },
@@ -33,7 +35,12 @@ export function MobileBottomNav({
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 glass safe-area-bottom md:hidden border-t border-white/10 shadow-[0_-8px_20px_rgba(0,0,0,0.1)]">
+    <nav className={cn(
+      "fixed bottom-0 left-0 right-0 z-50 border-t border-border safe-area-bottom md:hidden shadow-[0_-8px_40px_rgba(0,0,0,0.15)] transition-all duration-300",
+      activeTheme?.type === 'scenic'
+        ? (activeTheme.uiMode === 'dark' ? "bg-black/60 backdrop-blur-2xl border-white/10" : "bg-white/70 backdrop-blur-xl")
+        : "bg-card"
+    )}>
       <div className="flex items-center justify-around h-20 px-4">
         {items.map((item) => {
           const isActive = activeTab === item.id;
@@ -44,26 +51,26 @@ export function MobileBottomNav({
               key={item.id}
               onClick={item.onClick}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-1.5 p-2 rounded-2xl transition-all duration-300 min-w-[64px]",
+                "relative flex flex-col items-center justify-center gap-1.5 p-2 rounded-2xl transition-all duration-300 min-w-[60px]",
                 isActive ? "text-primary scale-110" : "text-muted-foreground hover:text-foreground",
-                item.isSpecial && "text-purple-600 dark:text-purple-400"
+                item.isSpecial && (isActive ? "text-indigo-600 dark:text-indigo-400" : "text-indigo-400/70 dark:text-indigo-500/70")
               )}
             >
               {isActive && (
                 <motion.div
                   layoutId="nav-active"
-                  className="absolute inset-0 bg-primary/10 rounded-2xl -z-10"
+                  className="absolute inset-0 bg-primary/5 rounded-2xl -z-10"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
               )}
               <Icon className={cn(
-                "h-6 w-6 transition-transform duration-300",
+                "h-5 w-5 transition-transform duration-300",
                 isActive && "scale-110",
                 item.isSpecial && "animate-pulse"
               )} />
               <span className={cn(
-                "text-[10px] font-bold uppercase tracking-wider transition-all duration-300",
-                isActive ? "opacity-100" : "opacity-70"
+                "text-[9px] font-black uppercase tracking-[0.15em] transition-all duration-300",
+                isActive ? "opacity-100" : "opacity-50"
               )}>
                 {item.label}
               </span>
@@ -74,4 +81,3 @@ export function MobileBottomNav({
     </nav>
   );
 }
-

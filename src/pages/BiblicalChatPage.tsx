@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, BookOpen, Sparkles, Loader2, MessageCircle } from 'lucide-react';
+import { Send, BookOpen, Sparkles, Loader2, MessageCircle, X } from 'lucide-react';
 import { callAI, AIMessage } from '../lib/aiProvider';
+import { fetchChapter, bibleBooks } from '../lib/bibleApi';
 
 interface ChatMessage {
     id: string;
@@ -22,10 +23,22 @@ export default function BiblicalChatPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [streamingContent, setStreamingContent] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
+    const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const scrollToBottom = (force = false) => {
+        if (shouldAutoScroll || force) {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    // Detectar si el usuario sube manualmente
+    const handleScroll = () => {
+        if (!scrollContainerRef.current) return;
+        const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+        const isAtBottom = scrollHeight - scrollTop <= clientHeight + 100;
+        setShouldAutoScroll(isAtBottom);
     };
 
     useEffect(() => {
@@ -46,25 +59,93 @@ export default function BiblicalChatPage() {
         setInput('');
         setIsLoading(true);
         setStreamingContent('');
+        setShouldAutoScroll(true); // Forzar scroll al enviar mensaje nuevo
+
+        // --- SISTEMA DE GROUNDING (Detección de Referencias) ---
+        let groundingContext = '';
+        try {
+            // Regex para capturar Libro Capítulo:Versículo-Versículo
+            const refRegex = /([1-3]?\s*[A-ZÁÉÍÓÚa-záéíóú]+)\s+(\d+)(?::(\d+)(?:-(\d+))?)?/g;
+            const matches = [...input.matchAll(refRegex)];
+
+            for (const match of matches) {
+                const bookQuery = match[1].toLowerCase().trim();
+                const chapterNum = parseInt(match[2]);
+
+                // Buscar el libro por nombre o abreviatura
+                const book = bibleBooks.find(b =>
+                    b.name.toLowerCase().includes(bookQuery) ||
+                    b.abbrev.toLowerCase().includes(bookQuery)
+                );
+
+                if (book && chapterNum > 0 && chapterNum <= book.chapters) {
+                    const passage = await fetchChapter(book.id, chapterNum);
+                    if (passage && passage.verses.length > 0) {
+                        let textToInject = `TEXTO REAL DE ${passage.reference}:\n`;
+
+                        const startVerse = match[3] ? parseInt(match[3]) : 1;
+                        const endVerse = match[4] ? parseInt(match[4]) : (match[3] ? parseInt(match[3]) : passage.verses.length);
+
+                        const filteredVerses = passage.verses.filter(v =>
+                            v.verse >= startVerse && v.verse <= endVerse
+                        );
+
+                        if (filteredVerses.length > 0) {
+                            textToInject += filteredVerses.map(v => `${v.verse}. ${v.text}`).join('\n');
+                            groundingContext += `\n\n${textToInject}`;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('Error en grounding:', err);
+        }
+        // ----------------------------------------------------
 
         try {
             // Construir contexto de conversación
             const conversationHistory: AIMessage[] = [
                 {
                     role: 'system',
-                    content: `Eres un asistente bíblico experto y amigable. Tu propósito es ayudar a las personas a comprender mejor la Biblia y responder sus preguntas sobre fe cristiana.
+                    content: `Eres un asistente bíblico de alta erudición, especializado en exégesis pura y análisis documental profundo. 
 
-DIRECTRICES:
-- Responde SIEMPRE en español de manera clara y accesible
-- Cita versículos bíblicos cuando sea relevante (formato: Libro Capítulo:Versículo)
-- Sé respetuoso, compasivo y alentador
-- Si no estás seguro de algo, admítelo honestamente
-- Mantén un tono conversacional pero profesional
-- Proporciona contexto histórico y cultural cuando sea útil
-- Evita debates teológicos controversiales; presenta diferentes perspectivas cuando existan
-- Enfócate en la edificación espiritual del usuario
+ESTILO Y NEUTRALIDAD:
+- Tu enfoque es puramente EXEGÉTICO: explicas lo que el texto dice en su lenguaje y contexto original.
+- Eres NEUTRAL e IMPARCIAL: No tomas partido por doctrinas específicas (Trinitarios, Unitarios, etc.). Tu labor es presentar el texto tal como es.
+- Posees el INTELECTO de un erudito y la PASIÓN de un gran expositor: tus respuestas deben estar bien documentadas y ser transmitidas con convicción y profundidad espiritual, pero sin sesgos sectarios.
 
-Tu objetivo es ser un guía confiable para el estudio bíblico y el crecimiento espiritual.`
+REGLA DE ORO DE VERACIDAD:
+- NO INVENTES CONTENIDO. 
+- Si se te proporciona un "TEXTO REAL", úsalo como tu ÚNICA fuente absoluta de verdad.
+- MANTÉN UN TONO ANALÍTICO Y DOCUMENTADO. Explica el significado histórico, gramatical y espiritual del pasaje sin imponer dogmas externos.
+${groundingContext ? `\nCONTEXTO REAL PARA ESTA CONSULTA (USA ESTO COMO BASE):\n${groundingContext}` : ''}
+
+DIRECTRICES DE FORMATO (ESTRICTO):
+- ESTRUCTURA VISUAL: Usa el siguiente esquema de iconos y secciones para organizar tus respuestas:
+  🤖 **Asistente Bíblico**
+  📖 **Explicación de [Cita Bíblica]**
+
+  🌿 **Contexto Bíblico**
+  (Breve descripción del entorno y situación)
+
+  ✨ **Puntos clave:**
+  🔹 (Título del punto)
+  (Explicación breve)
+  👉 (Implicación o enseñanza)
+
+  🔍 **Análisis Teológico y Lingüístico**
+  (Análisis profundo pero claro, usando 📌 para términos importantes)
+
+  💖 **Aplicación Espiritual**
+  🩺 (Enseñanza para el alma)
+  🌟 (Reflexión final)
+
+  🔑 **Resumen Final**
+  📌 (Puntos finales con ✅)
+
+  🕊️ (Mensaje de despedida breve)
+
+- ESTILO: Deja ESPACIOS EN BLANCO entre secciones para que no se vea apiñado. Evita el uso excesivo de asteriscos. Prioriza la claridad visual y el uso de emojis como viñetas.`
                 },
                 // Incluir últimos 5 mensajes para contexto
                 ...messages.slice(-5).map(msg => ({
@@ -154,7 +235,11 @@ Tu objetivo es ser un guía confiable para el estudio bíblico y el crecimiento 
             {/* Chat Container */}
             <div className="max-w-5xl mx-auto px-4 py-6 flex flex-col" style={{ height: 'calc(100vh - 88px)' }}>
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto mb-4 space-y-4 pr-2">
+                <div
+                    ref={scrollContainerRef}
+                    onScroll={handleScroll}
+                    className="flex-1 overflow-y-auto mb-4 space-y-4 pr-2"
+                >
                     {messages.map((message) => (
                         <div
                             key={message.id}
@@ -162,8 +247,8 @@ Tu objetivo es ser un guía confiable para el estudio bíblico y el crecimiento 
                         >
                             <div
                                 className={`max-w-[80%] rounded-2xl px-5 py-3 shadow-md ${message.role === 'user'
-                                        ? 'bg-gradient-to-br from-purple-500 to-indigo-600 text-white'
-                                        : 'bg-white text-gray-800 border border-purple-100'
+                                    ? 'bg-gradient-to-br from-purple-500 to-indigo-600 text-white'
+                                    : 'bg-white text-gray-800 border border-purple-100'
                                     }`}
                             >
                                 {message.role === 'assistant' && (

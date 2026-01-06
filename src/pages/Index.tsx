@@ -17,10 +17,10 @@ import { useBibleReader } from '@/hooks/useBibleReader';
 import type { BibleBook } from '@/lib/bibleApi';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useThemeSettings } from '@/hooks/useThemeSettings';
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [rightPanelOpen, setRightPanelOpen] = useState(false); // Nuevo: control de panel derecho
   const [rightPanelType, setRightPanelType] = useState<'biblo' | 'study' | 'none'>('none');
   const [searchOpen, setSearchOpen] = useState(false);
   const [favoritesOpen, setFavoritesOpen] = useState(false);
@@ -30,32 +30,18 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'bible' | 'study' | 'biblo' | 'chat' | 'search' | 'favorites'>('home');
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { activeTheme } = useThemeSettings();
 
   const toggleFullView = (type: 'biblo' | 'study') => {
     setActiveTab(type);
     setShowHome(false);
-    setRightPanelOpen(false); // Cerramos el panel lateral si estaba abierto
   };
 
-  // Inicializar tema al cargar
   useEffect(() => {
-    // Verificar si ya se mostró el home en esta sesión
     const homeShown = sessionStorage.getItem('bible_home_dismissed');
     if (homeShown) {
       setShowHome(false);
-    }
-
-    // Cargar configuración del tema guardada
-    try {
-      const saved = localStorage.getItem('bible_theme_settings');
-      if (saved) {
-        const settings = JSON.parse(saved);
-        if (settings.darkMode) {
-          document.documentElement.classList.add('dark');
-        }
-      }
-    } catch (e) {
-      console.error('Error loading theme:', e);
+      setActiveTab('bible');
     }
   }, []);
 
@@ -73,7 +59,6 @@ const Index = () => {
     setShowHome(true);
     setActiveTab('home');
     sessionStorage.removeItem('bible_home_dismissed');
-    setRightPanelOpen(false);
   };
 
   const handleChat = () => {
@@ -116,24 +101,24 @@ const Index = () => {
   const handleNavigation = (book: BibleBook, chapter: number, verse?: number) => {
     navigateTo(book, chapter);
     if (verse) {
-      // Damos un tiempo para que el componente ScriptureReader renderice el nuevo pasaje
       setTimeout(() => {
         const element = document.getElementById(`verse-${verse}`);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          element.classList.add('bg-primary/20');
-          setTimeout(() => element.classList.remove('bg-primary/20'), 2000);
         }
-      }, 500); // Un poco más de tiempo para asegurar carga
+      }, 500);
     }
     setNavModalOpen(false);
   };
 
   return (
-    <div className="h-screen bg-background flex flex-col relative overflow-hidden">
+    <div className="h-screen flex flex-col relative overflow-hidden bg-transparent">
+      {/* 1. Capa de Fondo Base (Provee luz/oscuridad fuera) */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <BackgroundLayer />
+      </div>
 
-      <BackgroundLayer />
-
+      {/* 2. Encabezado (Visible fuera de la Home) */}
       {!showHome && (
         <BibleHeader
           onMenuClick={() => setSidebarOpen(true)}
@@ -156,7 +141,8 @@ const Index = () => {
         />
       )}
 
-      <div className="flex-1 flex overflow-hidden relative min-h-0 bg-background">
+      {/* 3. Área Principal */}
+      <div className="flex-1 flex min-h-0 relative z-10 overflow-hidden">
         <BibleSidebar
           selectedBook={selectedBook}
           selectedChapter={selectedChapter}
@@ -175,64 +161,66 @@ const Index = () => {
           onClose={() => setSidebarOpen(false)}
         />
 
-        <main className="flex-1 flex min-w-0 h-full relative overflow-hidden">
-          {activeTab === 'study' ? (
-            <StudyCenter
-              book={selectedBook}
-              chapter={selectedChapter}
-              passage={passage}
-              isOpen={true}
-              onClose={handleGoHome}
-              isSidebar={false}
-            />
-          ) : activeTab === 'biblo' ? (
-            <AIStudyPanel
-              book={selectedBook}
-              chapter={selectedChapter}
-              passage={passage}
-              isOpen={true}
-              onClose={handleGoHome}
-              isSidebar={false}
-            />
-          ) : (
-            <div className="flex-1 overflow-y-auto pb-24 md:pb-4 scroll-smooth overflow-x-hidden custom-scrollbar">
-              {showHome || activeTab === 'home' ? (
-                <HomeScreen
-                  onStartReading={handleStartReading}
-                  onOpenSearch={() => setSearchOpen(true)}
-                  onOpenStudyCenter={() => toggleFullView('study')}
-                  onOpenFavorites={() => setFavoritesOpen(true)}
-                  onOpenAI={() => toggleFullView('biblo')}
-                  onOpenPlans={() => toggleFullView('study')}
-                  onOpenTheme={() => setThemeOpen(true)}
-                  onOpenMenu={() => setSidebarOpen(true)}
-                />
-              ) : (
-                <ScriptureReader
+        <main className="flex-1 flex flex-col relative min-w-0 overflow-hidden">
+          <AnimatePresence mode="wait">
+            {activeTab === 'study' ? (
+              <motion.div key="study" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-20 bg-background">
+                <StudyCenter
                   book={selectedBook}
                   chapter={selectedChapter}
                   passage={passage}
-                  isLoading={isLoading}
-                  error={error as Error | null}
-                  canGoNext={!!canGoNext}
-                  canGoPrevious={!!canGoPrevious}
-                  onNext={goToNextChapter}
-                  onPrevious={goToPreviousChapter}
-                  onVersionChange={handleVersionChange}
+                  isOpen={true}
+                  onClose={handleGoHome}
+                  isSidebar={false}
                 />
-              )}
-            </div>
-          )}
-
-          {/* Panel Derecho Persistente (Estilo Logos/Premium) */}
-          {/* Panel Lateral removido para usar vista completa centralizada */}
+              </motion.div>
+            ) : activeTab === 'biblo' ? (
+              <motion.div key="biblo" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-20 bg-background">
+                <AIStudyPanel
+                  book={selectedBook}
+                  chapter={selectedChapter}
+                  passage={passage}
+                  isOpen={true}
+                  onClose={handleGoHome}
+                  isSidebar={false}
+                />
+              </motion.div>
+            ) : (
+              <div className="flex-1 flex flex-col overflow-hidden relative">
+                {showHome || activeTab === 'home' ? (
+                  <HomeScreen
+                    onStartReading={handleStartReading}
+                    onOpenSearch={() => setSearchOpen(true)}
+                    onOpenStudyCenter={() => toggleFullView('study')}
+                    onOpenFavorites={() => setFavoritesOpen(true)}
+                    onOpenAI={() => toggleFullView('biblo')}
+                    onOpenPlans={() => toggleFullView('study')}
+                    onOpenTheme={() => setThemeOpen(true)}
+                    onOpenMenu={() => setSidebarOpen(true)}
+                  />
+                ) : (
+                  <ScriptureReader
+                    book={selectedBook}
+                    chapter={selectedChapter}
+                    passage={passage}
+                    isLoading={isLoading}
+                    error={error as Error | null}
+                    canGoNext={!!canGoNext}
+                    canGoPrevious={!!canGoPrevious}
+                    onNext={goToNextChapter}
+                    onPrevious={goToPreviousChapter}
+                    onVersionChange={handleVersionChange}
+                  />
+                )}
+              </div>
+            )}
+          </AnimatePresence>
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation */}
       <MobileBottomNav
         activeTab={activeTab}
-        onHomeClick={() => { setActiveTab('home'); setShowHome(true); }}
+        onHomeClick={handleGoHome}
         onMenuClick={() => { setActiveTab('bible'); setShowHome(false); setSidebarOpen(true); }}
         onSearchClick={() => { setActiveTab('search'); setSearchOpen(true); }}
         onFavoritesClick={() => { setActiveTab('favorites'); setFavoritesOpen(true); }}
@@ -241,7 +229,6 @@ const Index = () => {
         onChatClick={handleChat}
       />
 
-      {/* Panels and Modals */}
       <SearchModal
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}
@@ -256,9 +243,6 @@ const Index = () => {
         chapters={chapters}
         onNavigate={handleNavigation}
       />
-
-      {/* Modales para Móvil (Mismo contenido, diferente presentación) */}
-      {/* Modales para Móvil removidos ya que ahora son vistas principales */}
 
       <ThemeCustomizer
         isOpen={themeOpen}

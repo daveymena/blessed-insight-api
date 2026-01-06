@@ -7,207 +7,91 @@
 
 @layer base {
   :root {
-    /* ========== TEMA LIGHT - MODERNO Y LIMPIO ========== */
+    /* ========== TEMA LIGHT - NATURAL Y LIMPIO (CREMA/BLANCO) ========== */
     --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --foreground: 0 0% 5%;
 
-    /* Tarjetas con sutil elevación */
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card: 35 25% 98%;
+    /* Crema natural sólido */
+    --card-foreground: 0 0% 5%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 0 0% 5%;
 
-    /* COLOR PRIMARIO: Indigo elegante */
-    --primary: 238 83% 66%;
+    --primary: 0 0% 10%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secundario: Gris neutro */
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 35 15% 95%;
+    --secondary-foreground: 0 0% 15%;
 
-    /* Muted: Para elementos sutiles */
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 35 10% 92%;
+    --muted-foreground: 0 0% 40%;
 
-    /* Accent: Para destacados */
-    --accent: 220 14% 96%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 35 20% 90%;
+    --accent-foreground: 0 0% 10%;
 
-    /* Destructive */
-    --destructive: 0 84% 60%;
+    --destructive: 0 80% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Bordes y inputs */
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 238 83% 66%;
+    --border: 35 15% 88%;
+    --input: 35 15% 88%;
+    --ring: 0 0% 0%;
 
-    --radius: 0.75rem;
+    --radius: 1.25rem;
 
-    /* ========== TOKENS PERSONALIZADOS ========== */
-    --scripture-bg: 45 30% 98%;
-    --scripture-border: 45 20% 88%;
-    --verse-number: 238 83% 66%;
-    --gold-accent: 38 92% 50%;
-    --warm-shadow: 220 14% 90%;
-
-    /* Tipografía - Fuentes clásicas bíblicas */
-    --font-serif: 'Crimson Pro', 'EB Garamond', 'Libre Baskerville', Georgia, serif;
-    --font-sans: 'Inter', system-ui, sans-serif;
-
-    /* Sidebar */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 238 83% 66%;
+    --sidebar-background: 35 25% 99%;
+    /* Blanco crema 100% sólido */
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 0 0% 5%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 238 83% 66%;
-
-    /* Gradientes */
-    --gradient-hero: linear-gradient(135deg, hsl(238 83% 66%) 0%, hsl(280 80% 60%) 100%);
-    --gradient-gold: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(28 90% 45%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 14% 98%) 100%);
+    --sidebar-accent: 35 15% 92%;
+    --sidebar-accent-foreground: 0 0% 5%;
+    --sidebar-border: 35 15% 90%;
+    --sidebar-ring: 0 0% 0%;
   }
 
   .dark {
-    /* ========== TEMA DARK - MODERNO ========== */
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
+    /* ========== TEMA DARK - NEUTRO CARBÓN (SIN AZUL) ========== */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 95%;
 
-    --card: 224 71% 6%;
-    --card-foreground: 213 31% 91%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 224 71% 5%;
-    --popover-foreground: 213 31% 91%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 238 83% 70%;
-    --primary-foreground: 224 71% 4%;
+    --primary: 0 0% 90%;
+    --primary-foreground: 0 0% 5%;
 
-    --secondary: 215 28% 17%;
-    --secondary-foreground: 213 31% 91%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 215 28% 17%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 215 28% 17%;
-    --accent-foreground: 213 31% 91%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 0 0% 90%;
 
-    --border: 215 28% 17%;
-    --input: 215 28% 17%;
-    --ring: 238 83% 70%;
-
-    --scripture-bg: 224 71% 8%;
-    --scripture-border: 215 28% 20%;
-    --verse-number: 238 83% 75%;
-    --gold-accent: 38 90% 55%;
-
-    --sidebar-background: 224 71% 4%;
-    --sidebar-foreground: 213 31% 91%;
-    --sidebar-primary: 238 83% 70%;
-    --sidebar-primary-foreground: 224 71% 4%;
-    --sidebar-accent: 215 28% 17%;
-    --sidebar-accent-foreground: 213 31% 91%;
-    --sidebar-border: 215 28% 17%;
-    --sidebar-ring: 238 83% 70%;
+    --sidebar-background: 0 0% 6%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 0 0% 85%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 0 0% 80%;
   }
 
-  /* ========== TEMA SEPIA - Lectura Cómoda ========== */
-  .theme-sepia {
-    --background: 35 40% 97%;
-    --foreground: 25 30% 15%;
-
-    --card: 35 45% 96%;
-    --card-foreground: 25 30% 15%;
-
-    --popover: 35 45% 97%;
-    --popover-foreground: 25 30% 15%;
-
-    --primary: 25 65% 40%;
-    --primary-foreground: 35 40% 97%;
-
-    --secondary: 35 30% 93%;
-    --secondary-foreground: 25 50% 30%;
-
-    --muted: 35 25% 92%;
-    --muted-foreground: 25 20% 45%;
-
-    --accent: 35 35% 91%;
-    --accent-foreground: 25 65% 40%;
-
-    --border: 35 25% 88%;
-    --input: 35 25% 90%;
-    --ring: 25 65% 45%;
-
-    --scripture-bg: 35 45% 96%;
-    --verse-number: 25 65% 45%;
-  }
-
-  /* ========== TEMA NAVY - Lectura Nocturna Premium ========== */
-  .theme-navy {
-    --background: 220 50% 6%;
-    --foreground: 40 30% 95%;
-
-    --card: 220 45% 9%;
-    --card-foreground: 40 30% 95%;
-
-    --popover: 220 50% 7%;
-    --popover-foreground: 40 30% 95%;
-
-    --primary: 40 80% 55%;
-    --primary-foreground: 220 50% 6%;
-
-    --secondary: 220 40% 14%;
-    --secondary-foreground: 40 30% 90%;
-
-    --muted: 220 35% 16%;
-    --muted-foreground: 220 20% 55%;
-
-    --accent: 220 35% 18%;
-    --accent-foreground: 40 75% 60%;
-
-    --border: 220 35% 15%;
-    --input: 220 35% 14%;
-    --ring: 40 80% 55%;
-
-    --scripture-bg: 220 45% 8%;
-    --verse-number: 40 80% 60%;
-  }
-
-  /* ========== TEMA SLATE - Moderno Minimalista ========== */
-  .theme-slate {
-    --background: 210 15% 98%;
-    --foreground: 215 25% 15%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
-
-    --primary: 215 80% 50%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 210 20% 96%;
-    --secondary-foreground: 215 25% 25%;
-
-    --muted: 210 15% 95%;
-    --muted-foreground: 215 15% 50%;
-
-    --accent: 210 20% 94%;
-    --accent-foreground: 215 80% 50%;
-
-    --border: 210 20% 92%;
-    --input: 210 20% 94%;
-    --ring: 215 80% 55%;
-
-    --scripture-bg: 210 15% 97%;
-    --verse-number: 215 80% 50%;
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
   }
 }
 
@@ -218,7 +102,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply text-foreground font-sans antialiased bg-background;
     font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -470,7 +354,7 @@
 }
 
 /* Primera letra decorativa en párrafos principales */
-.scripture-response > div > p:first-of-type::first-letter {
+.scripture-response>div>p:first-of-type::first-letter {
   font-size: 2.5em;
   font-weight: 600;
   float: left;
