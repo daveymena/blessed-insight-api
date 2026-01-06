@@ -4,24 +4,20 @@ import { BibleSidebar } from '@/components/BibleSidebar';
 import { ScriptureReader } from '@/components/ScriptureReader';
 import { AIStudyPanel } from '@/components/AIStudyPanel';
 import { SearchModal } from '@/components/SearchModal';
-import { FavoritesPanel } from '@/components/FavoritesPanel';
 import { StudyCenter } from '@/components/StudyCenter';
 import { ThemeCustomizer } from '@/components/ThemeCustomizer';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { BackgroundLayer } from '@/components/BackgroundLayer';
 import { HomeScreen } from '@/components/HomeScreen';
-import { WelcomeCover } from '@/components/WelcomeCover';
 import { NavigationModal } from '@/components/NavigationModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBibleReader } from '@/hooks/useBibleReader';
 import type { BibleBook } from '@/lib/bibleApi';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { useThemeSettings } from '@/hooks/useThemeSettings';
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [rightPanelType, setRightPanelType] = useState<'biblo' | 'study' | 'none'>('none');
   const [searchOpen, setSearchOpen] = useState(false);
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
@@ -30,7 +26,6 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'bible' | 'study' | 'biblo' | 'chat' | 'search' | 'favorites'>('home');
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { activeTheme } = useThemeSettings();
 
   const toggleFullView = (type: 'biblo' | 'study') => {
     setActiveTab(type);
@@ -162,10 +157,10 @@ const Index = () => {
           onClose={() => setSidebarOpen(false)}
         />
 
-        <main className="flex-1 flex flex-col relative min-w-0 overflow-hidden pb-16 md:pb-0">
+        <main className="flex-1 flex flex-col relative min-w-0 overflow-hidden">
           <AnimatePresence mode="wait">
             {activeTab === 'study' ? (
-              <motion.div key="study" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 overflow-auto bg-background">
+              <motion.div key="study" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 overflow-auto bg-background pb-20 lg:pb-0">
                 <StudyCenter
                   book={selectedBook}
                   chapter={selectedChapter}
@@ -176,7 +171,7 @@ const Index = () => {
                 />
               </motion.div>
             ) : activeTab === 'biblo' ? (
-              <motion.div key="biblo" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 overflow-auto bg-background">
+              <motion.div key="biblo" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 overflow-auto bg-background pb-20 lg:pb-0">
                 <AIStudyPanel
                   book={selectedBook}
                   chapter={selectedChapter}

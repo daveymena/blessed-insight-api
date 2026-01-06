@@ -1,17 +1,8 @@
-import { BookOpen, Menu, Sparkles, Search, Heart, Moon, Sun, Languages, GraduationCap, Palette, ChevronDown, Home, MoreVertical, X, MessageCircle, Share2 } from 'lucide-react';
-import { Logo } from './Logo';
+import { BookOpen, Menu, Moon, Sun, Palette, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { VersionSelector } from './VersionSelector';
 import { useThemeSettings } from '@/hooks/useThemeSettings';
-import { toast } from 'sonner';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
 import type { BibleBook } from '@/lib/bibleApi';
 
@@ -75,63 +66,32 @@ export function BibleHeader({
         : "bg-card border-border"
     )}>
       <div className="flex items-center justify-between h-14 px-3 md:px-6">
-        {/* Lado izquierdo */}
+        {/* Lado izquierdo: Menú hamburguesa + Título */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <Button variant="ghost" size="icon" className="shrink-0" onClick={onHomeClick}>
-            <Logo size={32} />
+          <Button variant="ghost" size="icon" className="shrink-0" onClick={onMenuClick}>
+            <Menu className="h-5 w-5" />
           </Button>
 
-          <div className="flex items-center gap-1 cursor-pointer hover:bg-secondary/50 p-1.5 rounded-lg truncate" onClick={onTitleClick}>
-            <h1 className="text-sm md:text-base font-serif font-black flex items-center gap-1 truncate">
-              {selectedBook ? `${selectedBook.abbrev} ${selectedChapter}` : "Blessed Insight"}
-              <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
-            </h1>
+          <div className="flex items-center gap-2 cursor-pointer hover:bg-secondary/50 px-2 py-1 rounded-lg" onClick={onTitleClick}>
+            <BookOpen className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-sm md:text-base font-serif font-bold truncate">
+              {selectedBook ? `${selectedBook.name} ${selectedChapter}` : "Biblia"}
+            </span>
+            <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
           </div>
         </div>
 
-        {/* Lado derecho */}
-        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-          <div className="hidden sm:block">
-            <VersionSelector onVersionChange={onVersionChange} />
-          </div>
-
-          <Button variant="ghost" size="icon" onClick={onChatClick} className="text-blue-600 dark:text-blue-400">
-            <MessageCircle className="h-5 w-5" />
+        {/* Lado derecho: Versión + Tema + Modo oscuro */}
+        <div className="flex items-center gap-1 shrink-0">
+          <VersionSelector onVersionChange={onVersionChange} />
+          
+          <Button variant="ghost" size="icon" onClick={onThemeClick}>
+            <Palette className="h-5 w-5" />
           </Button>
-
-          <Button variant="ghost" size="icon" onClick={onAIClick} className="text-purple-600 dark:text-purple-400">
-            <Sparkles className="h-5 w-5" />
+          
+          <Button variant="ghost" size="icon" onClick={handleDarkModeToggle}>
+            {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
-
-          {/* Menú Móvil */}
-          <div className="sm:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon"><MoreVertical className="h-5 w-5" /></Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={onMenuClick}><BookOpen className="h-4 w-4 mr-2" /> Libros</DropdownMenuItem>
-                <DropdownMenuItem onClick={onSearchClick}><Search className="h-4 w-4 mr-2" /> Buscar</DropdownMenuItem>
-                <DropdownMenuItem onClick={onThemeClick}><Palette className="h-4 w-4 mr-2" /> Temas</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <div className="px-2 py-1.5">
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Versión</span>
-                  <div className="mt-2">
-                    <VersionSelector onVersionChange={onVersionChange} />
-                  </div>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Versión Tablet/Desktop */}
-          <div className="hidden sm:flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={onMenuClick}><BookOpen className="h-5 w-5" /></Button>
-            <Button variant="ghost" size="icon" onClick={onThemeClick}><Palette className="h-5 w-5" /></Button>
-            <Button variant="ghost" size="icon" onClick={handleDarkModeToggle}>
-              {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
-          </div>
         </div>
       </div>
     </header>
