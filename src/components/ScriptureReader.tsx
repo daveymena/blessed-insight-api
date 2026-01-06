@@ -215,7 +215,7 @@ Usa ESTRICTAMENTE este formato visual:
         {/* El fondo ahora es global (BackgroundLayer en Index.tsx) */}
 
         <div className={cn(
-          "max-w-3xl mx-auto px-6 md:px-14 py-12 md:py-20 relative z-10 min-h-screen transition-all"
+          "max-w-3xl mx-auto px-4 sm:px-6 md:px-14 py-8 sm:py-12 md:py-20 relative z-10 min-h-screen transition-all"
         )}>
           <AnimatePresence mode="wait">
             {isLoading ? (

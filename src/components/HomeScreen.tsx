@@ -163,8 +163,8 @@ export function HomeScreen({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <p className="text-white/80 text-sm font-bold uppercase tracking-[0.2em] mb-2">{greeting}</p>
-            <h2 className="text-5xl md:text-6xl font-serif font-black text-white mb-6 drop-shadow-2xl leading-[1.1]">
+            <p className="text-white/80 text-xs md:text-sm font-bold uppercase tracking-[0.2em] mb-2">{greeting}</p>
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-serif font-black text-white mb-6 drop-shadow-2xl leading-[1.1]">
               Tu espacio de<br />encuentro espiritual
             </h2>
             <Button
@@ -181,8 +181,8 @@ export function HomeScreen({
 
       {/* Contenido Principal */}
       <div className={cn(
-        "px-5 py-8 space-y-10 max-w-2xl mx-auto -mt-10 relative z-10",
-        hasScenicBackground && (isDarkMode ? "bg-gradient-to-b from-black/20 to-black/60 rounded-t-[3rem] backdrop-blur-sm" : "bg-gradient-to-b from-white/10 to-white/40 rounded-t-[3rem] backdrop-blur-sm")
+        "px-4 sm:px-5 py-8 space-y-8 md:space-y-10 max-w-2xl mx-auto -mt-12 sm:-mt-10 relative z-10 w-full overflow-x-hidden",
+        hasScenicBackground && (isDarkMode ? "bg-gradient-to-b from-black/20 to-black/60 rounded-t-[2.5rem] sm:rounded-t-[3rem] backdrop-blur-sm" : "bg-gradient-to-b from-white/10 to-white/40 rounded-t-[2.5rem] sm:rounded-t-[3rem] backdrop-blur-sm")
       )}>
 
         {/* Grid de Acciones Principales */}
@@ -196,7 +196,7 @@ export function HomeScreen({
           <button
             onClick={onOpenAI}
             className={cn(
-              "group relative overflow-hidden rounded-[2.5rem] border p-6 text-left transition-all duration-500 hover:shadow-2xl active:scale-[0.97]",
+              "group relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-6 text-left transition-all duration-500 hover:shadow-2xl active:scale-[0.97]",
               cardBaseClass
             )}
           >
@@ -216,7 +216,7 @@ export function HomeScreen({
           <button
             onClick={onOpenStudyCenter}
             className={cn(
-              "group relative overflow-hidden rounded-[2.5rem] border p-6 text-left transition-all duration-500 hover:shadow-2xl active:scale-[0.97]",
+              "group relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-6 text-left transition-all duration-500 hover:shadow-2xl active:scale-[0.97]",
               cardBaseClass
             )}
           >
@@ -238,7 +238,7 @@ export function HomeScreen({
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-3 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4"
         >
           {[
             { icon: Heart, label: 'Favoritos', onClick: onOpenFavorites, color: 'text-rose-500', bg: 'bg-rose-500/10' },
@@ -249,15 +249,15 @@ export function HomeScreen({
               key={i}
               onClick={action.onClick}
               className={cn(
-                "flex flex-col items-center justify-center gap-3 p-5 rounded-[2rem] border transition-all active:scale-95 group",
+                "flex flex-row sm:flex-col items-center justify-start sm:justify-center gap-4 sm:gap-3 p-4 sm:p-5 rounded-2xl sm:rounded-[2rem] border transition-all active:scale-95 group",
                 cardBaseClass,
                 "hover:border-primary/40"
               )}
             >
-              <div className={cn("p-3 rounded-2xl transition-transform group-hover:scale-110 shadow-inner", action.bg)}>
-                <action.icon className={cn("h-6 w-6", action.color)} />
+              <div className={cn("p-2.5 sm:p-3 rounded-xl sm:rounded-2xl transition-transform group-hover:scale-110 shadow-inner shrink-0", action.bg)}>
+                <action.icon className={cn("h-5 w-5 sm:h-6 sm:w-6", action.color)} />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80" style={{ color: activeTheme.textColor }}>{action.label}</span>
+              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] opacity-80" style={{ color: activeTheme.textColor }}>{action.label}</span>
             </button>
           ))}
         </motion.div>
@@ -279,12 +279,12 @@ export function HomeScreen({
                 </Badge>
               </div>
               <CardContent className={cn(
-                "p-8 relative",
+                "p-6 sm:p-8 relative",
                 hasScenicBackground
                   ? (isDarkMode ? "bg-black/60 backdrop-blur-2xl" : "bg-white/80 backdrop-blur-2xl")
                   : "bg-card text-card-foreground"
               )}>
-                <blockquote className="text-2xl font-serif italic leading-[1.4] mb-8" style={{ color: activeTheme.textColor }}>
+                <blockquote className="text-xl sm:text-2xl font-serif italic leading-[1.4] mb-8" style={{ color: activeTheme.textColor }}>
                   "{currentVerse.text}"
                 </blockquote>
                 <div className="flex items-center justify-between pt-6 border-t border-black/10">
@@ -318,7 +318,7 @@ export function HomeScreen({
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
                 className={cn(
-                  "rounded-[2rem] p-6 border transition-all group hover:shadow-xl",
+                  "rounded-2xl sm:rounded-[2rem] p-4 sm:p-6 border transition-all group hover:shadow-xl",
                   cardBaseClass
                 )}
               >

@@ -512,7 +512,7 @@ export function StudyCenter({ book, chapter, passage, isOpen, onClose, isSidebar
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
           <TabsList className={cn(
             "grid rounded-none border-b h-auto p-0 flex-shrink-0",
-            isSidebar ? "grid-cols-3" : "grid-cols-6"
+            isSidebar ? "grid-cols-3" : "grid-cols-3 md:grid-cols-6"
           )}>
             {[
               { id: 'exegesis', icon: GraduationCap, label: 'Exégesis' },

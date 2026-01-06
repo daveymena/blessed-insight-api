@@ -112,7 +112,7 @@ const Index = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col relative overflow-hidden bg-transparent">
+    <div className="h-[100dvh] w-full flex flex-col relative overflow-hidden bg-transparent">
       {/* 1. Capa de Fondo Base (Provee luz/oscuridad fuera) */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <BackgroundLayer />
