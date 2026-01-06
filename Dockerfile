@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -51,7 +51,7 @@ RUN apt-get update -y && apt-get install -y openssl
 
 # Copy server package files
 COPY server/package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copy server source
 COPY server/ ./
