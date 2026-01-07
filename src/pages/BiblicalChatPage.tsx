@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, BookOpen, Sparkles, Loader2, MessageCircle, X } from 'lucide-react';
+import { Send, BookOpen, Sparkles, Loader2, MessageCircle, ArrowLeft } from 'lucide-react';
 import { callAI, AIMessage } from '../lib/aiProvider';
 import { fetchChapter, bibleBooks } from '../lib/bibleApi';
+import { BIBLO_CHAT_SYSTEM } from '../lib/bibloConfig';
+import { useNavigate } from 'react-router-dom';
 
 interface ChatMessage {
     id: string;
@@ -11,11 +13,12 @@ interface ChatMessage {
 }
 
 export default function BiblicalChatPage() {
+    const navigate = useNavigate();
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             id: '1',
             role: 'assistant',
-            content: '¡Bienvenido! Soy tu asistente bíblico personal. Puedo ayudarte con:\n\n📖 Preguntas sobre versículos y pasajes\n🙏 Consultas teológicas y doctrinales\n💡 Interpretación de textos bíblicos\n❓ Dudas sobre historias y personajes bíblicos\n✝️ Orientación espiritual basada en las Escrituras\n\n¿En qué puedo ayudarte hoy?',
+            content: '¡Shalom! 🕊️ Soy Biblo, tu asistente bíblico personal.\n\nPuedo ayudarte con:\n\n📖 Preguntas sobre versículos y pasajes\n🙏 Consultas teológicas y doctrinales\n💡 Interpretación de textos bíblicos\n❓ Dudas sobre historias y personajes\n✝️ Orientación espiritual\n\n¿En qué puedo ayudarte hoy?',
             timestamp: new Date()
         }
     ]);
@@ -107,46 +110,7 @@ export default function BiblicalChatPage() {
             const conversationHistory: AIMessage[] = [
                 {
                     role: 'system',
-                    content: `Eres "Biblo", un asistente bíblico sabio, cálido y conocedor. Tu misión es responder preguntas sobre la Biblia de forma clara, precisa y basada en las Escrituras.
-
-REGLA CRÍTICA DE CONTEXTO:
-- SIEMPRE lee el historial de conversación completo antes de responder.
-- Si el usuario hace una pregunta de seguimiento (como "¿y él?", "¿qué más?", "cuéntame más"), DEBES referirte al tema anterior de la conversación.
-- NUNCA confundas personajes o temas. Si hablábamos de David y preguntan por Job, responde SOLO sobre Job.
-- Cada nueva pregunta sobre un personaje o tema diferente es un CAMBIO DE TEMA - responde sobre el nuevo tema.
-
-TIPOS DE RESPUESTA:
-
-📌 PERSONAJES BÍBLICOS (ej: "¿Quién fue David?", "¿Quién fue Job?"):
-- Nombre completo y significado
-- Época y contexto histórico
-- Rol en la historia bíblica
-- Libros donde aparece
-- Versículos clave sobre esa persona
-- Lecciones de su vida
-
-📌 PASAJES BÍBLICOS (ej: "¿Qué significa Juan 3:16?"):
-- Contexto del pasaje
-- Significado de palabras clave
-- Aplicación práctica
-
-📌 TEMAS DOCTRINALES (ej: "¿Qué dice la Biblia sobre el perdón?"):
-- Versículos relevantes
-- Explicación del concepto
-- Aplicación a la vida
-
-📌 ORIENTACIÓN ESPIRITUAL:
-- Consejos basados en la Biblia
-- Versículos de apoyo
-- Tono empático y alentador
-
-${groundingContext ? `\nTEXTO BÍBLICO DE REFERENCIA:\n${groundingContext}` : ''}
-
-FORMATO:
-- Usa emojis con moderación (📖 ✝️ 🙏 💡)
-- Párrafos claros y separados
-- Citas en formato: "Texto" (Libro Capítulo:Versículo)
-- Respuestas completas pero concisas`
+                    content: `${BIBLO_CHAT_SYSTEM}${groundingContext ? `\n\nTEXTO BÍBLICO DE REFERENCIA:\n${groundingContext}` : ''}`
                 }
             ];
 
@@ -225,18 +189,24 @@ FORMATO:
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-950 dark:to-slate-900">
             {/* Header */}
-            <header className="bg-white/80 backdrop-blur-md border-b border-purple-200 sticky top-0 z-10 shadow-sm">
-                <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
-                    <div className="bg-gradient-to-br from-purple-500 to-indigo-600 p-2.5 rounded-xl shadow-lg">
-                        <MessageCircle className="w-6 h-6 text-white" />
+            <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-purple-200 dark:border-purple-900 sticky top-0 z-10 shadow-sm">
+                <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
+                    <button 
+                        onClick={() => navigate('/')}
+                        className="p-2 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
+                    >
+                        <ArrowLeft className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    </button>
+                    <div className="bg-gradient-to-br from-purple-500 to-indigo-600 p-2 rounded-xl shadow-lg">
+                        <MessageCircle className="w-5 h-5 text-white" />
                     </div>
-                    <div>
-                        <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                            Chat Bíblico
+                    <div className="flex-1">
+                        <h1 className="text-lg font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                            Chat con Biblo
                         </h1>
-                        <p className="text-sm text-gray-600">Tu asistente para consultas cristianas</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Tu asistente bíblico</p>
                     </div>
                 </div>
             </header>

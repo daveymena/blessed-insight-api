@@ -2,15 +2,7 @@
 // Incluye: Exégesis, Planes de lectura, Devocionales, Estudios temáticos
 
 import { callAI, callAIFast, type AIResponse } from './aiProvider';
-
-// ============ CONTEXTO DEL SISTEMA ============
-const BIBLE_SCHOLAR = `Eres un teólogo bíblico de élite con formación académica avanzada. 
-Tu enfoque combina la exégesis rigurosa con la aplicación transformadora.
-Sigues el estándar de biblias de estudio como la MacArthur o la ESV Study Bible.
-Principios: Inerrancia, Sola Scriptura y contexto gramático-histórico.
-Responde siempre con estructura clara, usando negritas para enfatizar y emojis para guiar la lectura.`;
-
-const BIBLE_EXPERT_SIMPLE = `Eres un guía bíblico experto. Responde en español con profundidad teológica pero lenguaje pastoral.`;
+import { BIBLO_IDENTITY, BIBLO_EXEGESIS_SYSTEM, BIBLO_STUDY_SYSTEM, BIBLO_QUICK_SYSTEM } from './bibloConfig';
 
 // ============ EXÉGESIS (VERSIÓN PROFESIONAL) ============
 export async function performExegesis(
@@ -23,39 +15,22 @@ export async function performExegesis(
   const reference = customReference || `${bookName} ${chapter}`;
 
   const messages = [
-    { role: 'system' as const, content: BIBLE_SCHOLAR },
+    { role: 'system' as const, content: BIBLO_EXEGESIS_SYSTEM },
     {
-      role: 'user' as const, content: `REALIZA UNA EXÉGESIS PROFUNDA Y ESTRUCTURADA DE ${reference}.
+      role: 'user' as const, content: `Realiza un estudio profundo de ${reference}.
 
-Pasaje clave: ${passage ? `"${passage.substring(0, 1000)}"` : 'Analiza el capítulo completo.'}
+${passage ? `Texto: "${passage.substring(0, 1000)}"` : 'Analiza el capítulo completo.'}
 
-Sigue estrictamente este formato de Biblia de Estudio Profesional:
-
-1. 🏛️ CONTEXTO HISTÓRICO Y CULTURAL
-   - ¿Quién escribió esto y a quién?
-   - ¿Cuál era la situación política/social/espiritual que motivó este escrito?
-
-2. 📐 ESTRUCTURA LITERARIA
-   - ¿Cómo encaja este pasaje en el argumento total del libro?
-   - Bosquejo rápido del flujo de pensamiento del autor.
-
-3. 🔍 ANÁLISIS EXEGÉTICO (Verso por Verso)
-   - Explica los términos clave en sus idiomas originales (Hebreo/Griego) si es relevante.
-   - Aclara pasajes difíciles o controversias teológicas.
-
-4. ✝️ SÍNTESIS DOCTRINAL
-   - ¿Qué nos enseña este texto sobre el carácter de Dios, la condición humana o la obra de Cristo?
-   - Conexiones con el resto de la Biblia (Teología Bíblica).
-
-5. 💡 APLICACIÓN TEOMÉTRICA
-   - ¿Cómo cambia este texto nuestra forma de pensar, sentir y actuar hoy?
-   - 3 puntos de aplicación radical.
-
-6. 🙏 ORACIÓN LITÚRGICA
-   - Una oración basada estrictamente en las verdades de este texto.` }
+Incluye:
+1. 🏛️ Contexto histórico y cultural
+2. 📐 Estructura del pasaje
+3. 🔍 Análisis de términos clave
+4. ✝️ Enseñanzas doctrinales
+5. 💡 Aplicación práctica
+6. 🙏 Oración basada en el texto` }
   ];
 
-  return callAI(messages, 4000, onProgress); // Increased for deep exegesis
+  return callAI(messages, 4000, onProgress);
 }
 
 // ============ ESTUDIO TEMÁTICO (VERSIÓN PROFESIONAL) ============
