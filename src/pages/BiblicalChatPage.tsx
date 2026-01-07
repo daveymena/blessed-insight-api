@@ -106,35 +106,22 @@ export default function BiblicalChatPage() {
         // ----------------------------------------------------
 
         try {
-            // Construir contexto de conversación con TODOS los mensajes relevantes
+            // Construir contexto - SOLO el mensaje actual para evitar confusión del modelo
             const conversationHistory: AIMessage[] = [
                 {
                     role: 'system',
-                    content: `${BIBLO_CHAT_SYSTEM}${groundingContext ? `\n\nTEXTO BÍBLICO DE REFERENCIA:\n${groundingContext}` : ''}`
+                    content: `${BIBLO_CHAT_SYSTEM}${groundingContext ? `\n\nTEXTO BÍBLICO:\n${groundingContext}` : ''}`
+                },
+                {
+                    role: 'user',
+                    content: userMessage.content
                 }
             ];
 
-            // Incluir TODOS los mensajes de la conversación (excepto el de bienvenida)
-            const relevantMessages = messages.filter(m => m.id !== '1');
-            
-            // Agregar historial completo para mantener contexto
-            relevantMessages.forEach(msg => {
-                conversationHistory.push({
-                    role: msg.role as 'user' | 'assistant',
-                    content: msg.content
-                });
-            });
-
-            // Agregar el mensaje actual del usuario
-            conversationHistory.push({
-                role: 'user',
-                content: userMessage.content
-            });
-
-            // Llamar a la IA con streaming
+            // Llamar a la IA
             const response = await callAI(
                 conversationHistory,
-                4000,
+                2500,
                 (content) => {
                     setStreamingContent(content);
                 }
